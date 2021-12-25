@@ -70,6 +70,13 @@ struct Fraction
     }
 };
 
+std::string parenthesize(std::string s)
+{
+    std::stringstream ss;
+    ss << '(' << s << ')';
+    return ss.str();
+}
+
 template<typename T>
 struct UsefulFraction
 {
@@ -77,9 +84,101 @@ struct UsefulFraction
     std::function<T(T)> operate;
 };
 
+template<typename T>
+struct MathOp
+{
+    virtual T get() const = 0;
+    virtual int order() const = 0;
+    virtual std::string to_string() const = 0;
+};
+
+template<typename T>
+struct MathOpConstant : public MathOp<T>
+{
+    MathOpConstant(T c)
+        : c(c)
+    { }
+
+    T get() const override { return c; }
+    int order() const override { return 0; }
+    std::string to_string() const
+    {
+        std::stringstream ss;
+        ss << c;
+        return ss.str();
+    }
+
+private:
+    T c;
+};
+
+template<typename T>
+struct MathOpMul : public MathOp<T>
+{
+    MathOpMul(MathOp<T>& a, MathOp<T>& b)
+        : a(a), b(b)
+    { }
+
+    T get() const override { return a.get() * b.get(); }
+    int order() const override { return 10; }
+    std::string to_string() const
+    {
+        std::string sa = a.order() > order() ? parenthesize(a.to_string()): a.to_string();
+        if (b.get() == 1)
+        {
+            return sa;
+        }
+
+        std::string sb = b.order() > order() ? parenthesize(b.to_string()): b.to_string();
+        if (a.get() == 1)
+        {
+            return sb;
+        }
+
+        std::stringstream ss;
+        ss << sa << " ⋅ " << sb;
+        return ss.str();
+    }
+
+private:
+    MathOp<T>& a;
+    MathOp<T>& b;
+};
+
+template<typename T>
+struct MathOpAdd : public MathOp<T>
+{
+    MathOpAdd(MathOp<T>& a, MathOp<T>& b)
+        : a(a), b(b)
+    { }
+
+    T get() const override { return a.get() + b.get(); }
+    int order() const override { return 20; }
+    std::string to_string() const
+    {
+        std::stringstream ss;
+        std::string sa = a.order() > order() ? parenthesize(a.to_string()): a.to_string();
+        std::string sb = b.order() > order() ? parenthesize(b.to_string()): b.to_string();
+        ss << sa << " + " << sb;
+        return ss.str();
+    }
+
+private:
+    MathOp<T>& a;
+    MathOp<T>& b;
+};
 
 int main(int, char**)
 {
+    MathOpConstant<double> a(21);
+    MathOpConstant<double> b(2);
+    MathOpConstant<double> c(.5);
+    MathOpAdd<double> d(b, c);
+    MathOpMul<double> e(a, d);
+
+    std::cout << e.to_string() << " = " << e.get() << '\n';
+
+    return 0 ;
     std::array<UsefulFraction<double>, 7> uses
     {
         (UsefulFraction<double> {  "(%g) / (%g)",  [](double x) { return x; }}),
