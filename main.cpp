@@ -21,13 +21,6 @@ struct Fraction
         : numerator(numerator), denominator(denominator)
     { }
 
-    // std::string str()
-    // {
-    //     std::stringstream ss;
-    //     ss << std::setprecision(30) << numerator << " / " << std::setprecision(30) << denominator;
-    //     return ss.str();
-    // }
-
     static Fraction<T> quiet_NaN()
     {
         return Fraction<T>(std::numeric_limits<T>::quiet_NaN(), std::numeric_limits<T>::quiet_NaN());
@@ -70,13 +63,6 @@ struct Fraction
     }
 };
 
-std::string parenthesize(std::string s)
-{
-    std::stringstream ss;
-    ss << '(' << s << ')';
-    return ss.str();
-}
-
 template<typename T>
 struct UsefulFraction
 {
@@ -89,7 +75,29 @@ struct MathOp
 {
     virtual T get() const = 0;
     virtual int order() const = 0;
-    virtual std::string to_string() const = 0;
+    virtual std::ostream& to_stream(std::ostream& stream, int parent_order) const = 0;
+
+    std::ostream& to_stream_paren(std::ostream& stream, int parent_order) const
+    {
+        if (parent_order < order())
+        {
+            stream << '(';
+        }
+
+        to_stream(stream, parent_order);
+
+        if (parent_order < order())
+        {
+            stream << ')';
+        }
+
+        return stream;
+    }
+
+    friend std::ostream& operator<<(std::ostream &stream, const MathOp<T> &op)
+    {
+        return op.to_stream_paren(stream, std::numeric_limits<int>::max());
+    }
 };
 
 template<typename T>
@@ -101,82 +109,148 @@ struct MathOpConstant : public MathOp<T>
 
     T get() const override { return c; }
     int order() const override { return 0; }
-    std::string to_string() const
-    {
-        std::stringstream ss;
-        ss << c;
-        return ss.str();
-    }
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << c; }
 
 private:
     T c;
 };
 
-template<typename T>
-struct MathOpMul : public MathOp<T>
+template<typename T, typename U>
+struct MathDuOp : public MathOp<T>
 {
-    MathOpMul(MathOp<T>& a, MathOp<T>& b)
-        : a(a), b(b)
+    MathDuOp(MathOp<T>& lhs, MathOp<T>& rhs, int order, std::string symbol, U f = U())
+        : lhs(lhs), rhs(rhs), o(order), symbol(symbol), f(f)
     { }
 
-    T get() const override { return a.get() * b.get(); }
-    int order() const override { return 10; }
-    std::string to_string() const
+    T get() const override { return f(lhs.get(), rhs.get()); }
+    int order() const override { return o; }
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const
     {
-        std::string sa = a.order() > order() ? parenthesize(a.to_string()): a.to_string();
-        if (b.get() == 1)
-        {
-            return sa;
-        }
+        lhs.to_stream_paren(stream, order());
+        stream << symbol;
+        rhs.to_stream_paren(stream, order());
 
-        std::string sb = b.order() > order() ? parenthesize(b.to_string()): b.to_string();
-        if (a.get() == 1)
-        {
-            return sb;
-        }
-
-        std::stringstream ss;
-        ss << sa << " ⋅ " << sb;
-        return ss.str();
+        return stream;
     }
 
-private:
-    MathOp<T>& a;
-    MathOp<T>& b;
+protected:
+    MathOp<T>& lhs;
+    MathOp<T>& rhs;
+    int o;
+    std::string symbol;
+    U f;
 };
 
 template<typename T>
-struct MathOpAdd : public MathOp<T>
+struct MathOpMul : public MathDuOp<T, std::multiplies<T>>
 {
-    MathOpAdd(MathOp<T>& a, MathOp<T>& b)
-        : a(a), b(b)
+    MathOpMul(MathOp<T>& lhs, MathOp<T>& rhs)
+        : MathDuOp<T, std::multiplies<T>>(lhs, rhs, 10, " * ")
     { }
 
-    T get() const override { return a.get() + b.get(); }
-    int order() const override { return 20; }
-    std::string to_string() const
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const
     {
-        std::stringstream ss;
-        std::string sa = a.order() > order() ? parenthesize(a.to_string()): a.to_string();
-        std::string sb = b.order() > order() ? parenthesize(b.to_string()): b.to_string();
-        ss << sa << " + " << sb;
-        return ss.str();
-    }
+        T l = this->lhs.get();
+        T r = this->rhs.get();
 
-private:
-    MathOp<T>& a;
-    MathOp<T>& b;
+        if (l == 0 || r == 0)
+        {
+            return stream << '0';
+        }
+
+        if (r == 1)
+        {
+            return this->lhs.to_stream_paren(stream, parent_order);
+        }
+
+        if (l == 1)
+        {
+            return this->rhs.to_stream_paren(stream, parent_order);
+        }
+
+        return MathDuOp<T, std::multiplies<T>>::to_stream(stream, parent_order);
+    }
+};
+
+template<typename T>
+struct MathOpDiv : public MathDuOp<T, std::divides<T>>
+{
+    MathOpDiv(MathOp<T>& lhs, MathOp<T>& rhs)
+        : MathDuOp<T, std::divides<T>>(lhs, rhs, 10, " / ")
+    { }
+
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const
+    {
+        if (this->rhs.get() == 1)
+        {
+            return this->lhs.to_stream_paren(stream, parent_order);
+        }
+
+        if (this->lhs.get() == 0)
+        {
+            return stream << '0';
+        }
+
+        return MathDuOp<T, std::divides<T>>::to_stream(stream, parent_order);
+    }
+};
+
+template<typename T>
+struct MathOpAdd : public MathDuOp<T, std::plus<T>>
+{
+    MathOpAdd(MathOp<T>& lhs, MathOp<T>& rhs)
+        : MathDuOp<T, std::plus<T>>(lhs, rhs, 100, " + ")
+    { }
+
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const
+    {
+        if (this->rhs.get() == 0)
+        {
+            return this->lhs.to_stream_paren(stream, parent_order);
+        }
+
+        if (this->lhs.get() == 0)
+        {
+            return this->rhs.to_stream_paren(stream, parent_order);
+        }
+
+        return MathDuOp<T, std::plus<T>>::to_stream(stream, parent_order);
+    }
+};
+
+template<typename T>
+struct MathOpSub : public MathDuOp<T, std::minus<T>>
+{
+    MathOpSub(MathOp<T>& lhs, MathOp<T>& rhs)
+        : MathDuOp<T, std::minus<T>>(lhs, rhs, 100, " - ")
+    { }
+
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const
+    {
+        if (this->rhs.get() == 0)
+        {
+            return this->lhs.to_stream_paren(stream, parent_order);
+        }
+
+        if (this->lhs.get() == 0)
+        {
+            stream << '-';
+            return this->rhs.to_stream_paren(stream, parent_order);
+        }
+
+        return MathDuOp<T, std::minus<T>>::to_stream(stream, parent_order);
+    }
 };
 
 int main(int, char**)
 {
     MathOpConstant<double> a(21);
-    MathOpConstant<double> b(2);
+    MathOpConstant<double> b(0);
     MathOpConstant<double> c(.5);
     MathOpAdd<double> d(b, c);
     MathOpMul<double> e(a, d);
 
-    std::cout << e.to_string() << " = " << e.get() << '\n';
+    std::cout << e << " = " << e.get() << '\n';
 
     return 0 ;
     std::array<UsefulFraction<double>, 7> uses
