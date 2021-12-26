@@ -79,14 +79,16 @@ struct MathOp
 
     std::ostream& to_stream_paren(std::ostream& stream, int parent_order) const
     {
-        if (parent_order < order())
+        bool parens = parent_order < order();
+
+        if (parens)
         {
             stream << '(';
         }
 
         to_stream(stream, parent_order);
 
-        if (parent_order < order())
+        if (parens)
         {
             stream << ')';
         }
@@ -98,16 +100,44 @@ struct MathOp
     {
         return op.to_stream_paren(stream, std::numeric_limits<int>::max());
     }
+
+    virtual ~MathOp() { }
 };
 
 template<typename T>
 struct MathOpConstant : public MathOp<T>
 {
-    MathOpConstant(T c)
+    MathOpConstant(std::string symbol, T c)
+        : symbol(symbol), c(c)
+    { }
+
+    T get() const override { return c; }
+    int order() const override { return 0; }
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << symbol; }
+
+private:
+    std::string symbol;
+    T c;
+};
+
+template<typename T>
+struct MathOpConstantPi : public MathOpConstant<T> { MathOpConstantPi() : MathOpConstant<T>("π", M_PI) { }; };
+
+template<typename T>
+struct MathOpConstantE : public MathOpConstant<T> { MathOpConstantE() : MathOpConstant<T>("e", M_E) { }; };
+
+template<typename T>
+struct MathOpConstantSqrt2 : public MathOpConstant<T> { MathOpConstantSqrt2() : MathOpConstant<T>("√(2)", M_SQRT2) { }; };
+
+template<typename T>
+struct MathOpValue : public MathOp<T>
+{
+    MathOpValue(T c)
         : c(c)
     { }
 
     T get() const override { return c; }
+    void set(T x) { c = x; }
     int order() const override { return 0; }
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << c; }
 
@@ -116,10 +146,31 @@ private:
 };
 
 template<typename T, typename U>
-struct MathDuOp : public MathOp<T>
+struct MathUnaryOp : public MathOp<T>
 {
-    MathDuOp(MathOp<T>& lhs, MathOp<T>& rhs, int order, std::string symbol, U f = U())
-        : lhs(lhs), rhs(rhs), o(order), symbol(symbol), f(f)
+    MathUnaryOp(MathOp<T>& x, int order, std::string symbol)
+        : x(x), o(order), symbol(symbol)
+    { }
+
+    T get() const override { return f(x.get()); }
+    int order() const override { return o; }
+    std::ostream& to_stream(std::ostream& stream, int parent_order) const
+    {
+        return stream << symbol << '(' << x << ')';
+    }
+
+protected:
+    MathOp<T>& x;
+    int o;
+    std::string symbol;
+    U f;
+};
+
+template<typename T, typename U>
+struct MathBinaryOp : public MathOp<T>
+{
+    MathBinaryOp(MathOp<T>& lhs, MathOp<T>& rhs, int order, std::string symbol)
+        : lhs(lhs), rhs(rhs), o(order), symbol(symbol)
     { }
 
     T get() const override { return f(lhs.get(), rhs.get()); }
@@ -141,47 +192,73 @@ protected:
     U f;
 };
 
-template<typename T>
-struct MathOpMul : public MathDuOp<T, std::multiplies<T>>
+template <typename T>
+struct raises : public std::binary_function<T, T, T>
 {
-    MathOpMul(MathOp<T>& lhs, MathOp<T>& rhs)
-        : MathDuOp<T, std::multiplies<T>>(lhs, rhs, 10, " * ")
-    { }
+    T operator()(T x, T y) const
+    {
+        return std::pow(x, y);
+    }
+};
+
+template <typename T>
+struct square_root : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return std::sqrt(x);
+    }
 };
 
 template<typename T>
-struct MathOpDiv : public MathDuOp<T, std::divides<T>>
+struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
 {
-    MathOpDiv(MathOp<T>& lhs, MathOp<T>& rhs)
-        : MathDuOp<T, std::divides<T>>(lhs, rhs, 10, " / ")
-    { }
+    MathOpSqrt(MathOp<T>& x): MathUnaryOp<T, square_root<T>>(x, 2, "sqrt") { }
 };
 
 template<typename T>
-struct MathOpAdd : public MathDuOp<T, std::plus<T>>
+struct MathOpPow : public MathBinaryOp<T, raises<T>>
 {
-    MathOpAdd(MathOp<T>& lhs, MathOp<T>& rhs)
-        : MathDuOp<T, std::plus<T>>(lhs, rhs, 100, " + ")
-    { }
+    MathOpPow(MathOp<T>& lhs, MathOp<T>& rhs): MathBinaryOp<T, raises<T>>(lhs, rhs, 2, " ^ ") { }
 };
 
 template<typename T>
-struct MathOpSub : public MathDuOp<T, std::minus<T>>
+struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 {
-    MathOpSub(MathOp<T>& lhs, MathOp<T>& rhs)
-        : MathDuOp<T, std::minus<T>>(lhs, rhs, 100, " - ")
-    { }
+    MathOpMul(MathOp<T>& lhs, MathOp<T>& rhs): MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, 10, " * ") { }
+};
+
+template<typename T>
+struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
+{
+    MathOpDiv(MathOp<T>& lhs, MathOp<T>& rhs) : MathBinaryOp<T, std::divides<T>>(lhs, rhs, 10, " / ") { }
+};
+
+template<typename T>
+struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
+{
+    MathOpAdd(MathOp<T>& lhs, MathOp<T>& rhs) : MathBinaryOp<T, std::plus<T>>(lhs, rhs, 100, " + ") { }
+};
+
+template<typename T>
+struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
+{
+    MathOpSub(MathOp<T>& lhs, MathOp<T>& rhs) : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100, " - ") { }
 };
 
 int main(int, char**)
 {
-    MathOpConstant<double> a(21);
-    MathOpConstant<double> b(2);
-    MathOpConstant<double> c(.5);
+    MathOpValue<double> a(21);
+    MathOpValue<double> b(2);
+    MathOpConstantPi<double> c;
     MathOpAdd<double> d(b, c);
     MathOpMul<double> e(a, d);
 
-    std::cout << e << " = " << e.get() << '\n';
+    MathOpPow<double> f(c, e);
+
+    MathOpSqrt<double> z(f);
+
+    std::cout << z << " = " << z.get() << '\n';
 
     return 0 ;
     std::array<UsefulFraction<double>, 7> uses
