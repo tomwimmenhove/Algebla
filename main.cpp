@@ -8,69 +8,6 @@
 #include <numbers>
 
 template<typename T>
-struct Fraction
-{
-    T numerator;
-    T denominator;
-
-    bool isnan()      const { return std::isnan(numerator) || std::isnan(denominator); }
-    bool isintegral() const { return denominator == 1.0; }
-    T    fractional() const { return numerator / denominator; }
-
-    Fraction(T numerator, T denominator)
-        : numerator(numerator), denominator(denominator)
-    { }
-
-    static Fraction<T> quiet_NaN()
-    {
-        return Fraction<T>(std::numeric_limits<T>::quiet_NaN(), std::numeric_limits<T>::quiet_NaN());
-    }
-
-    static Fraction<T> find(T value, T max_error, int iters)
-    {
-        Fraction<T> lower(0, 1);
-        Fraction<T> upper(1, 0);
-
-        T integral;
-        T fractional = std::modf(value, &integral);
-
-        if (fractional == 0.0)
-        {
-            return Fraction<T>(integral, 1);
-        }
-
-        while (iters--)
-        {
-            Fraction<T> middle(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
-            T test = middle.fractional();
-
-            if (std::abs(test - fractional) <= max_error)
-            {
-                return Fraction<T>(middle.numerator + integral * middle.denominator, middle.denominator);
-            }
-
-            if (fractional > test)
-            {
-                lower = middle;
-            }
-            else
-            {
-                upper = middle;
-            }
-        }
-
-        return Fraction<T>::quiet_NaN();
-    }
-};
-
-template<typename T>
-struct UsefulFraction
-{
-    std::string format;
-    std::function<T(T)> operate;
-};
-
-template<typename T>
 struct MathOp
 {
     virtual T get() const = 0;
@@ -246,6 +183,69 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
     MathOpSub(MathOp<T>& lhs, MathOp<T>& rhs) : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100, " - ") { }
 };
 
+template<typename T>
+struct Fraction
+{
+    T numerator;
+    T denominator;
+
+    bool isnan()      const { return std::isnan(numerator) || std::isnan(denominator); }
+    bool isintegral() const { return denominator == 1.0; }
+    T    fractional() const { return numerator / denominator; }
+
+    Fraction(T numerator, T denominator)
+        : numerator(numerator), denominator(denominator)
+    { }
+
+    static Fraction<T> quiet_NaN()
+    {
+        return Fraction<T>(std::numeric_limits<T>::quiet_NaN(), std::numeric_limits<T>::quiet_NaN());
+    }
+
+    static Fraction<T> find(T value, T max_error, int iters)
+    {
+        Fraction<T> lower(0, 1);
+        Fraction<T> upper(1, 1);
+
+        T integral;
+        T fractional = std::modf(value, &integral);
+
+        if (fractional == 0.0)
+        {
+            return Fraction<T>(integral, 1);
+        }
+
+        while (iters--)
+        {
+            Fraction<T> middle(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
+            T test = middle.fractional();
+
+            if (std::abs(test - fractional) <= max_error)
+            {
+                return Fraction<T>(middle.numerator + integral * middle.denominator, middle.denominator);
+            }
+
+            if (fractional > test)
+            {
+                lower = middle;
+            }
+            else
+            {
+                upper = middle;
+            }
+        }
+
+        return Fraction<T>::quiet_NaN();
+    }
+};
+
+template<typename T>
+struct UsefulFraction
+{
+    std::string format;
+    std::function<T(T)> operate;
+};
+
 int main(int, char**)
 {
     MathOpValue<double> a(21);
@@ -260,7 +260,7 @@ int main(int, char**)
 
     std::cout << z << " = " << z.get() << '\n';
 
-    return 0 ;
+    //return 0 ;
     std::array<UsefulFraction<double>, 7> uses
     {
         (UsefulFraction<double> {  "(%g) / (%g)",  [](double x) { return x; }}),
@@ -275,7 +275,7 @@ int main(int, char**)
         (UsefulFraction<double> {  "(%g) / (√2⋅%g)", [](double x) { return x * M_SQRT2; }}),
     };
 
-    double value = 2.0 / 3.0 / std::sin(M_PI / 4);//2.0 / 3.0 * M_PI;//19.0 / 30.0 * M_PI;
+    double value = 15.0 / 4.0;//2.0 / 3.0 / std::sin(M_PI / 4);//2.0 / 3.0 * M_PI;//19.0 / 30.0 * M_PI;
 
     for(auto i: uses)
     {
