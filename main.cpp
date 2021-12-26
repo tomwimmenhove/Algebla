@@ -147,29 +147,6 @@ struct MathOpMul : public MathDuOp<T, std::multiplies<T>>
     MathOpMul(MathOp<T>& lhs, MathOp<T>& rhs)
         : MathDuOp<T, std::multiplies<T>>(lhs, rhs, 10, " * ")
     { }
-
-    std::ostream& to_stream(std::ostream& stream, int parent_order) const
-    {
-        T l = this->lhs.get();
-        T r = this->rhs.get();
-
-        if (l == 0 || r == 0)
-        {
-            return stream << '0';
-        }
-
-        if (r == 1)
-        {
-            return this->lhs.to_stream_paren(stream, parent_order);
-        }
-
-        if (l == 1)
-        {
-            return this->rhs.to_stream_paren(stream, parent_order);
-        }
-
-        return MathDuOp<T, std::multiplies<T>>::to_stream(stream, parent_order);
-    }
 };
 
 template<typename T>
@@ -178,21 +155,6 @@ struct MathOpDiv : public MathDuOp<T, std::divides<T>>
     MathOpDiv(MathOp<T>& lhs, MathOp<T>& rhs)
         : MathDuOp<T, std::divides<T>>(lhs, rhs, 10, " / ")
     { }
-
-    std::ostream& to_stream(std::ostream& stream, int parent_order) const
-    {
-        if (this->rhs.get() == 1)
-        {
-            return this->lhs.to_stream_paren(stream, parent_order);
-        }
-
-        if (this->lhs.get() == 0)
-        {
-            return stream << '0';
-        }
-
-        return MathDuOp<T, std::divides<T>>::to_stream(stream, parent_order);
-    }
 };
 
 template<typename T>
@@ -201,21 +163,6 @@ struct MathOpAdd : public MathDuOp<T, std::plus<T>>
     MathOpAdd(MathOp<T>& lhs, MathOp<T>& rhs)
         : MathDuOp<T, std::plus<T>>(lhs, rhs, 100, " + ")
     { }
-
-    std::ostream& to_stream(std::ostream& stream, int parent_order) const
-    {
-        if (this->rhs.get() == 0)
-        {
-            return this->lhs.to_stream_paren(stream, parent_order);
-        }
-
-        if (this->lhs.get() == 0)
-        {
-            return this->rhs.to_stream_paren(stream, parent_order);
-        }
-
-        return MathDuOp<T, std::plus<T>>::to_stream(stream, parent_order);
-    }
 };
 
 template<typename T>
@@ -224,28 +171,12 @@ struct MathOpSub : public MathDuOp<T, std::minus<T>>
     MathOpSub(MathOp<T>& lhs, MathOp<T>& rhs)
         : MathDuOp<T, std::minus<T>>(lhs, rhs, 100, " - ")
     { }
-
-    std::ostream& to_stream(std::ostream& stream, int parent_order) const
-    {
-        if (this->rhs.get() == 0)
-        {
-            return this->lhs.to_stream_paren(stream, parent_order);
-        }
-
-        if (this->lhs.get() == 0)
-        {
-            stream << '-';
-            return this->rhs.to_stream_paren(stream, parent_order);
-        }
-
-        return MathDuOp<T, std::minus<T>>::to_stream(stream, parent_order);
-    }
 };
 
 int main(int, char**)
 {
     MathOpConstant<double> a(21);
-    MathOpConstant<double> b(0);
+    MathOpConstant<double> b(2);
     MathOpConstant<double> c(.5);
     MathOpAdd<double> d(b, c);
     MathOpMul<double> e(a, d);
