@@ -14,6 +14,7 @@ struct MathOp
 {
     virtual T answer() const = 0;
     virtual int order() const = 0;
+    virtual bool is_constant() const = 0;
     virtual std::shared_ptr<MathOp<T>> rearranged(int child, std::shared_ptr<MathOp<T>> output) const = 0;
 
     virtual std::shared_ptr<MathOp<T>> solve_for(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> output) const
@@ -54,12 +55,13 @@ protected:
 template<typename T>
 struct MathOpSymbol : public MathOp<T>
 {
-    MathOpSymbol(std::string symbol, T c)
-        : symbol(symbol), c(c)
+    MathOpSymbol(std::string symbol, T c, bool is_constant)
+        : symbol(symbol), c(c), is_const(is_constant)
     { }
 
     T answer() const override { return c; }
     int order() const override { return 0; }
+    bool is_constant() const override { return is_const; }
     std::shared_ptr<MathOp<T>> rearranged(int, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << symbol; }
 
@@ -68,22 +70,23 @@ protected:
 
 private:
     std::string symbol;
+    bool is_const;
 };
 
 template<typename T>
-struct MathOpSymbolPi : public MathOpSymbol<T> { MathOpSymbolPi() : MathOpSymbol<T>("π", M_PI) { }; };
+struct MathOpSymbolPi : public MathOpSymbol<T> { MathOpSymbolPi() : MathOpSymbol<T>("π", M_PI, true) { }; };
 
 template<typename T>
-struct MathOpSymbolE : public MathOpSymbol<T> { MathOpSymbolE() : MathOpSymbol<T>("e", M_E) { }; };
+struct MathOpSymbolE : public MathOpSymbol<T> { MathOpSymbolE() : MathOpSymbol<T>("e", M_E, true) { }; };
 
 template<typename T>
-struct MathOpSymbolSqrt2 : public MathOpSymbol<T> { MathOpSymbolSqrt2() : MathOpSymbol<T>("√(2)", M_SQRT2) { }; };
+struct MathOpSymbolSqrt2 : public MathOpSymbol<T> { MathOpSymbolSqrt2() : MathOpSymbol<T>("√(2)", M_SQRT2, true) { }; };
 
 template<typename T>
 struct MathOpVariable: public MathOpSymbol<T>
 {
     MathOpVariable(std::string symbol, T c = 0)
-        : MathOpSymbol<T>(symbol, c)
+        : MathOpSymbol<T>(symbol, c, false)
     { }
 
     void set(T x) { this->c = x; }
@@ -93,7 +96,7 @@ template<typename T>
 struct MathOpConstantValue : public MathOpSymbol<T>
 {
     MathOpConstantValue(T c)
-        : MathOpSymbol<T>(to_string(c), c)
+        : MathOpSymbol<T>(to_string(c), c, true)
     { }
 
 private:
@@ -115,6 +118,7 @@ struct MathUnaryOp : public MathOp<T>
 
     T answer() const override { return f(x->answer()); }
     int order() const override { return o; }
+    bool is_constant() const override { return false; }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
     {
@@ -142,6 +146,7 @@ struct MathBinaryOp : public MathOp<T>
 
     T answer() const override { return f(lhs->answer(), rhs->answer()); }
     int order() const override { return o; }
+    bool is_constant() const override { return false; }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
     {
@@ -241,18 +246,26 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        return child == 0
-            ? std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpPow<T>>(
+        if (child == 0)
+        {
+            if (this->rhs->is_constant() && this->rhs->answer() == 2)
+            {
+                return std::make_shared<MathOpSqrt<T>>(output);
+            }
+
+            return std::make_shared<MathOpPow<T>>(
                 output,
                 std::make_shared<MathOpDiv<T>>(
                     std::make_shared<MathOpConstantValue<T>>(1),
                     this->rhs
                 )
-            ))
-            : std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpDiv<T>>(
-                std::make_shared<MathOpLog<T>>(output),
-                std::make_shared<MathOpLog<T>>(this->lhs)
-            )); 
+            );
+        }
+
+        return std::make_shared<MathOpDiv<T>>(
+            std::make_shared<MathOpLog<T>>(output),
+            std::make_shared<MathOpLog<T>>(this->lhs)
+        ); 
     }
 };
 
