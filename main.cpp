@@ -13,22 +13,8 @@ struct MathOp
 {
     virtual T get() const = 0;
     virtual int order() const = 0;
-    virtual int children() const = 0;
     virtual MathOp<T>* rearranged(int child, MathOp<T>* output) const = 0;
-    //virtual MathOp<T>* solve(MathOp<T>* op, MathOp<T>* output) const = 0;
     virtual std::ostream& to_stream(std::ostream& stream, int parent_order) const = 0;
-
-    virtual bool find(std::vector<const MathOp<T>*>& stack, MathOp<T>* op) const
-    {
-        if (op == this)
-        {
-            stack.push_back(this);
-
-            return true;
-        }
-
-        return false;
-    }
 
     virtual MathOp<T>* solve(MathOp<T>* op, MathOp<T>* output) const
     {
@@ -71,7 +57,6 @@ struct MathOpConstant : public MathOp<T>
 
     T get() const override { return c; }
     int order() const override { return 0; }
-    int children() const override { return 0; };
     MathOp<T>* rearranged(int, MathOp<T>*) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << symbol; }
 
@@ -99,7 +84,6 @@ struct MathOpValue : public MathOp<T>
     T get() const override { return c; }
     void set(T x) { c = x; }
     int order() const override { return 0; }
-    int children() const override { return 0; };
     MathOp<T>* rearranged(int, MathOp<T>*) const override { return nullptr; }
 
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << c; }
@@ -117,18 +101,6 @@ struct MathUnaryOp : public MathOp<T>
 
     T get() const override { return f(x->get()); }
     int order() const override { return o; }
-    int children() const override { return 1; };
-    bool find(std::vector<const MathOp<T>*>& stack, MathOp<T>* op) const override
-    {
-        if (this == op || x->find(stack, op))
-        {
-            stack.push_back(this);
-            return true;
-        }
-        
-        return false;
-    }
-    MathOp<T>* rearranged(int, MathOp<T>*) const override { return nullptr; }
 
     MathOp<T>* solve(MathOp<T>* op, MathOp<T>* output) const override
     {
@@ -158,18 +130,6 @@ struct MathBinaryOp : public MathOp<T>
 
     T get() const override { return f(lhs->get(), rhs->get()); }
     int order() const override { return o; }
-    int children() const override { return 2; };
-
-    bool find(std::vector<const MathOp<T>*>& stack, MathOp<T>* op) const override
-    {
-        if (this == op || lhs->find(stack, op) || rhs->find(stack, op))
-        {
-            stack.push_back(this);
-            return true;
-        }
-
-        return false;
-    }
 
     MathOp<T>* solve(MathOp<T>* op, MathOp<T>* output) const override
     {
@@ -392,40 +352,6 @@ struct UsefulFraction
     std::string format;
     std::function<T(T)> operate;
 };
-
-int maireferfn(int, char**)
-{
-    MathOpValue<double> a(20);
-    MathOpValue<double> b(2);
-    MathOpValue<double> c(8);
-
-    // MathOpSub<double> x(&a, &b);
-    // MathOpSub<double> y(&c, &x);
-
-    // std::cout << y << " = " << y.get() << '\n';
-
-    // return 0;
-
-    MathOpAdd<double> r(&a, &b);
-    MathOpAdd<double> s(&r, &c);
-
-    std::cout << s << " = " << s.get() << '\n';
-
-    MathOpValue<double> output(s.get());
-
-    std::vector<const MathOp<double>*> v;
-    s.find(v, &a);
-
-
-    //MathOp<double>* d = r.rearranged(0, &output);
-
-    //MathOp<double>* d = r.rearranged(0, s.rearranged(0, &output));
-    MathOp<double>* d = s.solve(&a, &output);
-
-    std::cout << *d << " = " << d->get() << '\n';
-
-    return 0;
-}
 
 int main(int, char**)
 {
