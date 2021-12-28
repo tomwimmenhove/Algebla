@@ -370,21 +370,27 @@ struct UsefulFraction
 
 int main(int, char**)
 {
-    auto a = std::make_shared<MathOpVariable<double>>("a", 21);
-    auto b = std::make_shared<MathOpVariable<double>>("b", 2);
-    auto c = std::make_shared<MathOpSymbolPi<double>>();
-    auto d = std::make_shared<MathOpAdd<double>>(b, c);
-    auto e = std::make_shared<MathOpMul<double>>(a, d);
-    auto f = std::make_shared<MathOpPow<double>>(c, e);
-    auto z = std::make_shared<MathOpSqrt<double>>(f);
+    auto x = std::make_shared<MathOpVariable<double>>("x", 21);
+    auto y = std::make_shared<MathOpSqrt<double>>(
+        std::make_shared<MathOpPow<double>>(
+            std::make_shared<MathOpSymbolPi<double>>(),
+            std::make_shared<MathOpMul<double>>(
+                x,
+                std::make_shared<MathOpAdd<double>>(
+                    std::make_shared<MathOpConstantValue<double>>(2),
+                    std::make_shared<MathOpSymbolPi<double>>()
+                )
+            )
+        )
+    );
 
-    std::cout << *z << " = " << z->answer() << '\n';
+    std::cout << *y << " = " << y->answer() << '\n';
 
-    auto output = std::make_shared<MathOpConstantValue<double>>(z->answer());
+    auto output = std::make_shared<MathOpConstantValue<double>>(y->answer());
 
-    auto q = z->solve_for(a, output);
+    auto q = y->solve_for(x, output);
 
-    std::cout << *a << " = " << *q << '\n';//" = " << q->answer() << '\n';
+    std::cout << *x << " = " << *q << '\n';//" = " << q->answer() << '\n';
 
 
     return 0 ;
