@@ -12,7 +12,7 @@
 template<typename T>
 struct MathOp
 {
-    virtual T get() const = 0;
+    virtual T answer() const = 0;
     virtual int order() const = 0;
     virtual std::shared_ptr<MathOp<T>> rearranged(int child, std::shared_ptr<MathOp<T>> output) const = 0;
 
@@ -58,7 +58,7 @@ struct MathOpSymbol : public MathOp<T>
         : symbol(symbol), c(c)
     { }
 
-    T get() const override { return c; }
+    T answer() const override { return c; }
     int order() const override { return 0; }
     std::shared_ptr<MathOp<T>> rearranged(int, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << symbol; }
@@ -113,7 +113,7 @@ struct MathUnaryOp : public MathOp<T>
         : x(x), o(order), symbol(symbol)
     { }
 
-    T get() const override { return f(x->get()); }
+    T answer() const override { return f(x->answer()); }
     int order() const override { return o; }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
@@ -142,7 +142,7 @@ struct MathBinaryOp : public MathOp<T>
         : lhs(lhs), rhs(rhs), o(order), symbol(symbol)
     { }
 
-    T get() const override { return f(lhs->get(), rhs->get()); }
+    T answer() const override { return f(lhs->answer(), rhs->answer()); }
     int order() const override { return o; }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
@@ -375,18 +375,16 @@ int main(int, char**)
     auto c = std::make_shared<MathOpSymbolPi<double>>();
     auto d = std::make_shared<MathOpAdd<double>>(b, c);
     auto e = std::make_shared<MathOpMul<double>>(a, d);
-
     auto f = std::make_shared<MathOpPow<double>>(c, e);
-
     auto z = std::make_shared<MathOpSqrt<double>>(f);
 
-    std::cout << *z << " = " << z->get() << '\n';
+    std::cout << *z << " = " << z->answer() << '\n';
 
-    auto output = std::make_shared<MathOpConstantValue<double>>(z->get());
+    auto output = std::make_shared<MathOpConstantValue<double>>(z->answer());
 
     auto q = z->solve_for(a, output);
 
-    std::cout << *a << " = " << *q << '\n';//" = " << q->get() << '\n';
+    std::cout << *a << " = " << *q << '\n';//" = " << q->answer() << '\n';
 
 
     return 0 ;
