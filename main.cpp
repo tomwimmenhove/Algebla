@@ -7,18 +7,18 @@
 #include <iomanip>
 #include <numbers>
 #include <vector>
+#include <memory>
 
 template<typename T>
 struct MathOp
 {
     virtual T get() const = 0;
     virtual int order() const = 0;
-    virtual MathOp<T>* rearranged(int child, MathOp<T>* output) const = 0;
-    virtual std::ostream& to_stream(std::ostream& stream, int parent_order) const = 0;
+    virtual std::shared_ptr<MathOp<T>> rearranged(int child, std::shared_ptr<MathOp<T>> output) const = 0;
 
-    virtual MathOp<T>* solve_for(MathOp<T>* op, MathOp<T>* output) const
+    virtual std::shared_ptr<MathOp<T>> solve_for(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> output) const
     {
-        return op == this ? output : nullptr;
+        return op.get() == this ? output : nullptr;
     }
 
     std::ostream& to_stream_paren(std::ostream& stream, int parent_order) const
@@ -46,6 +46,9 @@ struct MathOp
     }
 
     virtual ~MathOp() { }
+
+protected:
+    virtual std::ostream& to_stream(std::ostream& stream, int parent_order) const = 0;
 };
 
 template<typename T>
@@ -57,7 +60,7 @@ struct MathOpSymbol : public MathOp<T>
 
     T get() const override { return c; }
     int order() const override { return 0; }
-    MathOp<T>* rearranged(int, MathOp<T>*) const override { return nullptr; }
+    std::shared_ptr<MathOp<T>> rearranged(int, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << symbol; }
 
 protected:
@@ -106,14 +109,14 @@ private:
 template<typename T, typename U>
 struct MathUnaryOp : public MathOp<T>
 {
-    MathUnaryOp(MathOp<T>* x, int order, std::string symbol)
+    MathUnaryOp(std::shared_ptr<MathOp<T>> x, int order, std::string symbol)
         : x(x), o(order), symbol(symbol)
     { }
 
     T get() const override { return f(x->get()); }
     int order() const override { return o; }
 
-    MathOp<T>* solve_for(MathOp<T>* op, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
     {
         auto x = this->rearranged(0, output);
 
@@ -126,7 +129,7 @@ struct MathUnaryOp : public MathOp<T>
     }
 
 protected:
-    MathOp<T>* x;
+    std::shared_ptr<MathOp<T>>x;
     int o;
     std::string symbol;
     U f;
@@ -135,14 +138,14 @@ protected:
 template<typename T, typename U>
 struct MathBinaryOp : public MathOp<T>
 {
-    MathBinaryOp(MathOp<T>* lhs, MathOp<T>* rhs, int order, std::string symbol)
+    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, int order, std::string symbol)
         : lhs(lhs), rhs(rhs), o(order), symbol(symbol)
     { }
 
     T get() const override { return f(lhs->get(), rhs->get()); }
     int order() const override { return o; }
 
-    MathOp<T>* solve_for(MathOp<T>* op, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
     {
         auto output_lhs = this->rearranged(0, output);
 
@@ -167,8 +170,8 @@ struct MathBinaryOp : public MathOp<T>
     }
 
 protected:
-    MathOp<T>* lhs;
-    MathOp<T>* rhs;
+    std::shared_ptr<MathOp<T>>lhs;
+    std::shared_ptr<MathOp<T>>rhs;
     int o;
     std::string symbol;
     U f;
@@ -206,24 +209,24 @@ template<typename T> struct MathOpPow;
 template<typename T>
 struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
 {
-    MathOpSqrt(MathOp<T>* x): MathUnaryOp<T, square_root<T>>(x, 2, "√") { }
+    MathOpSqrt(std::shared_ptr<MathOp<T>>x): MathUnaryOp<T, square_root<T>>(x, 2, "√") { }
 
-    MathOp<T>* rearranged(int child, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        auto two = new MathOpConstantValue<T>(2);
-        return new MathOpPow<T>(output, two); 
+        auto two = std::make_shared<MathOpConstantValue<T>>(2);
+        return std::make_shared<MathOpPow<T>>(output, two);
     }
 };
 
 template<typename T>
 struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
 {
-    MathOpLog(MathOp<T>* x): MathUnaryOp<T, logarithm<T>>(x, 2, "log") { }
+    MathOpLog(std::shared_ptr<MathOp<T>>x): MathUnaryOp<T, logarithm<T>>(x, 2, "log") { }
 
-    MathOp<T>* rearranged(int child, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        auto e = new MathOpSymbolE<T>();
-        return new MathOpPow<T>(e, output);
+        auto e = std::make_shared<MathOpSymbolE<T>>();
+        return std::make_shared<MathOpPow<T>>(e, output);
     }
 };
 
@@ -232,46 +235,47 @@ template<typename T> struct MathOpDiv;
 template<typename T>
 struct MathOpPow : public MathBinaryOp<T, raises<T>>
 {
-    MathOpPow(MathOp<T>* lhs, MathOp<T>* rhs): MathBinaryOp<T, raises<T>>(lhs, rhs, 2, " ^ ") { }
+    MathOpPow(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs): MathBinaryOp<T, raises<T>>(lhs, rhs, 2, " ^ ") { }
 
-    MathOp<T>* rearranged(int child, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
         if (child == 0)
         {
-            auto one = new MathOpConstantValue<T>(1);
-            auto inv = new MathOpDiv<T>(one, this->rhs);
+            auto one = std::make_shared<MathOpConstantValue<T>>(1);
+            auto inv = std::make_shared<MathOpDiv<T>>(one, this->rhs);
 
-            return new MathOpPow(this->lhs, inv);
+            return std::make_shared<MathOpPow<T>>(this->lhs, inv);
         }
 
-        auto out_log = new MathOpLog<T>(output);
-        auto lhs_log = new MathOpLog<T>(this->lhs);
+        auto out_log = std::make_shared<MathOpLog<T>>(output);
+        auto lhs_log = std::make_shared<MathOpLog<T>>(this->lhs);
 
-        return new MathOpDiv<T>(out_log, lhs_log); 
+        return std::make_shared<MathOpDiv<T>>(out_log, lhs_log); 
     }
 };
 
 template<typename T>
 struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 {
-    MathOpMul(MathOp<T>* lhs, MathOp<T>* rhs): MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, 10, " * ") { }
+    MathOpMul(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs): MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, 10, " * ") { }
 
-    MathOp<T>* rearranged(int child, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        return new MathOpDiv<T>(output, child == 0 ? this->rhs : this->lhs);
+        return std::make_shared<MathOpDiv<T>>(output, child == 0 ? this->rhs : this->lhs);
     }
 };
 
 template<typename T>
 struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 {
-    MathOpDiv(MathOp<T>* lhs, MathOp<T>* rhs) : MathBinaryOp<T, std::divides<T>>(lhs, rhs, 10, " / ") { }
+    MathOpDiv(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs) : MathBinaryOp<T, std::divides<T>>(lhs, rhs, 10, " / ") { }
 
-    MathOp<T>* rearranged(int child, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
+        //static_pointer_cast<MathOp<T>>
         return child == 0 
-            ? (MathOp<T>*) new MathOpMul<T>(output, this->rhs)
-            : (MathOp<T>*) new MathOpDiv<T>(this->lhs, output);
+            ? std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpMul<T>>(output, this->rhs))
+            : std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpDiv<T>>(this->lhs, output));
     }
 };
 
@@ -280,24 +284,24 @@ template<typename T> struct MathOpSub;
 template<typename T>
 struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 {
-    MathOpAdd(MathOp<T>* lhs, MathOp<T>* rhs) : MathBinaryOp<T, std::plus<T>>(lhs, rhs, 100, " + ") { }
+    MathOpAdd(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs) : MathBinaryOp<T, std::plus<T>>(lhs, rhs, 100, " + ") { }
 
-    MathOp<T>* rearranged(int child, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        return new MathOpSub<T>(output, child == 0 ? this->rhs : this->lhs);
+        return std::make_shared<MathOpSub<T>>(output, child == 0 ? this->rhs : this->lhs);
     }
 };
 
 template<typename T>
 struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
 {
-    MathOpSub(MathOp<T>* lhs, MathOp<T>* rhs) : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100, " - ") { }
+    MathOpSub(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs) : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100, " - ") { }
 
-    MathOp<T>* rearranged(int child, MathOp<T>* output) const override
+    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
         return child == 0 
-            ? (MathOp<T>*) new MathOpAdd<T>(output, this->rhs)
-            : (MathOp<T>*) new MathOpSub<T>(this->lhs, output);
+            ? std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpAdd<T>>(output, this->rhs))
+            : std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpSub<T>>(this->lhs, output));
     }
 };
 
@@ -366,22 +370,23 @@ struct UsefulFraction
 
 int main(int, char**)
 {
-    MathOpVariable<double> a("a", 21);
-    MathOpVariable<double> b("b", 2);
-    MathOpSymbolPi<double> c;
-    MathOpAdd<double> d(&b, &c);
-    MathOpMul<double> e(&a, &d);
+    auto a = std::make_shared<MathOpVariable<double>>("a", 21);
+    auto b = std::make_shared<MathOpVariable<double>>("b", 2);
+    auto c = std::make_shared<MathOpSymbolPi<double>>();
+    auto d = std::make_shared<MathOpAdd<double>>(b, c);
+    auto e = std::make_shared<MathOpMul<double>>(a, d);
 
-    MathOpPow<double> f(&c, &e);
+    auto f = std::make_shared<MathOpPow<double>>(c, e);
 
-    MathOpSqrt<double> z(&f);
+    auto z = std::make_shared<MathOpSqrt<double>>(f);
 
-    std::cout << z << " = " << z.get() << '\n';
+    std::cout << *z << " = " << z->get() << '\n';
 
-    MathOpConstantValue<double> output(z.get());
-    MathOp<double>* q = z.solve_for(&a, &output);
+    auto output = std::make_shared<MathOpConstantValue<double>>(z->get());
 
-    std::cout << a << " = " << *q << '\n';//" = " << q->get() << '\n';
+    auto q = z->solve_for(a, output);
+
+    std::cout << *a << " = " << *q << '\n';//" = " << q->get() << '\n';
 
 
     return 0 ;
