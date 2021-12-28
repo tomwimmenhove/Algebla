@@ -16,7 +16,7 @@ struct MathOp
     virtual MathOp<T>* rearranged(int child, MathOp<T>* output) const = 0;
     virtual std::ostream& to_stream(std::ostream& stream, int parent_order) const = 0;
 
-    virtual MathOp<T>* solve(MathOp<T>* op, MathOp<T>* output) const
+    virtual MathOp<T>* solve_for(MathOp<T>* op, MathOp<T>* output) const
     {
         return op == this ? output : nullptr;
     }
@@ -49,9 +49,9 @@ struct MathOp
 };
 
 template<typename T>
-struct MathOpConstant : public MathOp<T>
+struct MathOpSymbol : public MathOp<T>
 {
-    MathOpConstant(std::string symbol, T c)
+    MathOpSymbol(std::string symbol, T c)
         : symbol(symbol), c(c)
     { }
 
@@ -60,37 +60,48 @@ struct MathOpConstant : public MathOp<T>
     MathOp<T>* rearranged(int, MathOp<T>*) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << symbol; }
 
+protected:
+    T c;
+
 private:
     std::string symbol;
-    T c;
 };
 
 template<typename T>
-struct MathOpConstantPi : public MathOpConstant<T> { MathOpConstantPi() : MathOpConstant<T>("π", M_PI) { }; };
+struct MathOpSymbolPi : public MathOpSymbol<T> { MathOpSymbolPi() : MathOpSymbol<T>("π", M_PI) { }; };
 
 template<typename T>
-struct MathOpConstantE : public MathOpConstant<T> { MathOpConstantE() : MathOpConstant<T>("e", M_E) { }; };
+struct MathOpSymbolE : public MathOpSymbol<T> { MathOpSymbolE() : MathOpSymbol<T>("e", M_E) { }; };
 
 template<typename T>
-struct MathOpConstantSqrt2 : public MathOpConstant<T> { MathOpConstantSqrt2() : MathOpConstant<T>("√(2)", M_SQRT2) { }; };
+struct MathOpSymbolSqrt2 : public MathOpSymbol<T> { MathOpSymbolSqrt2() : MathOpSymbol<T>("√(2)", M_SQRT2) { }; };
 
 template<typename T>
-struct MathOpValue : public MathOp<T>
+struct MathOpVariable: public MathOpSymbol<T>
 {
-    MathOpValue(T c)
-        : c(c)
+    MathOpVariable(std::string symbol, T c = 0)
+        : MathOpSymbol<T>(symbol, c)
     { }
 
-    T get() const override { return c; }
-    void set(T x) { c = x; }
-    int order() const override { return 0; }
-    MathOp<T>* rearranged(int, MathOp<T>*) const override { return nullptr; }
+    void set(T x) { this->c = x; }
+};
 
-    std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << c; }
+template<typename T>
+struct MathOpConstantValue : public MathOpSymbol<T>
+{
+    MathOpConstantValue(T c)
+        : MathOpSymbol<T>(to_string(c), c)
+    { }
 
 private:
-    T c;
+    std::string to_string(T x)
+    {
+        std::stringstream ss;
+        ss << x;
+        return ss.str();
+    }
 };
+
 
 template<typename T, typename U>
 struct MathUnaryOp : public MathOp<T>
@@ -102,11 +113,11 @@ struct MathUnaryOp : public MathOp<T>
     T get() const override { return f(x->get()); }
     int order() const override { return o; }
 
-    MathOp<T>* solve(MathOp<T>* op, MathOp<T>* output) const override
+    MathOp<T>* solve_for(MathOp<T>* op, MathOp<T>* output) const override
     {
         auto x = this->rearranged(0, output);
 
-        return this->x->solve(op, x);
+        return this->x->solve_for(op, x);
     }
 
     std::ostream& to_stream(std::ostream& stream, int parent_order) const
@@ -131,11 +142,11 @@ struct MathBinaryOp : public MathOp<T>
     T get() const override { return f(lhs->get(), rhs->get()); }
     int order() const override { return o; }
 
-    MathOp<T>* solve(MathOp<T>* op, MathOp<T>* output) const override
+    MathOp<T>* solve_for(MathOp<T>* op, MathOp<T>* output) const override
     {
         auto output_lhs = this->rearranged(0, output);
 
-        auto solved_lhs = this->lhs->solve(op, output_lhs);
+        auto solved_lhs = this->lhs->solve_for(op, output_lhs);
         if (solved_lhs != nullptr)
         {
             return solved_lhs;
@@ -143,7 +154,7 @@ struct MathBinaryOp : public MathOp<T>
 
         auto output_rhs = this->rearranged(1, output);
 
-        return this->rhs->solve(op, output_rhs);
+        return this->rhs->solve_for(op, output_rhs);
     }
 
     std::ostream& to_stream(std::ostream& stream, int parent_order) const
@@ -195,11 +206,11 @@ template<typename T> struct MathOpPow;
 template<typename T>
 struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
 {
-    MathOpSqrt(MathOp<T>* x): MathUnaryOp<T, square_root<T>>(x, 2, "sqrt") { }
+    MathOpSqrt(MathOp<T>* x): MathUnaryOp<T, square_root<T>>(x, 2, "√") { }
 
     MathOp<T>* rearranged(int child, MathOp<T>* output) const override
     {
-        auto two = new MathOpValue<T>(2);
+        auto two = new MathOpConstantValue<T>(2);
         return new MathOpPow<T>(output, two); 
     }
 };
@@ -211,7 +222,7 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
 
     MathOp<T>* rearranged(int child, MathOp<T>* output) const override
     {
-        auto e = new MathOpConstantE<T>();
+        auto e = new MathOpSymbolE<T>();
         return new MathOpPow<T>(e, output);
     }
 };
@@ -227,7 +238,7 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
     {
         if (child == 0)
         {
-            auto one = new MathOpValue<T>(1);
+            auto one = new MathOpConstantValue<T>(1);
             auto inv = new MathOpDiv<T>(one, this->rhs);
 
             return new MathOpPow(this->lhs, inv);
@@ -355,9 +366,9 @@ struct UsefulFraction
 
 int main(int, char**)
 {
-    MathOpValue<double> a(21);
-    MathOpValue<double> b(2);
-    MathOpConstantPi<double> c;
+    MathOpVariable<double> a("a", 21);
+    MathOpVariable<double> b("b", 2);
+    MathOpSymbolPi<double> c;
     MathOpAdd<double> d(&b, &c);
     MathOpMul<double> e(&a, &d);
 
@@ -367,10 +378,10 @@ int main(int, char**)
 
     std::cout << z << " = " << z.get() << '\n';
 
-    MathOpValue<double> output(z.get());
-    MathOp<double>* q = z.solve(&a, &output);
+    MathOpConstantValue<double> output(z.get());
+    MathOp<double>* q = z.solve_for(&a, &output);
 
-    std::cout << *q << " = " << q->get() << '\n';
+    std::cout << a << " = " << *q << '\n';//" = " << q->get() << '\n';
 
 
     return 0 ;
