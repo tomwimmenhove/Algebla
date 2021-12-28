@@ -118,9 +118,7 @@ struct MathUnaryOp : public MathOp<T>
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
     {
-        auto x = this->rearranged(0, output);
-
-        return this->x->solve_for(op, x);
+        return this->x->solve_for(op, this->rearranged(0, output));
     }
 
     std::ostream& to_stream(std::ostream& stream, int parent_order) const
@@ -213,8 +211,10 @@ struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        auto two = std::make_shared<MathOpConstantValue<T>>(2);
-        return std::make_shared<MathOpPow<T>>(output, two);
+        return std::make_shared<MathOpPow<T>>(
+            output,
+            std::make_shared<MathOpConstantValue<T>>(2)
+        );
     }
 };
 
@@ -225,8 +225,10 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        auto e = std::make_shared<MathOpSymbolE<T>>();
-        return std::make_shared<MathOpPow<T>>(e, output);
+        return std::make_shared<MathOpPow<T>>(
+            std::make_shared<MathOpSymbolE<T>>(),
+            output
+        );
     }
 };
 
@@ -239,18 +241,18 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        if (child == 0)
-        {
-            auto one = std::make_shared<MathOpConstantValue<T>>(1);
-            auto inv = std::make_shared<MathOpDiv<T>>(one, this->rhs);
-
-            return std::make_shared<MathOpPow<T>>(this->lhs, inv);
-        }
-
-        auto out_log = std::make_shared<MathOpLog<T>>(output);
-        auto lhs_log = std::make_shared<MathOpLog<T>>(this->lhs);
-
-        return std::make_shared<MathOpDiv<T>>(out_log, lhs_log); 
+        return child == 0
+            ? std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpPow<T>>(
+                output,
+                std::make_shared<MathOpDiv<T>>(
+                    std::make_shared<MathOpConstantValue<T>>(1),
+                    this->rhs
+                )
+            ))
+            : std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpDiv<T>>(
+                std::make_shared<MathOpLog<T>>(output),
+                std::make_shared<MathOpLog<T>>(this->lhs)
+            )); 
     }
 };
 
@@ -272,7 +274,6 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
-        //static_pointer_cast<MathOp<T>>
         return child == 0 
             ? std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpMul<T>>(output, this->rhs))
             : std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpDiv<T>>(this->lhs, output));
@@ -378,20 +379,21 @@ int main(int, char**)
                 x,
                 std::make_shared<MathOpAdd<double>>(
                     std::make_shared<MathOpConstantValue<double>>(2),
-                    std::make_shared<MathOpSymbolPi<double>>()
-                )
-            )
-        )
-    );
+                    std::make_shared<MathOpSymbolPi<double>>()))));
 
-    std::cout << *y << " = " << y->answer() << '\n';
+    std::cout << "x = " << x->answer() << '\n';
+
+    std::cout << "y = " << *y << " = " << y->answer() << '\n';
 
     auto output = std::make_shared<MathOpConstantValue<double>>(y->answer());
 
     auto q = y->solve_for(x, output);
 
-    std::cout << *x << " = " << *q << '\n';//" = " << q->answer() << '\n';
+    std::cout << *x << " = " << *q << " = " << q->answer() << '\n';
 
+    auto r = q->solve_for(output, x);
+
+    std::cout << "y = " << *r << " = " << r->answer() << '\n';
 
     return 0 ;
     std::array<UsefulFraction<double>, 7> uses
