@@ -16,7 +16,8 @@ struct MathOp
     virtual int precedence() const = 0;
     virtual bool is_commutative() const = 0;
     virtual bool is_constant() const = 0;
-    virtual std::shared_ptr<MathOp<T>> rearranged(int child, std::shared_ptr<MathOp<T>> output) const = 0;
+    virtual std::shared_ptr<MathOp<T>> rearranged(
+        std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>> output) const = 0;
 
     virtual std::shared_ptr<MathOp<T>> solve_for(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> output) const
     {
@@ -68,7 +69,7 @@ struct MathOpSymbol : public MathOp<T>
     int precedence() const override { return 0; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
-    std::shared_ptr<MathOp<T>> rearranged(int, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
+    std::shared_ptr<MathOp<T>> rearranged(std::shared_ptr<MathOp<T>>, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream) const { return stream << symbol; }
 
 protected:
@@ -188,7 +189,7 @@ struct MathUnaryOp : public MathOp<T>
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
     {
-        return this->x->solve_for(op, this->rearranged(0, output));
+        return this->x->solve_for(op, this->rearranged(x, output));
     }
 
     std::ostream& to_stream(std::ostream& stream) const override
@@ -217,7 +218,7 @@ struct MathBinaryOp : public MathOp<T>
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
     {
-        auto output_lhs = this->rearranged(0, output);
+        auto output_lhs = this->rearranged(lhs, output);
 
         auto solved_lhs = this->lhs->solve_for(op, output_lhs);
         if (solved_lhs != nullptr)
@@ -225,7 +226,7 @@ struct MathBinaryOp : public MathOp<T>
             return solved_lhs;
         }
 
-        auto output_rhs = this->rearranged(1, output);
+        auto output_rhs = this->rearranged(rhs, output);
 
         return this->rhs->solve_for(op, output_rhs);
     }
@@ -288,8 +289,9 @@ struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
         : MathUnaryOp<T, square_root<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("√"))
     { }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
+        if (for_child != this->x) return nullptr;
         return std::make_shared<MathOpSquares<T>>(output);
     }
 };
@@ -301,8 +303,9 @@ struct MathOpSquares : public MathUnaryOp<T, squares<T>>
         : MathUnaryOp<T, squares<T>>(x, 2, std::make_unique<MathUnaryPostfixFormatter<T>>("²"))
     { }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
+        if (for_child != this->x) return nullptr;
         return std::make_shared<MathOpSqrt<T>>(output);
     }
 };
@@ -316,8 +319,9 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
         : MathUnaryOp<T, logarithm<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("log"))
     { }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
+        if (for_child != this->x) return nullptr;
         return std::make_shared<MathOpPow<T>>(
             std::make_shared<MathOpSymbolE<T>>(),
             output
@@ -336,9 +340,9 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
 
     bool is_commutative() const override { return false; }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
-        if (child == 0)
+        if (for_child == this->lhs)
         {
             // if (this->rhs->is_constant() && this->rhs->result() == 2)
             // {
@@ -353,11 +357,17 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
                 )
             );
         }
-
-        return std::make_shared<MathOpDiv<T>>(
-            std::make_shared<MathOpLog<T>>(output),
-            std::make_shared<MathOpLog<T>>(this->lhs)
-        ); 
+        else if (for_child == this->rhs)
+        {
+            return std::make_shared<MathOpDiv<T>>(
+                std::make_shared<MathOpLog<T>>(output),
+                std::make_shared<MathOpLog<T>>(this->lhs)
+            ); 
+        }
+        else
+        {
+            return nullptr;
+        }
     }
 };
 
@@ -370,9 +380,11 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 
     bool is_commutative() const override { return true; }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
-        return std::make_shared<MathOpDiv<T>>(output, child == 0 ? this->rhs : this->lhs);
+        if      (for_child == this->lhs) return std::make_shared<MathOpDiv<T>>(output, this->rhs);
+        else if (for_child == this->rhs) return std::make_shared<MathOpDiv<T>>(output, this->lhs);
+        else                             return nullptr;
     }
 };
 
@@ -385,11 +397,11 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 
     bool is_commutative() const override { return false; }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
-        return child == 0 
-            ? std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpMul<T>>(output, this->rhs))
-            : std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpDiv<T>>(this->lhs, output));
+        if      (for_child == this->lhs) return std::make_shared<MathOpMul<T>>(output, this->rhs);
+        else if (for_child == this->rhs) return std::make_shared<MathOpDiv<T>>(this->lhs, output);
+        else                             return nullptr;
     }
 };
 
@@ -404,9 +416,11 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 
     bool is_commutative() const override { return true; }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
-        return std::make_shared<MathOpSub<T>>(output, child == 0 ? this->rhs : this->lhs);
+        if      (for_child == this->lhs) return std::make_shared<MathOpSub<T>>(output, this->rhs);
+        else if (for_child == this->rhs) return std::make_shared<MathOpSub<T>>(output, this->lhs);
+        else                             return nullptr;
     }
 };
 
@@ -419,11 +433,11 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
 
     bool is_commutative() const override { return false; }
 
-    std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_child, std::shared_ptr<MathOp<T>>output) const override
     {
-        return child == 0 
-            ? std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpAdd<T>>(output, this->rhs))
-            : std::static_pointer_cast<MathOp<T>>(std::make_shared<MathOpSub<T>>(this->lhs, output));
+        if      (for_child == this->lhs) return std::make_shared<MathOpAdd<T>>(output, this->rhs);
+        else if (for_child == this->rhs) return std::make_shared<MathOpSub<T>>(this->lhs, output);
+        else                             return nullptr;
     }
 };
 
