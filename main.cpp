@@ -12,8 +12,9 @@
 template<typename T>
 struct MathOp
 {
-    virtual T answer() const = 0;
-    virtual int order() const = 0;
+    virtual T result() const = 0;
+    virtual int precedence() const = 0;
+    virtual bool is_commutative() const = 0;
     virtual bool is_constant() const = 0;
     virtual std::shared_ptr<MathOp<T>> rearranged(int child, std::shared_ptr<MathOp<T>> output) const = 0;
 
@@ -22,9 +23,9 @@ struct MathOp
         return op.get() == this ? output : nullptr;
     }
 
-    std::ostream& to_stream_paren(std::ostream& stream, int parent_order) const
+    std::ostream& to_stream_paren(std::ostream& stream, int parent_order, bool use_commutation) const
     {
-        bool parens = parent_order <= order();
+        bool parens = !use_commutation || is_commutative() ? parent_order < precedence() : parent_order <= precedence();
 
         if (parens)
         {
@@ -43,7 +44,7 @@ struct MathOp
 
     friend std::ostream& operator<<(std::ostream &stream, const MathOp<T> &op)
     {
-        return op.to_stream_paren(stream, std::numeric_limits<int>::max());
+        return op.to_stream_paren(stream, std::numeric_limits<int>::max(), false);
     }
 
     virtual ~MathOp() { }
@@ -59,8 +60,9 @@ struct MathOpSymbol : public MathOp<T>
         : symbol(symbol), c(c), is_const(is_constant)
     { }
 
-    T answer() const override { return c; }
-    int order() const override { return 0; }
+    T result() const override { return c; }
+    int precedence() const override { return 0; }
+    bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
     std::shared_ptr<MathOp<T>> rearranged(int, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream, int parent_order) const { return stream << symbol; }
@@ -116,8 +118,9 @@ struct MathUnaryOp : public MathOp<T>
         : x(x), o(order), symbol(symbol)
     { }
 
-    T answer() const override { return f(x->answer()); }
-    int order() const override { return o; }
+    T result() const override { return f(x->result()); }
+    int precedence() const override { return o; }
+    bool is_commutative() const override { return true; }
     bool is_constant() const override { return false; }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
@@ -144,8 +147,8 @@ struct MathBinaryOp : public MathOp<T>
         : lhs(lhs), rhs(rhs), o(order), symbol(symbol)
     { }
 
-    T answer() const override { return f(lhs->answer(), rhs->answer()); }
-    int order() const override { return o; }
+    T result() const override { return f(lhs->result(), rhs->result()); }
+    int precedence() const override { return o; }
     bool is_constant() const override { return false; }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
@@ -165,9 +168,9 @@ struct MathBinaryOp : public MathOp<T>
 
     std::ostream& to_stream(std::ostream& stream, int parent_order) const
     {
-        lhs->to_stream_paren(stream, order());
+        lhs->to_stream_paren(stream, precedence(), false);
         stream << symbol;
-        rhs->to_stream_paren(stream, order());
+        rhs->to_stream_paren(stream, precedence(), true);
 
         return stream;
     }
@@ -244,11 +247,13 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
 {
     MathOpPow(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs): MathBinaryOp<T, raises<T>>(lhs, rhs, 2, " ^ ") { }
 
+    bool is_commutative() const override { return false; }
+
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
         if (child == 0)
         {
-            if (this->rhs->is_constant() && this->rhs->answer() == 2)
+            if (this->rhs->is_constant() && this->rhs->result() == 2)
             {
                 return std::make_shared<MathOpSqrt<T>>(output);
             }
@@ -274,6 +279,8 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 {
     MathOpMul(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs): MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, 10, " * ") { }
 
+    bool is_commutative() const override { return true; }
+
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
         return std::make_shared<MathOpDiv<T>>(output, child == 0 ? this->rhs : this->lhs);
@@ -284,6 +291,8 @@ template<typename T>
 struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 {
     MathOpDiv(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs) : MathBinaryOp<T, std::divides<T>>(lhs, rhs, 10, " / ") { }
+
+    bool is_commutative() const override { return false; }
 
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
@@ -300,6 +309,8 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 {
     MathOpAdd(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs) : MathBinaryOp<T, std::plus<T>>(lhs, rhs, 100, " + ") { }
 
+    bool is_commutative() const override { return true; }
+
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
         return std::make_shared<MathOpSub<T>>(output, child == 0 ? this->rhs : this->lhs);
@@ -310,6 +321,8 @@ template<typename T>
 struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
 {
     MathOpSub(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs) : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100, " - ") { }
+
+    bool is_commutative() const override { return false; }
 
     std::shared_ptr<MathOp<T>>rearranged(int child, std::shared_ptr<MathOp<T>>output) const override
     {
@@ -392,21 +405,25 @@ int main(int, char**)
                 x,
                 std::make_shared<MathOpAdd<double>>(
                     std::make_shared<MathOpConstantValue<double>>(2),
-                    std::make_shared<MathOpSymbolPi<double>>()))));
+                    std::make_shared<MathOpSymbolPi<double>>()
+                )
+            )
+        )
+    );
 
-    std::cout << "x = " << x->answer() << '\n';
+    std::cout << "x = " << x->result() << '\n';
 
-    std::cout << "y = " << *y << " = " << y->answer() << '\n';
+    std::cout << "y = " << *y << " = " << y->result() << '\n';
 
-    auto output = std::make_shared<MathOpConstantValue<double>>(y->answer());
+    auto output = std::make_shared<MathOpConstantValue<double>>(y->result());
 
     auto q = y->solve_for(x, output);
 
-    std::cout << *x << " = " << *q << " = " << q->answer() << '\n';
+    std::cout << *x << " = " << *q << " = " << q->result() << '\n';
 
     auto r = q->solve_for(output, x);
 
-    std::cout << "y = " << *r << " = " << r->answer() << '\n';
+    std::cout << "y = " << *r << " = " << r->result() << '\n';
 
     return 0 ;
     std::array<UsefulFraction<double>, 7> uses
