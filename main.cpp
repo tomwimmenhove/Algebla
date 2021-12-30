@@ -9,6 +9,13 @@
 #include <vector>
 #include <memory>
 
+/* Forward declarations */
+template<typename T> struct MathOpAdd;
+template<typename T> struct MathOpSub;
+template<typename T> struct MathOpMul;
+template<typename T> struct MathOpDiv;
+template<typename T> struct MathOpPow;
+
 /* Math operation class base class */
 template<typename T>
 struct MathOp
@@ -51,6 +58,31 @@ struct MathOp
     friend std::ostream& operator<<(std::ostream &stream, const MathOp<T> &op)
     {
         return stream << op.parenthesize(std::numeric_limits<int>::max(), false);
+    }
+
+    friend std::shared_ptr<MathOp<T>> operator+(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
+    {
+        return std::make_shared<MathOpAdd<T>>(lhs, rhs);
+    }
+
+    friend std::shared_ptr<MathOp<T>> operator-(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
+    {
+        return std::make_shared<MathOpSub<T>>(lhs, rhs);
+    }
+
+    friend std::shared_ptr<MathOp<T>> operator*(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
+    {
+        return std::make_shared<MathOpMul<T>>(lhs, rhs);
+    }
+
+    friend std::shared_ptr<MathOp<T>> operator/(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
+    {
+        return std::make_shared<MathOpDiv<T>>(lhs, rhs);
+    }
+
+    friend std::shared_ptr<MathOp<T>> operator^(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
+    {
+        return std::make_shared<MathOpPow<T>>(lhs, rhs);
     }
 
     virtual ~MathOp() { }
@@ -519,15 +551,8 @@ int main(int, char**)
 {
     auto x = std::make_shared<MathOpVariable<double>>("x", 21);
     auto y = std::make_shared<MathOpSqrt<double>>(
-        std::make_shared<MathOpPow<double>>(
-            std::make_shared<MathOpSymbolPi<double>>(),
-            std::make_shared<MathOpMul<double>>(
-                x,
-                std::make_shared<MathOpAdd<double>>(
-                    std::make_shared<MathOpConstantValue<double>>(2),
-                    std::make_shared<MathOpSymbolPi<double>>()
-                )
-            )
+        std::make_shared<MathOpSymbolPi<double>>() ^ (
+            x * (std::make_shared<MathOpConstantValue<double>>(2) + std::make_shared<MathOpSymbolPi<double>>())
         )
     );
 
