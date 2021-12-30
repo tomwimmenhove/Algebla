@@ -67,9 +67,10 @@ struct UsefulFraction
     std::function<T(T)> operate;
 };
 
+
 int main(int, char**)
 {
-    auto x = MathOpVariable("x", 0.5);
+    auto x = MathFactory::Variable("x", 0.5);
     //auto y = sqrt(MathOpSymbolPi<double>() ^ (x * (MathOpConstantValue(2.0) + MathOpSymbolPi<double>())));
     auto y = acos(x);
 
@@ -77,7 +78,7 @@ int main(int, char**)
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
 
-    auto output = MathOpConstantValue(y->result());
+    auto output = MathFactory::ConstantValue(y->result());
 
     auto q = y->solve_for(x, output);
 

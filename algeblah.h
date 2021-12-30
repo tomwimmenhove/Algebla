@@ -245,28 +245,34 @@ private:
     bool is_const;
 };
 
-template<typename T>
-static std::shared_ptr<MathOp<T>> MathOpSymbolPi() { return std::make_shared<MathOpSymbol<T>>("π", M_PI, true); }
-
-template<typename T>
-static std::shared_ptr<MathOp<T>> MathOpSymbolE() { return std::make_shared<MathOpSymbol<T>>("e", M_E, true); }
-
-template<typename T>
-static std::shared_ptr<MathOp<T>> MathOpSymbolSqrt2() { return std::make_shared<MathOpSymbol<T>>("√(2)", M_SQRT2, true); }
-
-template <typename T>
-static std::shared_ptr<MathOp<T>> MathOpVariable(std::string symbol, T c = 0)
+struct MathFactory
 {
-    return std::make_shared<MathOpSymbol<T>>(symbol, c, true);
-}
+    template <typename T>
+    static std::shared_ptr<MathOp<T>> SymbolPi() { return std::make_shared<MathOpSymbol<T>>("π", M_PI, true); }
 
-template <typename T>
-static std::shared_ptr<MathOp<T>> MathOpConstantValue(T x)
-{
-    std::stringstream ss;
-    ss << x;
-    return std::make_shared<MathOpSymbol<T>>(ss.str(), x, true);
-}
+    template <typename T>
+    static std::shared_ptr<MathOp<T>> SymbolE() { return std::make_shared<MathOpSymbol<T>>("e", M_E, true); }
+
+    template <typename T>
+    static std::shared_ptr<MathOp<T>> SymbolSqrt2() { return std::make_shared<MathOpSymbol<T>>("√(2)", M_SQRT2, true); }
+
+    template <typename T>
+    static std::shared_ptr<MathOp<T>> Variable(std::string symbol, T c = 0)
+    {
+        return std::make_shared<MathOpSymbol<T>>(symbol, c, true);
+    }
+
+    template <typename T>
+    static std::shared_ptr<MathOp<T>> ConstantValue(T x)
+    {
+        std::stringstream ss;
+        ss << x;
+        return std::make_shared<MathOpSymbol<T>>(ss.str(), x, true);
+    }
+
+private:
+    MathFactory() = delete;
+};
 
 /* Unary operation helpers */
 template <typename T>
@@ -419,7 +425,7 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
         if (for_side != this->x) return nullptr;
-        return MathOpSymbolE<T>() ^ from;
+        return MathFactory::SymbolE<T>() ^ from;
     }
 };
 
@@ -521,7 +527,7 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
     {
         if (for_side == this->lhs)
         {
-            return from ^ (MathOpConstantValue(1.0) / this->rhs);
+            return from ^ (MathFactory::ConstantValue(1.0) / this->rhs);
         }
         else if (for_side == this->rhs)
         {
