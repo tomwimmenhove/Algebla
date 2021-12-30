@@ -248,39 +248,27 @@ private:
 };
 
 template<typename T>
-struct MathOpSymbolPi : public MathOpSymbol<T> { MathOpSymbolPi() : MathOpSymbol<T>("π", M_PI, true) { }; };
+static std::shared_ptr<MathOpSymbol<T>> MathOpSymbolPi() { return std::make_shared<MathOpSymbol<T>>("π", M_PI, true); }
 
 template<typename T>
-struct MathOpSymbolE : public MathOpSymbol<T> { MathOpSymbolE() : MathOpSymbol<T>("e", M_E, true) { }; };
+static std::shared_ptr<MathOpSymbol<T>> MathOpSymbolE() { return std::make_shared<MathOpSymbol<T>>("e", M_E, true); }
 
 template<typename T>
-struct MathOpSymbolSqrt2 : public MathOpSymbol<T> { MathOpSymbolSqrt2() : MathOpSymbol<T>("√(2)", M_SQRT2, true) { }; };
+static std::shared_ptr<MathOpSymbol<T>> MathOpSymbolSqrt2() { return std::make_shared<MathOpSymbol<T>>("√(2)", M_SQRT2, true); }
 
-template<typename T>
-struct MathOpVariable: public MathOpSymbol<T>
+template <typename T>
+static std::shared_ptr<MathOpSymbol<T>> MathOpVariable(std::string symbol, T c = 0)
 {
-    MathOpVariable(std::string symbol, T c = 0)
-        : MathOpSymbol<T>(symbol, c, false)
-    { }
+    return std::make_shared<MathOpSymbol<T>>(symbol, c, true);
+}
 
-    void set(T x) { this->c = x; }
-};
-
-template<typename T>
-struct MathOpConstantValue : public MathOpSymbol<T>
+template <typename T>
+static std::shared_ptr<MathOpSymbol<T>> MathOpConstantValue(T x)
 {
-    MathOpConstantValue(T c)
-        : MathOpSymbol<T>(to_string(c), c, true)
-    { }
-
-private:
-    std::string to_string(T x)
-    {
-        std::stringstream ss;
-        ss << x;
-        return ss.str();
-    }
-};
+    std::stringstream ss;
+    ss << x;
+    return std::make_shared<MathOpSymbol<T>>(ss.str(), x, true);
+}
 
 /* Unary operation helpers */
 template <typename T>
@@ -368,7 +356,7 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
     {
         if (for_child != this->x) return nullptr;
         return std::make_shared<MathOpPow<T>>(
-            std::make_shared<MathOpSymbolE<T>>(),
+            MathOpSymbolE<T>(),
             output
         );
     }
@@ -399,7 +387,7 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
             return std::make_shared<MathOpPow<T>>(
                 output,
                 std::make_shared<MathOpDiv<T>>(
-                    std::make_shared<MathOpConstantValue<T>>(1),
+                    MathOpConstantValue(1.0),
                     this->rhs
                 )
             );
@@ -552,10 +540,10 @@ struct UsefulFraction
 
 int main(int, char**)
 {
-    auto x = std::make_shared<MathOpVariable<double>>("x", 21);
+    auto x = MathOpVariable("x", 21.0);
     auto y = sqrt(
-        std::make_shared<MathOpSymbolPi<double>>() ^ (
-            x * (std::make_shared<MathOpConstantValue<double>>(2) + std::make_shared<MathOpSymbolPi<double>>())
+        MathOpSymbolPi<double>() ^ (
+            x * (MathOpConstantValue(2.0) + MathOpSymbolPi<double>())
         )
     );
 
@@ -563,7 +551,7 @@ int main(int, char**)
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
 
-    auto output = std::make_shared<MathOpConstantValue<double>>(y->result());
+    auto output = MathOpConstantValue(y->result());
 
     auto q = y->solve_for(x, output);
 
