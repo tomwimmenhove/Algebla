@@ -69,8 +69,9 @@ struct UsefulFraction
 
 int main(int, char**)
 {
-    auto x = MathOpVariable("x", 21.0);
-    auto y = sqrt(MathOpSymbolPi<double>() ^ (x * (MathOpConstantValue(2.0) + MathOpSymbolPi<double>())));
+    auto x = MathOpVariable("x", 0.5);
+    //auto y = sqrt(MathOpSymbolPi<double>() ^ (x * (MathOpConstantValue(2.0) + MathOpSymbolPi<double>())));
+    auto y = acos(x);
 
     std::cout << "x = " << x->result() << '\n';
 

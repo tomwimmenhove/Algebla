@@ -246,22 +246,22 @@ private:
 };
 
 template<typename T>
-static std::shared_ptr<MathOpSymbol<T>> MathOpSymbolPi() { return std::make_shared<MathOpSymbol<T>>("π", M_PI, true); }
+static std::shared_ptr<MathOp<T>> MathOpSymbolPi() { return std::make_shared<MathOpSymbol<T>>("π", M_PI, true); }
 
 template<typename T>
-static std::shared_ptr<MathOpSymbol<T>> MathOpSymbolE() { return std::make_shared<MathOpSymbol<T>>("e", M_E, true); }
+static std::shared_ptr<MathOp<T>> MathOpSymbolE() { return std::make_shared<MathOpSymbol<T>>("e", M_E, true); }
 
 template<typename T>
-static std::shared_ptr<MathOpSymbol<T>> MathOpSymbolSqrt2() { return std::make_shared<MathOpSymbol<T>>("√(2)", M_SQRT2, true); }
+static std::shared_ptr<MathOp<T>> MathOpSymbolSqrt2() { return std::make_shared<MathOpSymbol<T>>("√(2)", M_SQRT2, true); }
 
 template <typename T>
-static std::shared_ptr<MathOpSymbol<T>> MathOpVariable(std::string symbol, T c = 0)
+static std::shared_ptr<MathOp<T>> MathOpVariable(std::string symbol, T c = 0)
 {
     return std::make_shared<MathOpSymbol<T>>(symbol, c, true);
 }
 
 template <typename T>
-static std::shared_ptr<MathOpSymbol<T>> MathOpConstantValue(T x)
+static std::shared_ptr<MathOp<T>> MathOpConstantValue(T x)
 {
     std::stringstream ss;
     ss << x;
@@ -295,10 +295,6 @@ struct squares : public std::unary_function<T, T>
         return x * x;
     }
 };
-
-
-
-
 
 template <typename T>
 struct sine : public std::unary_function<T, T>
@@ -368,10 +364,22 @@ struct raises : public std::binary_function<T, T, T>
 template<typename T> struct MathOpSqrt;
 template<typename T> struct MathOpSquare;
 template<typename T> struct MathOpLog;
+template<typename T> struct MathOpSin;
+template<typename T> struct MathOpASin;
+template<typename T> struct MathOpCos;
+template<typename T> struct MathOpACos;
+template<typename T> struct MathOpTan;
+template<typename T> struct MathOpATan;
 
 template<typename T> std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSqrt<double>>(x); }
 template<typename T> std::shared_ptr<MathOp<T>> square(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSquare<double>>(x); }
 template<typename T> std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpLog<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> sin(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSin<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> asin(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpASin<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> cos(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpCos<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> acos(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpACos<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> tan(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpTan<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> atan(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpATan<double>>(x); }
 
 template<typename T>
 struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
@@ -412,6 +420,90 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
     {
         if (for_side != this->x) return nullptr;
         return MathOpSymbolE<T>() ^ from;
+    }
+};
+
+template<typename T>
+struct MathOpSin : public MathUnaryOp<T, sine<T>>
+{
+    MathOpSin(std::shared_ptr<MathOp<T>>x)
+        : MathUnaryOp<T, sine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("sin"))
+    { }
+
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
+    {
+        if (for_side != this->x) return nullptr;
+        return asin(from);
+    }
+};
+
+template<typename T>
+struct MathOpASin : public MathUnaryOp<T, inverse_sine<T>>
+{
+    MathOpASin(std::shared_ptr<MathOp<T>>x)
+        : MathUnaryOp<T, inverse_sine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("asin"))
+    { }
+
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
+    {
+        if (for_side != this->x) return nullptr;
+        return sin(from);
+    }
+};
+
+template<typename T>
+struct MathOpCos : public MathUnaryOp<T, cosine<T>>
+{
+    MathOpCos(std::shared_ptr<MathOp<T>>x)
+        : MathUnaryOp<T, cosine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("cos"))
+    { }
+
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
+    {
+        if (for_side != this->x) return nullptr;
+        return acos(from);
+    }
+};
+
+template<typename T>
+struct MathOpACos : public MathUnaryOp<T, inverse_cosine<T>>
+{
+    MathOpACos(std::shared_ptr<MathOp<T>>x)
+        : MathUnaryOp<T, inverse_cosine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("acos"))
+    { }
+
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
+    {
+        if (for_side != this->x) return nullptr;
+        return cos(from);
+    }
+};
+
+template<typename T>
+struct MathOpTan : public MathUnaryOp<T, tangent<T>>
+{
+    MathOpTan(std::shared_ptr<MathOp<T>>x)
+        : MathUnaryOp<T, tangent<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("tan"))
+    { }
+
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
+    {
+        if (for_side != this->x) return nullptr;
+        return atan(from);
+    }
+};
+
+template<typename T>
+struct MathOpATan : public MathUnaryOp<T, inverse_tangent<T>>
+{
+    MathOpATan(std::shared_ptr<MathOp<T>>x)
+        : MathUnaryOp<T, inverse_tangent<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("atan"))
+    { }
+
+    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
+    {
+        if (for_side != this->x) return nullptr;
+        return tan(from);
     }
 };
 
