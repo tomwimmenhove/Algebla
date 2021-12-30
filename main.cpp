@@ -338,6 +338,9 @@ struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
 };
 
 template<typename T>
+std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSqrt<double>>(x); }
+
+template<typename T>
 struct MathOpSquares : public MathUnaryOp<T, squares<T>>
 {
     MathOpSquares(std::shared_ptr<MathOp<T>>x)
@@ -351,7 +354,8 @@ struct MathOpSquares : public MathUnaryOp<T, squares<T>>
     }
 };
 
-template<typename T> struct MathOpPow;
+template<typename T>
+std::shared_ptr<MathOp<T>> square(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSquares<double>>(x); }
 
 template<typename T>
 struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
@@ -370,9 +374,10 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
     }
 };
 
-/* Binary math operations */
-template<typename T> struct MathOpDiv;
+template<typename T>
+std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpLog<double>>(x); }
 
+/* Binary math operations */
 template<typename T>
 struct MathOpPow : public MathBinaryOp<T, raises<T>>
 {
@@ -446,8 +451,6 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
         else                             return nullptr;
     }
 };
-
-template<typename T> struct MathOpSub;
 
 template<typename T>
 struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
@@ -550,7 +553,7 @@ struct UsefulFraction
 int main(int, char**)
 {
     auto x = std::make_shared<MathOpVariable<double>>("x", 21);
-    auto y = std::make_shared<MathOpSqrt<double>>(
+    auto y = sqrt(
         std::make_shared<MathOpSymbolPi<double>>() ^ (
             x * (std::make_shared<MathOpConstantValue<double>>(2) + std::make_shared<MathOpSymbolPi<double>>())
         )
