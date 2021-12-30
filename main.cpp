@@ -68,11 +68,16 @@ struct UsefulFraction
 };
 
 
+template<typename T>
+std::shared_ptr<MathOp<T>> xxxx(std::shared_ptr<MathOp<T>> x)
+{
+    return acos(x);
+}
+
 int main(int, char**)
 {
-    auto x = MathFactory::Variable("x", 0.5);
-    //auto y = sqrt(MathOpSymbolPi<double>() ^ (x * (MathOpConstantValue(2.0) + MathOpSymbolPi<double>())));
-    auto y = acos(x);
+    auto x = MathFactory::Variable("x", 21.0);
+    auto y = sqrt<double>(MathFactory::SymbolPi<double>() ^ (x * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
 
     std::cout << "x = " << x->result() << '\n';
 

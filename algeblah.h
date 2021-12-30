@@ -224,50 +224,112 @@ protected:
 
 /* Primitive math values */
 template<typename T>
-struct MathOpSymbol : public MathOp<T>
+struct MathOpValue : public MathOp<T>
 {
-    MathOpSymbol(std::string symbol, T c, bool is_constant)
-        : symbol(symbol), c(c), is_const(is_constant)
+    MathOpValue(T value, bool is_constant)
+        : value(value), is_const(is_constant)
     { }
 
-    T result() const override { return c; }
+    T result() const override { return value; }
+    void set(T x) { this->value = x; }
     int precedence() const override { return 0; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
     std::shared_ptr<MathOp<T>> rearranged(std::shared_ptr<MathOp<T>>, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
-    std::ostream& to_stream(std::ostream& stream) const { return stream << symbol; }
+    std::ostream& to_stream(std::ostream& stream) const { return stream << symbol_str(); }
 
 protected:
-    T c;
+    virtual std::string symbol_str() const = 0;
+    T value;
+
+private:
+    bool is_const;
+};
+
+template<typename T>
+struct MathOpSymbol : public MathOpValue<T>
+{
+    MathOpSymbol(std::string symbol, T value, bool is_constant)
+        : symbol(symbol), MathOpValue<T>(value, is_constant)
+    { }
+
+protected:
+    std::string symbol_str() const override { return symbol; }
 
 private:
     std::string symbol;
-    bool is_const;
 };
+
+template<typename T>
+struct MathOpMutableSymbol : public MathOpSymbol<T>
+{
+    MathOpMutableSymbol(std::string symbol, T value) : MathOpSymbol<T>(symbol, value, false) { }
+};
+
+template<typename T>
+struct MathOpConstantSymbol : public MathOpSymbol<T>
+{
+    MathOpConstantSymbol(std::string symbol, T value) : MathOpSymbol<T>(symbol, value, true) { }
+
+    void set(T x) = delete;
+};
+
+template<typename T>
+struct MathOpVariable : public MathOpMutableSymbol<T>
+{
+    MathOpVariable(std::string symbol, T x) : MathOpMutableSymbol<T>(symbol, x) { }
+};
+
+template<typename T>
+struct MathOpMutableValue : public MathOpValue<T>
+{
+    MathOpMutableValue(T value) : MathOpValue<T>(value, false) { }
+
+protected:
+    std::string symbol_str() const override
+    {
+        std::stringstream ss;
+        ss << this->value;
+        return ss.str();
+    }
+};
+
+template<typename T>
+struct MathOpConstantValue : public MathOpMutableValue<T>
+{
+    using MathOpMutableValue<T>::MathOpMutableValue;
+
+    void set(T x) = delete;
+};
+
 
 struct MathFactory
 {
     template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolPi() { return std::make_shared<MathOpSymbol<T>>("π", M_PI, true); }
+    static std::shared_ptr<MathOp<T>> SymbolPi() { return std::make_shared<MathOpConstantSymbol<T>>("π", M_PI); }
 
     template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolE() { return std::make_shared<MathOpSymbol<T>>("e", M_E, true); }
+    static std::shared_ptr<MathOp<T>> SymbolE() { return std::make_shared<MathOpConstantSymbol<T>>("e", M_E); }
 
     template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolSqrt2() { return std::make_shared<MathOpSymbol<T>>("√(2)", M_SQRT2, true); }
+    static std::shared_ptr<MathOp<T>> SymbolSqrt2() { return std::make_shared<MathOpConstantSymbol<T>>("√(2)", M_SQRT2); }
 
     template <typename T>
-    static std::shared_ptr<MathOp<T>> Variable(std::string symbol, T c = 0)
+    static std::shared_ptr<MathOpVariable<T>> Variable(std::string symbol, T c = 0)
     {
-        return std::make_shared<MathOpSymbol<T>>(symbol, c, true);
+        return std::make_shared<MathOpVariable<T>>(symbol, c);
     }
 
     template <typename T>
-    static std::shared_ptr<MathOp<T>> ConstantValue(T x)
+    static std::shared_ptr<MathOpConstantValue<T>> ConstantValue(T c)
     {
-        std::stringstream ss;
-        ss << x;
-        return std::make_shared<MathOpSymbol<T>>(ss.str(), x, true);
+        return std::make_shared<MathOpConstantValue<T>>(c);
+    }
+
+    template <typename T>
+    static std::shared_ptr<MathOpMutableValue<T>> MutableValue(T x)
+    {
+        return std::make_shared<MathOpMutableValue<T>>(x);
     }
 
 private:
