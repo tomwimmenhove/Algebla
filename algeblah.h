@@ -296,6 +296,64 @@ struct squares : public std::unary_function<T, T>
     }
 };
 
+
+
+
+
+template <typename T>
+struct sine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return std::sin(x);
+    }
+};
+
+template <typename T>
+struct inverse_sine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return std::asin(x);
+    }
+};
+
+template <typename T>
+struct cosine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return std::cos(x);
+    }
+};
+
+template <typename T>
+struct inverse_cosine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return std::acos(x);
+    }
+};
+
+template <typename T>
+struct tangent : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return std::tan(x);
+    }
+};
+
+template <typename T>
+struct inverse_tangent : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return std::atan(x);
+    }
+};
+
 /* Binary operation helpers */
 template <typename T>
 struct raises : public std::binary_function<T, T, T>
@@ -307,7 +365,13 @@ struct raises : public std::binary_function<T, T, T>
 };
 
 /* Unary math operations */
-template<typename T> struct MathOpSquares;
+template<typename T> struct MathOpSqrt;
+template<typename T> struct MathOpSquare;
+template<typename T> struct MathOpLog;
+
+template<typename T> std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSqrt<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> square(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSquare<double>>(x); }
+template<typename T> std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpLog<double>>(x); }
 
 template<typename T>
 struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
@@ -319,29 +383,23 @@ struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
         if (for_side != this->x) return nullptr;
-        return std::make_shared<MathOpSquares<T>>(from);
+        return square(from);
     }
 };
 
 template<typename T>
-std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSqrt<double>>(x); }
-
-template<typename T>
-struct MathOpSquares : public MathUnaryOp<T, squares<T>>
+struct MathOpSquare : public MathUnaryOp<T, squares<T>>
 {
-    MathOpSquares(std::shared_ptr<MathOp<T>>x)
+    MathOpSquare(std::shared_ptr<MathOp<T>>x)
         : MathUnaryOp<T, squares<T>>(x, 2, std::make_unique<MathUnaryPostfixFormatter<T>>("²"))
     { }
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
         if (for_side != this->x) return nullptr;
-        return std::make_shared<MathOpSqrt<T>>(from);
+        return sqrt(from);
     }
 };
-
-template<typename T>
-std::shared_ptr<MathOp<T>> square(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpSquares<double>>(x); }
 
 template<typename T>
 struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
@@ -353,15 +411,9 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
         if (for_side != this->x) return nullptr;
-        return std::make_shared<MathOpPow<T>>(
-            MathOpSymbolE<T>(),
-            from
-        );
+        return MathOpSymbolE<T>() ^ from;
     }
 };
-
-template<typename T>
-std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x) { return std::make_shared<MathOpLog<double>>(x); }
 
 /* Binary math operations */
 template<typename T>
@@ -377,25 +429,11 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
     {
         if (for_side == this->lhs)
         {
-            // if (this->rhs->is_constant() && this->rhs->result() == 2)
-            // {
-            //     return std::make_shared<MathOpSqrt<T>>(from);
-            // }
-
-            return std::make_shared<MathOpPow<T>>(
-                from,
-                std::make_shared<MathOpDiv<T>>(
-                    MathOpConstantValue(1.0),
-                    this->rhs
-                )
-            );
+            return from ^ (MathOpConstantValue(1.0) / this->rhs);
         }
         else if (for_side == this->rhs)
         {
-            return std::make_shared<MathOpDiv<T>>(
-                std::make_shared<MathOpLog<T>>(from),
-                std::make_shared<MathOpLog<T>>(this->lhs)
-            ); 
+            return log(from) / log(this->lhs);
         }
         else
         {
@@ -415,8 +453,8 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
-        if      (for_side == this->lhs) return std::make_shared<MathOpDiv<T>>(from, this->rhs);
-        else if (for_side == this->rhs) return std::make_shared<MathOpDiv<T>>(from, this->lhs);
+        if      (for_side == this->lhs) return from / this->rhs;
+        else if (for_side == this->rhs) return from / this->lhs;
         else                            return nullptr;
     }
 };
@@ -432,8 +470,8 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
-        if      (for_side == this->lhs) return std::make_shared<MathOpMul<T>>(from, this->rhs);
-        else if (for_side == this->rhs) return std::make_shared<MathOpDiv<T>>(this->lhs, from);
+        if      (for_side == this->lhs) return from * this->rhs;
+        else if (for_side == this->rhs) return this->lhs / from;
         else                            return nullptr;
     }
 };
@@ -449,8 +487,8 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
-        if      (for_side == this->lhs) return std::make_shared<MathOpSub<T>>(from, this->rhs);
-        else if (for_side == this->rhs) return std::make_shared<MathOpSub<T>>(from, this->lhs);
+        if      (for_side == this->lhs) return from - this->rhs;
+        else if (for_side == this->rhs) return from - this->lhs;
         else                            return nullptr;
     }
 };
@@ -466,8 +504,8 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
-        if      (for_side == this->lhs) return std::make_shared<MathOpAdd<T>>(from, this->rhs);
-        else if (for_side == this->rhs) return std::make_shared<MathOpSub<T>>(this->lhs, from);
+        if      (for_side == this->lhs) return from + this->rhs;
+        else if (for_side == this->rhs) return this->lhs - from;
         else                            return nullptr;
     }
 };
