@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 
+/* Math operation class base class */
 template<typename T>
 struct MathOp
 {
@@ -58,6 +59,140 @@ protected:
     virtual std::ostream& to_stream(std::ostream& stream) const = 0;
 };
 
+/* Formatters used to display unary operations */
+template<typename T>
+struct MathUnaryFormatter
+{
+    virtual std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
+        std::shared_ptr<MathOp<T>> x) const = 0;
+};
+
+template<typename T>
+struct MathUnaryFunctionFormatter : public MathUnaryFormatter<T>
+{
+    MathUnaryFunctionFormatter(std::string name) : name(name) { }
+    
+    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
+        std::shared_ptr<MathOp<T>> x) const override
+    {
+        return stream << name << '(' << *x << ')';
+    }
+
+private:
+    std::string name;
+};
+
+template<typename T>
+struct MathUnaryPostfixFormatter : public MathUnaryFormatter<T>
+{
+    MathUnaryPostfixFormatter(std::string postfix) : postfix(postfix) { }
+    
+    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
+        std::shared_ptr<MathOp<T>> x) const override
+    {
+        return stream << '(' << *x << ')' << postfix;
+    }
+
+private:
+    std::string postfix;
+};
+
+/* Formatters used to display binary operations */
+template<typename T>
+struct MathBinaryFormatter
+{
+    virtual std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
+        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs) const = 0;
+};
+
+template<typename T>
+struct MathBinaryOperationFormatter : public MathBinaryFormatter<T>
+{
+    MathBinaryOperationFormatter(std::string symbol) : symbol(symbol) { }
+    
+    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
+        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs) const override
+    {
+        int precedence = op.precedence();
+        return stream << lhs->parenthesize(precedence, false) << symbol << rhs->parenthesize(precedence, true);
+    }
+
+private:
+    std::string symbol;
+};
+
+/* Unary math operation base class */
+template<typename T, typename U>
+struct MathUnaryOp : public MathOp<T>
+{
+    MathUnaryOp(std::shared_ptr<MathOp<T>> x, int precedence, std::unique_ptr<MathUnaryFormatter<T>> formatter)
+        : x(x), prec(precedence), formatter(std::move(formatter))
+    { }
+
+    T result() const override { return f(x->result()); }
+    int precedence() const override { return prec; }
+    bool is_commutative() const override { return true; }
+    bool is_constant() const override { return false; }
+
+    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
+    {
+        return this->x->solve_for(op, this->rearranged(x, output));
+    }
+
+    std::ostream& to_stream(std::ostream& stream) const override
+    {
+        return formatter->to_stream(stream, *this, x);
+    }
+
+protected:
+    std::shared_ptr<MathOp<T>>x;
+    int prec;
+    std::unique_ptr<MathUnaryFormatter<T>> formatter;
+    U f;
+};
+
+/* Binary math operation base class */
+template<typename T, typename U>
+struct MathBinaryOp : public MathOp<T>
+{
+    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, int precedence,
+        std::unique_ptr<MathBinaryFormatter<T>> formatter)
+        : lhs(lhs), rhs(rhs), prec(precedence), formatter(std::move(formatter))
+    { }
+
+    T result() const override { return f(lhs->result(), rhs->result()); }
+    int precedence() const override { return prec; }
+    bool is_constant() const override { return false; }
+
+    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
+    {
+        auto output_lhs = this->rearranged(lhs, output);
+
+        auto solved_lhs = this->lhs->solve_for(op, output_lhs);
+        if (solved_lhs != nullptr)
+        {
+            return solved_lhs;
+        }
+
+        auto output_rhs = this->rearranged(rhs, output);
+
+        return this->rhs->solve_for(op, output_rhs);
+    }
+
+    std::ostream& to_stream(std::ostream& stream) const override
+    {
+        return formatter->to_stream(stream, *this, lhs, rhs);
+    }
+
+protected:
+    std::shared_ptr<MathOp<T>>lhs;
+    std::shared_ptr<MathOp<T>>rhs;
+    int prec;
+    std::unique_ptr<MathBinaryFormatter<T>> formatter;
+    U f;
+};
+
+/* Primitive math values */
 template<typename T>
 struct MathOpSymbol : public MathOp<T>
 {
@@ -115,144 +250,7 @@ private:
     }
 };
 
-template<typename T>
-struct MathUnaryFormatter
-{
-    virtual std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> x) const = 0;
-};
-
-template<typename T>
-struct MathUnaryFunctionFormatter : public MathUnaryFormatter<T>
-{
-    MathUnaryFunctionFormatter(std::string name) : name(name) { }
-    
-    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> x) const override
-    {
-        return stream << name << '(' << *x << ')';
-    }
-
-private:
-    std::string name;
-};
-
-template<typename T>
-struct MathUnaryPostfixFormatter : public MathUnaryFormatter<T>
-{
-    MathUnaryPostfixFormatter(std::string postfix) : postfix(postfix) { }
-    
-    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> x) const override
-    {
-        return stream << '(' << *x << ')' << postfix;
-    }
-
-private:
-    std::string postfix;
-};
-
-template<typename T>
-struct MathBinaryFormatter
-{
-    virtual std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs) const = 0;
-};
-
-template<typename T>
-struct MathBinaryOperationFormatter : public MathBinaryFormatter<T>
-{
-    MathBinaryOperationFormatter(std::string symbol) : symbol(symbol) { }
-    
-    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs) const override
-    {
-        int precedence = op.precedence();
-        return stream << lhs->parenthesize(precedence, false) << symbol << rhs->parenthesize(precedence, true);
-    }
-
-private:
-    std::string symbol;
-};
-
-template<typename T, typename U>
-struct MathUnaryOp : public MathOp<T>
-{
-    MathUnaryOp(std::shared_ptr<MathOp<T>> x, int precedence, std::unique_ptr<MathUnaryFormatter<T>> formatter)
-        : x(x), prec(precedence), formatter(std::move(formatter))
-    { }
-
-    T result() const override { return f(x->result()); }
-    int precedence() const override { return prec; }
-    bool is_commutative() const override { return true; }
-    bool is_constant() const override { return false; }
-
-    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
-    {
-        return this->x->solve_for(op, this->rearranged(x, output));
-    }
-
-    std::ostream& to_stream(std::ostream& stream) const override
-    {
-        return formatter->to_stream(stream, *this, x);
-    }
-
-protected:
-    std::shared_ptr<MathOp<T>>x;
-    int prec;
-    std::unique_ptr<MathUnaryFormatter<T>> formatter;
-    U f;
-};
-
-template<typename T, typename U>
-struct MathBinaryOp : public MathOp<T>
-{
-    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, int precedence,
-        std::unique_ptr<MathBinaryFormatter<T>> formatter)
-        : lhs(lhs), rhs(rhs), prec(precedence), formatter(std::move(formatter))
-    { }
-
-    T result() const override { return f(lhs->result(), rhs->result()); }
-    int precedence() const override { return prec; }
-    bool is_constant() const override { return false; }
-
-    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>output) const override
-    {
-        auto output_lhs = this->rearranged(lhs, output);
-
-        auto solved_lhs = this->lhs->solve_for(op, output_lhs);
-        if (solved_lhs != nullptr)
-        {
-            return solved_lhs;
-        }
-
-        auto output_rhs = this->rearranged(rhs, output);
-
-        return this->rhs->solve_for(op, output_rhs);
-    }
-
-    std::ostream& to_stream(std::ostream& stream) const override
-    {
-        return formatter->to_stream(stream, *this, lhs, rhs);
-    }
-
-protected:
-    std::shared_ptr<MathOp<T>>lhs;
-    std::shared_ptr<MathOp<T>>rhs;
-    int prec;
-    std::unique_ptr<MathBinaryFormatter<T>> formatter;
-    U f;
-};
-
-template <typename T>
-struct raises : public std::binary_function<T, T, T>
-{
-    T operator()(T x, T y) const
-    {
-        return std::pow(x, y);
-    }
-};
-
+/* Unary operation helpers */
 template <typename T>
 struct logarithm : public std::unary_function<T, T>
 {
@@ -280,6 +278,17 @@ struct squares : public std::unary_function<T, T>
     }
 };
 
+/* Binary operation helpers */
+template <typename T>
+struct raises : public std::binary_function<T, T, T>
+{
+    T operator()(T x, T y) const
+    {
+        return std::pow(x, y);
+    }
+};
+
+/* Unary math operations */
 template<typename T> struct MathOpSquares;
 
 template<typename T>
@@ -329,6 +338,7 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
     }
 };
 
+/* Binary math operations */
 template<typename T> struct MathOpDiv;
 
 template<typename T>
@@ -441,6 +451,7 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
     }
 };
 
+/* Fractions */
 template<typename T>
 struct Fraction
 {
