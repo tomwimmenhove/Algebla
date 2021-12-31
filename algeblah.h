@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <memory>
+#include <vector>
 
 /* Forward declarations */
 template<typename T> struct MathOpAdd;
@@ -13,6 +14,7 @@ template<typename T> struct MathOpSub;
 template<typename T> struct MathOpMul;
 template<typename T> struct MathOpDiv;
 template<typename T> struct MathOpPow;
+template<typename T> struct MathOpVariable;
 
 /* Math operation class base class */
 template<typename T>
@@ -24,10 +26,17 @@ struct MathOp
     virtual bool is_constant() const = 0;
     virtual std::shared_ptr<MathOp<T>> rearranged(
         std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>> from) const = 0;
+    virtual std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) = 0;
 
     virtual std::shared_ptr<MathOp<T>> solve_for(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> from) const
     {
         return op.get() == this ? from : nullptr;
+    }
+
+    std::shared_ptr<MathOp<T>> solve_for(std::string variable_name, std::shared_ptr<MathOp<T>> from)
+    {
+        auto op = find_variable(variable_name);
+        return op ? solve_for(op, from) : nullptr;
     }
 
     std::string parenthesize(int parent_precedence, bool use_commutation) const
@@ -163,6 +172,7 @@ struct MathUnaryOp : public MathOp<T>
     int precedence() const override { return prec; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return false; }
+    std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override { return x->find_variable(symbol); }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>from) const override
     {
@@ -193,6 +203,16 @@ struct MathBinaryOp : public MathOp<T>
     T result() const override { return f(lhs->result(), rhs->result()); }
     int precedence() const override { return prec; }
     bool is_constant() const override { return false; }
+    std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override
+    {
+        auto lhv = lhs->find_variable(symbol);
+        if (lhv)
+        {
+            return lhv;
+        }
+
+        return rhs->find_variable(symbol);
+    }
 
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>from) const override
     {
@@ -235,6 +255,7 @@ struct MathOpValue : public MathOp<T>
     int precedence() const override { return 0; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
+    virtual std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override { return nullptr; }
     std::shared_ptr<MathOp<T>> rearranged(std::shared_ptr<MathOp<T>>, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream) const { return stream << symbol_str(); }
 
@@ -261,8 +282,6 @@ struct MathOpSymbol : public MathOpValue<T>
 
 protected:
     std::string symbol_str() const override { return symbol; }
-
-private:
     std::string symbol;
 };
 
@@ -281,8 +300,19 @@ struct MathOpConstantSymbol : public MathOpSymbol<T>
 };
 
 template<typename T>
-struct MathOpVariable : public MathOpMutableSymbol<T>
+struct MathOpVariable : public MathOpMutableSymbol<T>, std::enable_shared_from_this<MathOpVariable<T>>
 {
+    std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override
+    {
+        return symbol == this->symbol ? this->shared_from_this() : nullptr;
+    }
+
+    static std::shared_ptr<MathOpVariable<T>> create(std::string symbol, T x)
+    {
+        return std::shared_ptr<MathOpVariable<T>>(new MathOpVariable<T>(symbol, x));
+    }
+
+private:
     MathOpVariable(std::string symbol, T x) : MathOpMutableSymbol<T>(symbol, x) { }
 };
 
@@ -314,7 +344,7 @@ struct MathFactory
     template <typename T>
     static std::shared_ptr<MathOpVariable<T>> Variable(std::string symbol, T c = 0)
     {
-        return std::make_shared<MathOpVariable<T>>(symbol, c);
+        return MathOpVariable<T>::create(symbol, c);
     }
 
     template <typename T>

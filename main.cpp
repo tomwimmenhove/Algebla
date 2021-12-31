@@ -85,7 +85,7 @@ int main(int, char**)
 
     auto output = MathFactory::ConstantValue(y->result());
 
-    auto q = y->solve_for(x, output);
+    auto q = y->solve_for("x", output);
 
     std::cout << *x << " = " << *q << " = " << q->result() << '\n';
 
