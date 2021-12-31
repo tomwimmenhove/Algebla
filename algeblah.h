@@ -39,11 +39,11 @@ struct MathOp
         return op ? solve_for(op, from) : nullptr;
     }
 
-    std::string parenthesize(int parent_precedence, bool use_commutation) const
+    std::string parenthesize(int parent_precedence, bool parent_is_commutative, bool use_commutation) const
     {
         std::stringstream ss;
 
-        bool use_parens = !use_commutation || is_commutative()
+        bool use_parens = !use_commutation || parent_is_commutative
             ? parent_precedence < precedence()
             : parent_precedence <= precedence();
 
@@ -64,7 +64,7 @@ struct MathOp
 
     friend std::ostream& operator<<(std::ostream &stream, const MathOp<T> &op)
     {
-        return stream << op.parenthesize(std::numeric_limits<int>::max(), false);
+        return stream << op.parenthesize(std::numeric_limits<int>::max(), true, false);
     }
 
     friend std::shared_ptr<MathOp<T>> operator+(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
@@ -153,7 +153,10 @@ struct MathBinaryOperationFormatter : public MathBinaryFormatter<T>
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs) const override
     {
         int precedence = op.precedence();
-        return stream << lhs->parenthesize(precedence, false) << symbol << rhs->parenthesize(precedence, true);
+        int is_commutative = op.is_commutative();
+        return stream << lhs->parenthesize(precedence, is_commutative, false)
+                      << symbol
+                      << rhs->parenthesize(precedence, is_commutative, true);
     }
 
 private:
