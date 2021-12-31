@@ -61,7 +61,7 @@ struct Fraction
 };
 
 template<typename T>
-void solver(std::shared_ptr<MathOp<T>> y,
+Fraction<T> solver(std::shared_ptr<MathOp<T>> y,
             std::shared_ptr<MathOpVariable<T>> numerator,
             std::shared_ptr<MathOpVariable<T>> denominator, T value, T max_error, int iters)
 {
@@ -72,27 +72,44 @@ void solver(std::shared_ptr<MathOp<T>> y,
 
     numerator->set(fraction.numerator);
     denominator->set(fraction.denominator);
+
+    return fraction;
 }
 
 template<typename T>
-void solver(std::shared_ptr<MathOp<T>> y, T value, T max_error, int iters)
+Fraction<T> solver(std::shared_ptr<MathOp<T>> y, T value, T max_error, int iters)
 {
     auto numerator = y->find_variable("numerator");
     auto denominator = y->find_variable("denominator");
 
-    solver<T>(y, numerator, denominator, value, max_error, iters);
+    return solver<T>(y, numerator, denominator, value, max_error, iters);
 }
 
 int main(int, char**)
 {
-    double value = 15.0 / 4.0 * M_PI;
-    auto y = MathFactory::ValueVariable("numerator", 1.0)
-        * MathFactory::SymbolPi<double>()
-        / MathFactory::ValueVariable("denominator", 1.0);
+    //double value = 15.0 / 4.0 * M_PI;
+    double value = 15.0 / 4.0 / M_PI;
 
-    solver(y, value, 1E-10, 1000);
+    std::array<std::shared_ptr<MathOp<double>>, 2> equations
+    {
+        MathFactory::ValueVariable("numerator", 1.0)
+            * MathFactory::SymbolPi<double>()
+            / MathFactory::ValueVariable("denominator", 1.0),
+        MathFactory::ValueVariable("numerator", 1.0)
+            / (MathFactory::SymbolPi<double>()
+            * MathFactory::ValueVariable("denominator", 1.0))
+    };
 
-    std::cout << *y << " = " << y->result() << '\n';
+    for (auto y: equations)
+    {
+        auto fraction = solver(y, value, 1E-10, 1000);
+
+        if (!fraction.isnan())
+        {
+            std::cout << *y << " = " << y->result() << '\n';
+        }
+
+    }
 
     return 0;
 }
