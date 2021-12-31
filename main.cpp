@@ -67,14 +67,32 @@ struct UsefulFraction
     std::function<T(T)> operate;
 };
 
-
-template<typename T>
-std::shared_ptr<MathOp<T>> xxxx(std::shared_ptr<MathOp<T>> x)
+int main(int, char**)
 {
-    return acos(x);
+    auto result = MathFactory::ConstantValue(15.0 / 4.0 * M_PI);
+
+    //auto x = MathFactory::Variable<double>("x");
+    auto numerator = MathFactory::MutableValue(1.0);
+    auto denominator = MathFactory::MutableValue(1.0);
+
+    auto y = numerator * MathFactory::SymbolPi<double>() / denominator;
+
+    auto solve = y->solve_for(numerator, result);
+
+    auto bla = solve->result();
+
+    auto f = Fraction<double>::find(solve->result(), 1E-10, 1000);
+
+    numerator->set(f.numerator);
+    denominator->set(f.denominator);
+
+    //std::cout << *solve << " = " << solve->result() << '\n';
+    std::cout << *y << " = " << y->result() << '\n';
+
+    return 0;
 }
 
-int main(int, char**)
+int mainiac(int, char**)
 {
     auto x = MathFactory::Variable("x", 21.0);
     auto y = sqrt<double>(MathFactory::SymbolPi<double>() ^ (x * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
