@@ -239,8 +239,14 @@ struct MathOpValue : public MathOp<T>
     std::ostream& to_stream(std::ostream& stream) const { return stream << symbol_str(); }
 
 protected:
-    virtual std::string symbol_str() const = 0;
     T value;
+
+    virtual std::string symbol_str() const
+    {
+        std::stringstream ss;
+        ss << this->value;
+        return ss.str();
+    }
 
 private:
     bool is_const;
@@ -284,24 +290,15 @@ template<typename T>
 struct MathOpMutableValue : public MathOpValue<T>
 {
     MathOpMutableValue(T value) : MathOpValue<T>(value, false) { }
-
-protected:
-    std::string symbol_str() const override
-    {
-        std::stringstream ss;
-        ss << this->value;
-        return ss.str();
-    }
 };
 
 template<typename T>
-struct MathOpConstantValue : public MathOpMutableValue<T>
+struct MathOpConstantValue : public MathOpValue<T>
 {
-    using MathOpMutableValue<T>::MathOpMutableValue;
+    MathOpConstantValue(T value) : MathOpValue<T>(value, true) { }
 
     void set(T x) = delete;
 };
-
 
 struct MathFactory
 {
