@@ -10,13 +10,18 @@ struct Fraction
     T numerator;
     T denominator;
 
-    bool isnan()      const { return std::isnan(numerator) || std::isnan(denominator); }
-    bool isintegral() const { return denominator == 1.0; }
-    T    fractional() const { return numerator / denominator; }
+    bool is_nan()      const { return std::isnan(numerator) || std::isnan(denominator); }
+    bool is_integral() const { return denominator == 1.0; }
+    T    fractional()  const { return numerator / denominator; }
 
     Fraction(T numerator, T denominator)
         : numerator(numerator), denominator(denominator)
     { }
+
+    std::shared_ptr<MathOp<T>> to_math_op() const
+    {
+        return MathFactory::ConstantValue(numerator) / MathFactory::ConstantValue(denominator);
+    }
 
     static Fraction<T> quiet_NaN()
     {
@@ -61,52 +66,46 @@ struct Fraction
 };
 
 template<typename T>
-Fraction<T> solver(std::shared_ptr<MathOp<T>> y,
-            std::shared_ptr<MathOpVariable<T>> numerator,
-            std::shared_ptr<MathOpVariable<T>> denominator, T value, T max_error, int iters)
+std::shared_ptr<MathOp<T>> solver(std::shared_ptr<MathOp<T>> y, T value, T max_error, int iters)
 {
     auto result = MathFactory::ConstantValue(value);
 
-    auto solved = y->solve_for(numerator, result);
+    auto x = y->find_variable("x");
+    auto solved = y->solve_for(x, result);
     auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
 
-    numerator->set(fraction.numerator);
-    denominator->set(fraction.denominator);
+    if (fraction.is_nan())
+    {
+        return nullptr;
+    }
 
-    return fraction;
-}
+    y->replace(x, fraction.to_math_op());
 
-template<typename T>
-Fraction<T> solver(std::shared_ptr<MathOp<T>> y, T value, T max_error, int iters)
-{
-    auto numerator = y->find_variable("numerator");
-    auto denominator = y->find_variable("denominator");
-
-    return solver<T>(y, numerator, denominator, value, max_error, iters);
+    return y;
 }
 
 int main(int, char**)
 {
-    //double value = 15.0 / 4.0 * M_PI;
-    double value = 15.0 / 4.0 / M_PI;
+    auto y = log(MathFactory::ValueVariable("x", 1.0) * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(6.0));
+
+    std::cout << "y = " << *y << " = " << y->result() << '\n';
+    return 0;
+    double value = M_PI;//15.0 / 4.0 * M_PI;
+    //double value = 15.0 / 4.0 / M_PI;
 
     std::array<std::shared_ptr<MathOp<double>>, 2> equations
     {
-        MathFactory::ValueVariable("numerator", 1.0)
-            * MathFactory::SymbolPi<double>()
-            / MathFactory::ValueVariable("denominator", 1.0),
-        MathFactory::ValueVariable("numerator", 1.0)
-            / (MathFactory::SymbolPi<double>()
-            * MathFactory::ValueVariable("denominator", 1.0))
+        MathFactory::ValueVariable("x", 1.0) * MathFactory::SymbolPi<double>(),
+        MathFactory::ValueVariable("x", 1.0) / MathFactory::SymbolPi<double>()
     };
 
     for (auto y: equations)
     {
-        auto fraction = solver(y, value, 1E-10, 1000);
+        auto solved = solver(y, value, 1E-10, 1000);
 
-        if (!fraction.isnan())
+        if (solved)
         {
-            std::cout << *y << " = " << y->result() << '\n';
+            std::cout << *solved << " = " << solved->result() << '\n';
         }
 
     }
