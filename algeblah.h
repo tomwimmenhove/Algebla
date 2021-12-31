@@ -300,20 +300,28 @@ struct MathOpConstantSymbol : public MathOpSymbol<T>
 };
 
 template<typename T>
-struct MathOpVariable : public MathOpMutableSymbol<T>, std::enable_shared_from_this<MathOpVariable<T>>
+struct MathOpVariable : public MathOpValue<T>, std::enable_shared_from_this<MathOpVariable<T>>
 {
     std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override
     {
         return symbol == this->symbol ? this->shared_from_this() : nullptr;
     }
 
-    static std::shared_ptr<MathOpVariable<T>> create(std::string symbol, T x)
+    static std::shared_ptr<MathOpVariable<T>> create(std::string symbol, T x, bool show_value)
     {
-        return std::shared_ptr<MathOpVariable<T>>(new MathOpVariable<T>(symbol, x));
+        return std::shared_ptr<MathOpVariable<T>>(new MathOpVariable<T>(symbol, x, show_value));
     }
 
+protected:
+    std::string symbol_str() const override { return show_value ? MathOpValue<T>::symbol_str() : symbol; }
+
 private:
-    MathOpVariable(std::string symbol, T x) : MathOpMutableSymbol<T>(symbol, x) { }
+    MathOpVariable(std::string symbol, T x, bool show_value)
+        : symbol(symbol), show_value(show_value), MathOpValue<T>(x, false)
+    { }
+
+    std::string symbol;
+    bool show_value;
 };
 
 template<typename T>
@@ -344,7 +352,13 @@ struct MathFactory
     template <typename T>
     static std::shared_ptr<MathOpVariable<T>> Variable(std::string symbol, T c = 0)
     {
-        return MathOpVariable<T>::create(symbol, c);
+        return MathOpVariable<T>::create(symbol, c, false);
+    }
+
+    template <typename T>
+    static std::shared_ptr<MathOpVariable<T>> ValueVariable(std::string symbol, T c = 0)
+    {
+        return MathOpVariable<T>::create(symbol, c, true);
     }
 
     template <typename T>

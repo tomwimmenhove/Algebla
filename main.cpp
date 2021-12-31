@@ -61,84 +61,38 @@ struct Fraction
 };
 
 template<typename T>
-struct UsefulFraction
+void solver(std::shared_ptr<MathOp<T>> y,
+            std::shared_ptr<MathOpVariable<T>> numerator,
+            std::shared_ptr<MathOpVariable<T>> denominator, T value, T max_error, int iters)
 {
-    std::string format;
-    std::function<T(T)> operate;
-};
+    auto result = MathFactory::ConstantValue(value);
+
+    auto solved = y->solve_for(numerator, result);
+    auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
+
+    numerator->set(fraction.numerator);
+    denominator->set(fraction.denominator);
+}
+
+template<typename T>
+void solver(std::shared_ptr<MathOp<T>> y, T value, T max_error, int iters)
+{
+    auto numerator = y->find_variable("numerator");
+    auto denominator = y->find_variable("denominator");
+
+    solver<T>(y, numerator, denominator, value, max_error, iters);
+}
 
 int main(int, char**)
 {
-    auto result = MathFactory::ConstantValue(15.0 / 4.0 * M_PI);
+    double value = 15.0 / 4.0 * M_PI;
+    auto y = MathFactory::ValueVariable("numerator", 1.0)
+        * MathFactory::SymbolPi<double>()
+        / MathFactory::ValueVariable("denominator", 1.0);
 
-    //auto x = MathFactory::Variable<double>("x");
-    auto numerator = MathFactory::MutableValue(1.0);
-    auto denominator = MathFactory::MutableValue(1.0);
+    solver(y, value, 1E-10, 1000);
 
-    auto y = numerator * MathFactory::SymbolPi<double>() / denominator;
-
-    auto solve = y->solve_for(numerator, result);
-
-    auto bla = solve->result();
-
-    auto f = Fraction<double>::find(solve->result(), 1E-10, 1000);
-
-    numerator->set(f.numerator);
-    denominator->set(f.denominator);
-
-    //std::cout << *solve << " = " << solve->result() << '\n';
     std::cout << *y << " = " << y->result() << '\n';
-
-    return 0;
-}
-
-int mainiac(int, char**)
-{
-    auto x = MathFactory::Variable("x", 21.0);
-    auto y = sqrt<double>(MathFactory::SymbolPi<double>() ^ (x * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
-
-    std::cout << "x = " << x->result() << '\n';
-
-    std::cout << "y = " << *y << " = " << y->result() << '\n';
-
-    auto output = MathFactory::ConstantValue(y->result());
-
-    auto q = y->solve_for("x", output);
-
-    std::cout << *x << " = " << *q << " = " << q->result() << '\n';
-
-    auto r = q->solve_for(output, x);
-
-    std::cout << "y = " << *r << " = " << r->result() << '\n';
-
-    return 0 ;
-    std::array<UsefulFraction<double>, 7> uses
-    {
-        (UsefulFraction<double> {  "(%g) / (%g)",  [](double x) { return x; }}),
-
-        (UsefulFraction<double> { "π(%g) / (%g)",  [](double x) { return x / M_PI; }}),
-        (UsefulFraction<double> {  "(%g) / (π%g)", [](double x) { return x * M_PI; }}),
-
-        (UsefulFraction<double> { "e(%g) / (%g)",  [](double x) { return x / M_E; }}),
-        (UsefulFraction<double> {  "(%g) / (e%g)", [](double x) { return x * M_E; }}),
-
-        (UsefulFraction<double> { "√2⋅(%g) / (%g)",  [](double x) { return x / M_SQRT2; }}),
-        (UsefulFraction<double> {  "(%g) / (√2⋅%g)", [](double x) { return x * M_SQRT2; }}),
-    };
-
-    double value = 15.0 / 4.0;//2.0 / 3.0 / std::sin(M_PI / 4);//2.0 / 3.0 * M_PI;//19.0 / 30.0 * M_PI;
-
-    for(auto i: uses)
-    {
-        auto x = i.operate(value);
-        auto f = Fraction<double>::find(x, 1E-30, 1000);
-        if (!f.isnan() && f.numerator < 1000)
-        {
-            printf(i.format.c_str(), f.numerator, f.denominator);
-            printf("\n");
-            break;
-        }
-    }
 
     return 0;
 }
