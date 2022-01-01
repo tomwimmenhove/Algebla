@@ -3,18 +3,22 @@
 
 #include "algeblah.h"
 
+#include <stack>
+
 template <typename T>
 struct MathOpSolverVisitor : public MathOpVisitor<T>
 {
     MathOpSolverVisitor(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from_result)
-        : solve_for(solve_for), from_result(from_result)
-    { }
+        : solve_for(solve_for)
+    {
+        from.push(from_result);
+    }
 
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op == solve_for ? from_result : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op == solve_for ? from_result : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpVariable<T>> op) override { return op == solve_for ? from_result : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op == solve_for ? from_result : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op == solve_for ? from_result : nullptr; }
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpVariable<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override { return solve_for_unary(op, op->get_x()); }
@@ -34,43 +38,38 @@ struct MathOpSolverVisitor : public MathOpVisitor<T>
 
 private:
     std::shared_ptr<MathOp<T>> solve_for;
-    std::shared_ptr<MathOp<T>> from_result;
+    std::stack<std::shared_ptr<MathOp<T>>> from;
 
     std::shared_ptr<MathOp<T>>solve_for_unary(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> x)
     {
-        auto from_x = op->rearranged(x, from_result);
-        return x->accept(new MathOpSolverVisitor<T>(solve_for, from_x));
+        auto from_x = op->rearranged(x, from.top());
+        from.push(from_x);
+        auto result = x->accept(this);
+        from.pop();
+
+        return result;
     }
 
     std::shared_ptr<MathOp<T>>solve_for_binary(std::shared_ptr<MathOp<T>> op,
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
-        auto from_lhs = op->rearranged(lhs, from_result);
+        auto from_lhs = op->rearranged(lhs, from.top());
 
-        auto solved_lhs = lhs->accept(new MathOpSolverVisitor<T>(solve_for, from_lhs));
+        from.push(from_lhs);
+        auto solved_lhs = lhs->accept(this);
+        from.pop();
         if (solved_lhs != nullptr)
         {
             return solved_lhs;
         }
 
-        auto from_rhs = op->rearranged(rhs, from_result);
+        auto from_rhs = op->rearranged(rhs, from.top());
 
-        return rhs->accept(new MathOpSolverVisitor<T>(solve_for, from_rhs));
+        from.push(from_rhs);
+        auto solved_rhs = rhs->accept(this);
+        from.pop();
 
-
-
-
-        // auto from_lhs = op->rearranged(lhs, from_result);
-
-        // auto solved_lhs = lhs->accept(new MathOpSolverVisitor<T>(solve_for, from_lhs));
-        // if (solved_lhs != nullptr)
-        // {
-        //     return solved_lhs;
-        // }
-
-        // auto from_rhs = op->rearranged(rhs, from_result);
-
-        // return rhs->accept(new MathOpSolverVisitor<T>(solve_for, from_rhs));
+        return solved_rhs;
     }
 };
 

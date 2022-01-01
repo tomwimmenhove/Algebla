@@ -75,7 +75,7 @@ std::shared_ptr<MathOp<T>> solver(std::shared_ptr<MathOp<T>> y, T value, T max_e
     auto result = MathFactory::ConstantValue(value);
 
     auto x = y->accept(new MathOpFindVariableVisitor<T>("x"));
-    auto solved = y->solve_for(x, result);
+    auto solved = y->accept(new MathOpSolverVisitor<T>(x, result));
     auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
 
     if (fraction.is_nan())
@@ -89,18 +89,15 @@ std::shared_ptr<MathOp<T>> solver(std::shared_ptr<MathOp<T>> y, T value, T max_e
 
 int main(int, char**)
 {
-    auto x1 = MathFactory::ValueVariable("x", 1.0);
-    auto y = log(x1 * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(1.0));
-    //auto y = log(MathFactory::ConstantValue(1.0) * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(0.0));
+    auto x1 = MathFactory::ValueVariable("x", 21.0);
 
-    auto sv = new MathOpSolverVisitor<double>(x1, MathFactory::ConstantValue(1.0));
-    auto a = y->accept(sv);
-    auto aa = y->solve_for(x1, MathFactory::ConstantValue(1.0));
+    auto y = sqrt(MathFactory::SymbolPi<double>() ^ (x1 * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
+    
+    auto a = y->accept(new MathOpSolverVisitor<double>(x1, MathFactory::ConstantValue(y->result())));
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
 
     std::cout << "a = " << *a << " = " << a->result() << '\n';
-    std::cout << "aa = " << *aa << " = " << aa->result() << '\n';
 
     y = y->accept(new MathOpRemoveNoOpVisitor<double>());
 
@@ -120,7 +117,7 @@ int main(int, char**)
     std::cout << "y = " << *y << " = " << y->result() << '\n';
 
     //return 0;
-    double value = M_PI;//15.0 / 4.0 * M_PI;
+    double value = 2.0 / M_PI;//15.0 / 4.0 * M_PI;
     //double value = 15.0 / 4.0 / M_PI;
 
     std::array<std::shared_ptr<MathOp<double>>, 2> equations

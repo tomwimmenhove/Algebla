@@ -67,11 +67,6 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
         std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>> from) const = 0;
     virtual std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>* visitor) = 0;
 
-    virtual std::shared_ptr<MathOp<T>> solve_for(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> from) const
-    {
-        return op.get() == this ? from : nullptr;
-    }
-
     std::string parenthesize(int parent_precedence, bool parent_is_commutative, bool use_commutation) const
     {
         std::stringstream ss;
@@ -391,11 +386,6 @@ struct MathUnaryOp : public MathOp<T>
     int get_precedence() const { return prec; }
     std::unique_ptr<MathUnaryFormatter<T>> get_formatter() const { return formatter; }
     
-    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>from) const override
-    {
-        return this->x->solve_for(op, this->rearranged(x, from));
-    }
-
     std::ostream& to_stream(std::ostream& stream) const override
     {
         return formatter->to_stream(stream, *this, x);
@@ -425,21 +415,6 @@ struct MathBinaryOp : public MathOp<T>
     int get_precedence() const { return prec; }
     std::unique_ptr<MathUnaryFormatter<T>> get_formatter() const { return formatter; }
     
-    std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>from) const override
-    {
-        auto from_lhs = this->rearranged(lhs, from);
-
-        auto solved_lhs = this->lhs->solve_for(op, from_lhs);
-        if (solved_lhs != nullptr)
-        {
-            return solved_lhs;
-        }
-
-        auto from_rhs = this->rearranged(rhs, from);
-
-        return this->rhs->solve_for(op, from_rhs);
-    }
-
     std::ostream& to_stream(std::ostream& stream) const override
     {
         return formatter->to_stream(stream, *this, lhs, rhs);
