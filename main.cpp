@@ -2,6 +2,7 @@
 #include "findvariabevisitor.h"
 #include "replacevisitor.h"
 #include "removenoopvisitor.h"
+#include "solvervisitor.h"
 
 #include <iostream>
 #include <functional>
@@ -92,7 +93,14 @@ int main(int, char**)
     auto y = log(x1 * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(1.0));
     //auto y = log(MathFactory::ConstantValue(1.0) * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(0.0));
 
+    auto sv = new MathOpSolverVisitor<double>(x1, MathFactory::ConstantValue(1.0));
+    auto a = y->accept(sv);
+    auto aa = y->solve_for(x1, MathFactory::ConstantValue(1.0));
+
     std::cout << "y = " << *y << " = " << y->result() << '\n';
+
+    std::cout << "a = " << *a << " = " << a->result() << '\n';
+    std::cout << "aa = " << *aa << " = " << aa->result() << '\n';
 
     y = y->accept(new MathOpRemoveNoOpVisitor<double>());
 
