@@ -15,8 +15,8 @@ struct Fraction
     T denominator;
 
     bool is_nan()      const { return std::isnan(numerator) || std::isnan(denominator); }
-    bool is_integral() const { return denominator == 1.0; }
-    T    fractional()  const { return numerator / denominator; }
+    bool is_integral() const { return denominator == 1; }
+    T    result()     const { return numerator / denominator; }
 
     Fraction(T numerator, T denominator)
         : numerator(numerator), denominator(denominator)
@@ -48,7 +48,7 @@ struct Fraction
         while (iters--)
         {
             Fraction<T> middle(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
-            T test = middle.fractional();
+            T test = middle.result();
 
             if (std::abs(test - fractional) <= max_error)
             {
@@ -70,24 +70,68 @@ struct Fraction
 };
 
 template<typename T>
-std::shared_ptr<MathOp<T>> solver(std::shared_ptr<MathOp<T>> y, T value, T max_error, int iters)
+Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> numerator, T value, T max_error, int iters)
 {
     auto result = MathFactory::ConstantValue(value);
 
-    auto x = y->accept(new MathOpFindVariableVisitor<T>("x"));
-    auto solved = y->accept(new MathOpSolverVisitor<T>(x, result));
+    auto solved = y->accept(new MathOpSolverVisitor<T>(numerator, result));
     auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
 
-    if (fraction.is_nan())
+    return fraction;
+}
+
+template<typename T>
+std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>> equations,
+    T value, T max_error, int iters)
+{
+    auto best_fraction = Fraction<T>::quiet_NaN();
+    std::shared_ptr<MathOp<T>> best_numerator,best_denominator, best_y;
+
+    for (auto y: equations)
+    {
+        auto numerator = y->accept(new MathOpFindVariableVisitor<T>("numerator"));
+
+        auto fraction = solver(y, numerator, value, 1E-10, 1000);
+
+        if (!fraction.is_nan() && (best_fraction.is_nan() || fraction.numerator < best_fraction.numerator))
+        {
+            best_fraction = fraction;
+            best_numerator = numerator;
+            best_denominator = y->accept(new MathOpFindVariableVisitor<T>("denominator"));
+            best_y = y;
+        }
+    }
+
+    if (!best_y)
     {
         return nullptr;
     }
 
-    return y->accept(new MathOpReplaceVisitor<T>(x, fraction.to_math_op()))
-            ->accept(new MathOpRemoveNoOpVisitor<T>());
+    return best_y->accept(new MathOpReplaceVisitor<T>(best_numerator,   MathFactory::ConstantValue(best_fraction.numerator)))
+                 ->accept(new MathOpReplaceVisitor<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
+                 ->accept(new MathOpRemoveNoOpVisitor<T>());
 }
 
 int main(int, char**)
+{
+    auto numerator = MathFactory::ValueVariable("numerator", 1.0);
+    auto denominator = MathFactory::ValueVariable("denominator", 1.0);
+    std::vector<std::shared_ptr<MathOp<double>>> equations
+    {
+        numerator * MathFactory::SymbolPi<double>() / denominator,
+        numerator / (MathFactory::SymbolPi<double>() * denominator)
+    };
+
+    auto y1 = find_fraction(equations, 15.0 / 4.0 / M_PI, 1E-10, 1000);
+    auto y2 = find_fraction(equations, 15.0 / 4.0 * M_PI, 1E-10, 1000);
+
+    std::cout << "y1 = " << *y1 << " = " << y1->result() << '\n';
+    std::cout << "y2 = " << *y2 << " = " << y2->result() << '\n';
+
+    return 0;
+}
+
+int maidffren(int, char**)
 {
     auto x1 = MathFactory::ValueVariable("x", 21.0);
 
@@ -115,27 +159,6 @@ int main(int, char**)
     std::cout << "x = " << *x << " = " << x->result() << '\n';
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
-
-    //return 0;
-    double value = 2.0 / M_PI;//15.0 / 4.0 * M_PI;
-    //double value = 15.0 / 4.0 / M_PI;
-
-    std::array<std::shared_ptr<MathOp<double>>, 2> equations
-    {
-        MathFactory::ValueVariable("x", 1.0) * MathFactory::SymbolPi<double>(),
-        MathFactory::ValueVariable("x", 1.0) / MathFactory::SymbolPi<double>()
-    };
-
-    for (auto y: equations)
-    {
-        auto solved = solver(y, value, 1E-10, 1000);
-
-        if (solved)
-        {
-            std::cout << *solved << " = " << solved->result() << '\n';
-        }
-
-    }
 
     return 0;
 }
