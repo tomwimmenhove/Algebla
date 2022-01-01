@@ -1,4 +1,7 @@
 #include "algeblah.h"
+#include "findvariabevisitor.h"
+#include "replacevisitor.h"
+#include "removenoopvisitor.h"
 
 #include <iostream>
 #include <functional>
@@ -70,7 +73,7 @@ std::shared_ptr<MathOp<T>> solver(std::shared_ptr<MathOp<T>> y, T value, T max_e
 {
     auto result = MathFactory::ConstantValue(value);
 
-    auto x = y->find_variable("x");
+    auto x = y->accept(new MathOpFindVariableVisitor<T>("x"));
     auto solved = y->solve_for(x, result);
     auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
 
@@ -79,16 +82,10 @@ std::shared_ptr<MathOp<T>> solver(std::shared_ptr<MathOp<T>> y, T value, T max_e
         return nullptr;
     }
 
-    y->replace(x, fraction.to_math_op());
-
-    return y;
+    return y->accept(new MathOpReplaceVisitor<T>(x, fraction.to_math_op()))
+            ->accept(new MathOpRemoveNoOpVisitor<T>());
 }
 
-#include "findvariabevisitor.h"
-#include "replacevisitor.h"
-#include "removenoopvisitor.h"
-
-//MathOpFindVariableVisitor
 int main(int, char**)
 {
     auto x1 = MathFactory::ValueVariable("x", 1.0);
@@ -114,10 +111,7 @@ int main(int, char**)
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
 
-    auto ys = y->simplify();
-    std::cout << "y = " << *ys << " = " << ys->result() << '\n';
-
-    return 0;
+    //return 0;
     double value = M_PI;//15.0 / 4.0 * M_PI;
     //double value = 15.0 / 4.0 / M_PI;
 

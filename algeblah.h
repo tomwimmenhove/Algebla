@@ -65,20 +65,11 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     virtual bool is_constant() const = 0;
     virtual std::shared_ptr<MathOp<T>> rearranged(
         std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>> from) const = 0;
-    virtual std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) = 0;
-    virtual void replace(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> with) { }
-    virtual std::shared_ptr<MathOp<T>> simplify() { return this->shared_from_this(); }
     virtual std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>* visitor) = 0;
 
     virtual std::shared_ptr<MathOp<T>> solve_for(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> from) const
     {
         return op.get() == this ? from : nullptr;
-    }
-
-    std::shared_ptr<MathOp<T>> solve_for(std::string variable_name, std::shared_ptr<MathOp<T>> from)
-    {
-        auto op = find_variable(variable_name);
-        return op ? solve_for(op, from) : nullptr;
     }
 
     std::string parenthesize(int parent_precedence, bool parent_is_commutative, bool use_commutation) const
@@ -215,7 +206,6 @@ struct MathOpValue : public MathOp<T>
     int precedence() const override { return 0; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
-    virtual std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override { return nullptr; }
     std::shared_ptr<MathOp<T>> rearranged(std::shared_ptr<MathOp<T>>, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream) const { return stream << symbol_str(); }
 
@@ -279,8 +269,6 @@ struct MathOpConstantSymbol : public MathOpSymbol<T>
         return visitor->visit(std::static_pointer_cast<MathOpConstantSymbol<T>>(this->shared_from_this()));
     }
 
-    //std::shared_ptr<MathOp<T>> simplify() override { return create(this->symbol, this->value); }
-
     void set(T x) = delete;
 
 private:
@@ -302,15 +290,6 @@ struct MathOpVariable : public MathOpValue<T>
 
     std::string get_symbol() const { return symbol; }
     bool get_show_value() const { return show_value; }
-
-    //std::shared_ptr<MathOp<T>> simplify() override { return create(this->symbol, this->value, show_value); }
-
-    std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override
-    {
-        return symbol == this->symbol
-            ? std::static_pointer_cast<MathOpVariable<T>>(this->shared_from_this())
-            : nullptr;
-    }
 
 protected:
     std::string symbol_str() const override { return show_value ? MathOpValue<T>::symbol_str() : symbol; }
@@ -337,8 +316,6 @@ struct MathOpMutableValue : public MathOpValue<T>
         return visitor->visit(std::static_pointer_cast<MathOpMutableValue<T>>(this->shared_from_this()));
     }
 
-    //std::shared_ptr<MathOp<T>> simplify() override { return create(this->value); }
-
 private:
     MathOpMutableValue(T value) : MathOpValue<T>(value, false) { }
 };
@@ -355,8 +332,6 @@ struct MathOpConstantValue : public MathOpValue<T>
     {
         return visitor->visit(std::static_pointer_cast<MathOpConstantValue<T>>(this->shared_from_this()));
     }
-
-    //std::shared_ptr<MathOp<T>> simplify() override { return create(this->value); }
 
     void set(T x) = delete;
 
@@ -416,28 +391,9 @@ struct MathUnaryOp : public MathOp<T>
     int get_precedence() const { return prec; }
     std::unique_ptr<MathUnaryFormatter<T>> get_formatter() const { return formatter; }
     
-    std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override { return x->find_variable(symbol); }
-
-    void replace(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> with)
-    {
-        if (x == op)
-        {
-            x = with;
-            return;
-        }
-
-        x->replace(op, with);
-    }
-
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>from) const override
     {
         return this->x->solve_for(op, this->rearranged(x, from));
-    }
-
-    std::shared_ptr<MathOp<T>> simplify() override
-    {
-        this->x = this->x->simplify();
-        return this->shared_from_this();
     }
 
     std::ostream& to_stream(std::ostream& stream) const override
@@ -469,35 +425,6 @@ struct MathBinaryOp : public MathOp<T>
     int get_precedence() const { return prec; }
     std::unique_ptr<MathUnaryFormatter<T>> get_formatter() const { return formatter; }
     
-    std::shared_ptr<MathOpVariable<T>> find_variable(std::string symbol) override
-    {
-        auto lhv = lhs->find_variable(symbol);
-        if (lhv)
-        {
-            return lhv;
-        }
-
-        return rhs->find_variable(symbol);
-    }
-
-    void replace(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> with)
-    {
-        if (lhs == op)
-        {
-            lhs = with;
-            return;
-        }
-
-        if (rhs == op)
-        {
-            rhs = with;
-            return;
-        }
-
-        lhs->replace(op, with);
-        rhs->replace(op, with);
-    }
-
     std::shared_ptr<MathOp<T>>solve_for(std::shared_ptr<MathOp<T>>op, std::shared_ptr<MathOp<T>>from) const override
     {
         auto from_lhs = this->rearranged(lhs, from);
@@ -512,8 +439,6 @@ struct MathBinaryOp : public MathOp<T>
 
         return this->rhs->solve_for(op, from_rhs);
     }
-
-    //std::shared_ptr<MathOp<T>> simplify() override { return this->shared_from_this(); }
 
     std::ostream& to_stream(std::ostream& stream) const override
     {
@@ -866,29 +791,6 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
 
     bool is_commutative() const override { return false; }
 
-    std::shared_ptr<MathOp<T>> simplify() override
-    {
-        this->lhs = this->lhs->simplify();
-        this->rhs = this->rhs->simplify();
-
-        if (this->lhs->is_constant() && this->lhs->result() == 0)
-        {
-            return MathFactory::ConstantValue(0.0);
-        }
-
-        if (this->rhs->is_constant() && this->rhs->result() == 0)
-        {
-            return MathFactory::ConstantValue(1.0);
-        }
-
-        if (this->rhs->is_constant() && this->rhs->result() == 1)
-        {
-            return this->lhs;
-        }
-
-        return this->shared_from_this();
-    }
-
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
         if (for_side == this->lhs)
@@ -926,30 +828,6 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 
     bool is_commutative() const override { return true; }
 
-    std::shared_ptr<MathOp<T>> simplify() override
-    {
-        this->lhs = this->lhs->simplify();
-        this->rhs = this->rhs->simplify();
-
-        if (this->lhs->is_constant() && this->lhs->result() == 1)
-        {
-            return this->rhs;
-        }
-
-        if (this->rhs->is_constant() && this->rhs->result() == 1)
-        {
-            return this->lhs;
-        }
-
-        if ((this->lhs->is_constant() && this->lhs->result() == 0) ||
-            (this->rhs->is_constant() && this->rhs->result() == 0))
-        {
-            return MathFactory::ConstantValue(0.0);
-        }
-
-        return this->shared_from_this();
-    }
-
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
         if      (for_side == this->lhs) return from / this->rhs;
@@ -977,29 +855,6 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
     }
 
     bool is_commutative() const override { return false; }
-
-    std::shared_ptr<MathOp<T>> simplify() override
-    {
-        this->lhs = this->lhs->simplify();
-        this->rhs = this->rhs->simplify();
-
-        if (this->lhs->is_constant() && this->rhs->is_constant() && this->lhs->result() == this->rhs->result())
-        {
-            return MathFactory::ConstantValue(1.0);
-        }
-
-        if (this->rhs->is_constant() && this->rhs->result() == 1)
-        {
-            return this->lhs;
-        }
-
-        if (this->lhs->is_constant() && this->lhs->result() == 0)
-        {
-            return MathFactory::ConstantValue(0.0);
-        }
-
-        return this->shared_from_this();
-    }
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
@@ -1029,25 +884,6 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 
     bool is_commutative() const override { return true; }
 
-    std::shared_ptr<MathOp<T>> simplify() override
-    {
-        this->lhs = this->lhs->simplify();
-        this->rhs = this->rhs->simplify();
-
-        if (this->lhs->is_constant() && this->lhs->result() == 0)
-        {
-            return this->rhs;
-        }
-
-        if (this->rhs->is_constant() && this->rhs->result() == 0)
-        {
-            return this->lhs;
-        }
-
-        return this->shared_from_this();
-    }
-
-
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
         if      (for_side == this->lhs) return from - this->rhs;
@@ -1075,19 +911,6 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
     }
 
     bool is_commutative() const override { return false; }
-
-    std::shared_ptr<MathOp<T>> simplify() override
-    {
-        this->lhs = this->lhs->simplify();
-        this->rhs = this->rhs->simplify();
-
-        if (this->rhs->is_constant() && this->rhs->result() == 0)
-        {
-            return this->lhs;
-        }
-
-        return this->shared_from_this();
-    }
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
