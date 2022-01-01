@@ -84,11 +84,39 @@ std::shared_ptr<MathOp<T>> solver(std::shared_ptr<MathOp<T>> y, T value, T max_e
     return y;
 }
 
+#include "findvariabevisitor.h"
+#include "replacevisitor.h"
+#include "removenoopvisitor.h"
+
+//MathOpFindVariableVisitor
 int main(int, char**)
 {
-    auto y = log(MathFactory::ValueVariable("x", 1.0) * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(6.0));
+    auto x1 = MathFactory::ValueVariable("x", 1.0);
+    auto y = log(x1 * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(1.0));
+    //auto y = log(MathFactory::ConstantValue(1.0) * MathFactory::SymbolPi<double>() ^ MathFactory::ConstantValue(0.0));
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
+
+    y = y->accept(new MathOpRemoveNoOpVisitor<double>());
+
+    auto x = y->accept(new MathOpFindVariableVisitor<double>("x"));
+    if (x == x1)
+    {
+        std::cout << "OK!\n";
+    }
+
+    auto r = y->accept(new MathOpReplaceVisitor<double>(x, MathFactory::Variable("Replaced", 1.0)));
+    
+    std::cout << "r = " << *r << " = " << r->result() << '\n';
+    
+
+    std::cout << "x = " << *x << " = " << x->result() << '\n';
+
+    std::cout << "y = " << *y << " = " << y->result() << '\n';
+
+    auto ys = y->simplify();
+    std::cout << "y = " << *ys << " = " << ys->result() << '\n';
+
     return 0;
     double value = M_PI;//15.0 / 4.0 * M_PI;
     //double value = 15.0 / 4.0 / M_PI;
