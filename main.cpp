@@ -74,7 +74,7 @@ Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> nume
 {
     auto result = MathFactory::ConstantValue(value);
 
-    auto solved = y->accept(new MathOpSolverVisitor<T>(numerator, result));
+    auto solved = y->accept(MathOpSolverVisitor<T>(numerator, result));
     auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
 
     return fraction;
@@ -89,7 +89,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 
     for (auto y: equations)
     {
-        auto numerator = y->accept(new MathOpFindVariableVisitor<T>("numerator"));
+        auto numerator = y->accept(MathOpFindVariableVisitor<T>("numerator"));
 
         auto fraction = solver(y, numerator, value, 1E-10, 1000);
 
@@ -97,7 +97,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         {
             best_fraction = fraction;
             best_numerator = numerator;
-            best_denominator = y->accept(new MathOpFindVariableVisitor<T>("denominator"));
+            best_denominator = y->accept(MathOpFindVariableVisitor<T>("denominator"));
             best_y = y;
         }
     }
@@ -107,9 +107,9 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         return nullptr;
     }
 
-    return best_y->accept(new MathOpReplaceVisitor<T>(best_numerator,   MathFactory::ConstantValue(best_fraction.numerator)))
-                 ->accept(new MathOpReplaceVisitor<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
-                 ->accept(new MathOpRemoveNoOpVisitor<T>());
+    return best_y->accept(MathOpReplaceVisitor<T>(best_numerator,   MathFactory::ConstantValue(best_fraction.numerator)))
+                 ->accept(MathOpReplaceVisitor<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
+                 ->accept(MathOpRemoveNoOpVisitor<T>());
 }
 
 int main(int, char**)
@@ -137,21 +137,21 @@ int maidffren(int, char**)
 
     auto y = sqrt(MathFactory::SymbolPi<double>() ^ (x1 * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
     
-    auto a = y->accept(new MathOpSolverVisitor<double>(x1, MathFactory::ConstantValue(y->result())));
+    auto a = y->accept(MathOpSolverVisitor<double>(x1, MathFactory::ConstantValue(y->result())));
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
 
     std::cout << "a = " << *a << " = " << a->result() << '\n';
 
-    y = y->accept(new MathOpRemoveNoOpVisitor<double>());
+    y = y->accept(MathOpRemoveNoOpVisitor<double>());
 
-    auto x = y->accept(new MathOpFindVariableVisitor<double>("x"));
+    auto x = y->accept(MathOpFindVariableVisitor<double>("x"));
     if (x == x1)
     {
         std::cout << "OK!\n";
     }
 
-    auto r = y->accept(new MathOpReplaceVisitor<double>(x, MathFactory::Variable("Replaced", 1.0)));
+    auto r = y->accept(MathOpReplaceVisitor<double>(x, MathFactory::Variable("Replaced", 1.0)));
     
     std::cout << "r = " << *r << " = " << r->result() << '\n';
     

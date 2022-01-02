@@ -44,7 +44,7 @@ private:
     {
         auto from_x = op->rearranged(x, from.top());
         from.push(from_x);
-        auto result = x->accept(this);
+        auto result = x->accept(*this);
         from.pop();
 
         return result;
@@ -56,7 +56,7 @@ private:
         auto from_lhs = op->rearranged(lhs, from.top());
 
         from.push(from_lhs);
-        auto solved_lhs = lhs->accept(this);
+        auto solved_lhs = lhs->accept(*this);
         from.pop();
         if (solved_lhs != nullptr)
         {
@@ -66,7 +66,7 @@ private:
         auto from_rhs = op->rearranged(rhs, from.top());
 
         from.push(from_rhs);
-        auto solved_rhs = rhs->accept(this);
+        auto solved_rhs = rhs->accept(*this);
         from.pop();
 
         return solved_rhs;

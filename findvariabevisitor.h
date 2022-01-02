@@ -22,77 +22,77 @@ struct MathOpFindVariableVisitor : public MathOpVisitor<T>
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpLog<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSin<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpASin<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpCos<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpACos<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpTan<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpATan<T>> op) override
     {
-        return op->get_x()->accept(this);
+        return op->get_x()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpPow<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        return lhs ? lhs : op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        return lhs ? lhs : op->get_rhs()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMul<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        return lhs ? lhs : op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        return lhs ? lhs : op->get_rhs()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpDiv<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        return lhs ? lhs : op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        return lhs ? lhs : op->get_rhs()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpAdd<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        return lhs ? lhs : op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        return lhs ? lhs : op->get_rhs()->accept(*this);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSub<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        return lhs ? lhs : op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        return lhs ? lhs : op->get_rhs()->accept(*this);
     }
 
 private:

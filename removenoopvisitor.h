@@ -14,53 +14,53 @@ struct MathOpRemoveNoOpVisitor : public MathOpVisitor<T>
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override
     {
-        return sqrt(op->get_x()->accept(this));
+        return sqrt(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override
     {
-        return square(op->get_x()->accept(this));
+        return square(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpLog<T>> op) override
     {
-        return log(op->get_x()->accept(this));
+        return log(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSin<T>> op) override
     {
-        return sin(op->get_x()->accept(this));
+        return sin(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpASin<T>> op) override
     {
-        return asin(op->get_x()->accept(this));
+        return asin(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpCos<T>> op) override
     {
-        return cos(op->get_x()->accept(this));
+        return cos(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpACos<T>> op) override
     {
-        return acos(op->get_x()->accept(this));
+        return acos(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpTan<T>> op) override
     {
-        return tan(op->get_x()->accept(this));
+        return tan(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpATan<T>> op) override
     {
-        return atan(op->get_x()->accept(this));
+        return atan(op->get_x()->accept(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpPow<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        auto rhs = op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        auto rhs = op->get_rhs()->accept(*this);
 
         if (lhs->is_constant() && lhs->result() == 0)
         {
@@ -82,8 +82,8 @@ struct MathOpRemoveNoOpVisitor : public MathOpVisitor<T>
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMul<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        auto rhs = op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        auto rhs = op->get_rhs()->accept(*this);
 
         if (lhs->is_constant() && lhs->result() == 1)
         {
@@ -106,8 +106,8 @@ struct MathOpRemoveNoOpVisitor : public MathOpVisitor<T>
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpDiv<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        auto rhs = op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        auto rhs = op->get_rhs()->accept(*this);
 
         if (lhs->is_constant() && rhs->is_constant() && lhs->result() == rhs->result())
         {
@@ -129,8 +129,8 @@ struct MathOpRemoveNoOpVisitor : public MathOpVisitor<T>
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpAdd<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        auto rhs = op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        auto rhs = op->get_rhs()->accept(*this);
 
         if (lhs->is_constant() && lhs->result() == 0)
         {
@@ -147,8 +147,8 @@ struct MathOpRemoveNoOpVisitor : public MathOpVisitor<T>
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSub<T>> op) override
     {
-        auto lhs = op->get_lhs()->accept(this);
-        auto rhs = op->get_rhs()->accept(this);
+        auto lhs = op->get_lhs()->accept(*this);
+        auto rhs = op->get_rhs()->accept(*this);
 
         if (rhs->is_constant() && rhs->result() == 0)
         {
