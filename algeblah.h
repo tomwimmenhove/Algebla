@@ -31,7 +31,7 @@ template<typename T> struct MathOpAdd;
 template<typename T> struct MathOpSub;
 
 template<typename T>
-struct MathOpVisitor
+struct MathOpTransformer
 {
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) = 0;
@@ -52,9 +52,9 @@ struct MathOpVisitor
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpDiv<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpAdd<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSub<T>> op) = 0;
-    virtual ~MathOpVisitor() {}
+    virtual ~MathOpTransformer() {}
 };
-#include <iostream>
+
 /* Math operation class base class */
 template<typename T>
 struct MathOp : public std::enable_shared_from_this<MathOp<T>>
@@ -65,9 +65,9 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     virtual bool is_constant() const = 0;
     virtual std::shared_ptr<MathOp<T>> rearranged(
         std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>> from) const = 0;
-    virtual std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) = 0;
+    virtual std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) = 0;
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>&& visitor) { return accept(visitor); }
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>&& visitor) { return transform(visitor); }
 
     std::string parenthesize(int parent_precedence, bool parent_is_commutative, bool use_commutation) const
     {
@@ -193,7 +193,6 @@ private:
     std::string symbol;
 };
 
-
 /* Primitive math values */
 template<typename T>
 struct MathOpValue : public MathOp<T>
@@ -244,7 +243,7 @@ struct MathOpMutableSymbol : public MathOpSymbol<T>
         return std::shared_ptr<MathOpMutableSymbol<T>>(new MathOpMutableSymbol<T>>(symbol, value));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpMutableSymbol<T>>(this->shared_from_this()));
     }
@@ -261,7 +260,7 @@ struct MathOpConstantSymbol : public MathOpSymbol<T>
         return std::shared_ptr<MathOpConstantSymbol<T>>(new MathOpConstantSymbol<T>(symbol, value));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpConstantSymbol<T>>(this->shared_from_this()));
     }
@@ -280,7 +279,7 @@ struct MathOpVariable : public MathOpValue<T>
         return std::shared_ptr<MathOpVariable<T>>(new MathOpVariable<T>(symbol, x, show_value));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpVariable<T>>(this->shared_from_this()));
     }
@@ -308,7 +307,7 @@ struct MathOpMutableValue : public MathOpValue<T>
         return std::make_shared<MathOpMutableValue<T>>(value);
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpMutableValue<T>>(this->shared_from_this()));
     }
@@ -325,7 +324,7 @@ struct MathOpConstantValue : public MathOpValue<T>
         return std::shared_ptr<MathOpConstantValue<T>>(new MathOpConstantValue(value));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpConstantValue<T>>(this->shared_from_this()));
     }
@@ -546,7 +545,7 @@ struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
         return std::shared_ptr<MathOpSqrt<T>>(new MathOpSqrt<T>(x));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpSqrt<T>>(this->shared_from_this()));
     }
@@ -571,7 +570,7 @@ struct MathOpSquare : public MathUnaryOp<T, squares<T>>
         return std::shared_ptr<MathOpSquare<T>>(new MathOpSquare<T>(x));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpSquare<T>>(this->shared_from_this()));
     }
@@ -599,7 +598,7 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
         return MathFactory::SymbolE<T>() ^ from;
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpLog<T>>(this->shared_from_this()));
     }
@@ -621,7 +620,7 @@ struct MathOpSin : public MathUnaryOp<T, sine<T>>
         return asin(from);
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpSin<T>>(this->shared_from_this()));
     }
@@ -643,7 +642,7 @@ struct MathOpASin : public MathUnaryOp<T, inverse_sine<T>>
         return sin(from);
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpASin<T>>(this->shared_from_this()));
     }
@@ -665,7 +664,7 @@ struct MathOpCos : public MathUnaryOp<T, cosine<T>>
         return acos(from);
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpCos<T>>(this->shared_from_this()));
     }
@@ -687,7 +686,7 @@ struct MathOpACos : public MathUnaryOp<T, inverse_cosine<T>>
         return cos(from);
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpACos<T>>(this->shared_from_this()));
     }
@@ -709,7 +708,7 @@ struct MathOpTan : public MathUnaryOp<T, tangent<T>>
         return atan(from);
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpTan<T>>(this->shared_from_this()));
     }
@@ -731,7 +730,7 @@ struct MathOpATan : public MathUnaryOp<T, inverse_tangent<T>>
         return tan(from);
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpATan<T>>(this->shared_from_this()));
     }
@@ -761,7 +760,7 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
         return std::shared_ptr<MathOpPow<T>>(new MathOpPow<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpPow<T>>(this->shared_from_this()));
     }
@@ -798,7 +797,7 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
         return std::shared_ptr<MathOpMul<T>>(new MathOpMul<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpMul<T>>(this->shared_from_this()));
     }
@@ -826,7 +825,7 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
         return std::shared_ptr<MathOpDiv<T>>(new MathOpDiv<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpDiv<T>>(this->shared_from_this()));
     }
@@ -854,7 +853,7 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
         return std::shared_ptr<MathOpAdd<T>>(new MathOpAdd<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpAdd<T>>(this->shared_from_this()));
     }
@@ -882,7 +881,7 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
         return std::shared_ptr<MathOpSub<T>>(new MathOpSub<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> accept(MathOpVisitor<T>& visitor) override
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MathOpSub<T>>(this->shared_from_this()));
     }

@@ -1,8 +1,8 @@
 #include "algeblah.h"
-#include "findvariabevisitor.h"
-#include "replacevisitor.h"
-#include "removenoopvisitor.h"
-#include "solvervisitor.h"
+#include "findvariabetransformer.h"
+#include "replacetransformer.h"
+#include "removenooptransformer.h"
+#include "solvertransformer.h"
 
 #include <iostream>
 #include <functional>
@@ -16,7 +16,7 @@ struct Fraction
 
     bool is_nan()      const { return std::isnan(numerator) || std::isnan(denominator); }
     bool is_integral() const { return denominator == 1; }
-    T    result()     const { return numerator / denominator; }
+    T    result()      const { return numerator / denominator; }
 
     Fraction(T numerator, T denominator)
         : numerator(numerator), denominator(denominator)
@@ -74,7 +74,7 @@ Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> nume
 {
     auto result = MathFactory::ConstantValue(value);
 
-    auto solved = y->accept(MathOpSolverVisitor<T>(numerator, result));
+    auto solved = y->transform(MathOpSolverTransformer<T>(numerator, result));
     auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
 
     return fraction;
@@ -89,7 +89,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 
     for (auto y: equations)
     {
-        auto numerator = y->accept(MathOpFindVariableVisitor<T>("numerator"));
+        auto numerator = y->transform(MathOpFindVariableTransformer<T>("numerator"));
 
         auto fraction = solver(y, numerator, value, 1E-10, 1000);
 
@@ -97,7 +97,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         {
             best_fraction = fraction;
             best_numerator = numerator;
-            best_denominator = y->accept(MathOpFindVariableVisitor<T>("denominator"));
+            best_denominator = y->transform(MathOpFindVariableTransformer<T>("denominator"));
             best_y = y;
         }
     }
@@ -107,9 +107,9 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         return nullptr;
     }
 
-    return best_y->accept(MathOpReplaceVisitor<T>(best_numerator,   MathFactory::ConstantValue(best_fraction.numerator)))
-                 ->accept(MathOpReplaceVisitor<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
-                 ->accept(MathOpRemoveNoOpVisitor<T>());
+    return best_y->transform(MathOpReplaceTransformer<T>(best_numerator,   MathFactory::ConstantValue(best_fraction.numerator)))
+                 ->transform(MathOpReplaceTransformer<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
+                 ->transform(MathOpRemoveNoOpTransformer<T>());
 }
 
 int main(int, char**)
@@ -137,21 +137,21 @@ int maidffren(int, char**)
 
     auto y = sqrt(MathFactory::SymbolPi<double>() ^ (x1 * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
     
-    auto a = y->accept(MathOpSolverVisitor<double>(x1, MathFactory::ConstantValue(y->result())));
+    auto a = y->transform(MathOpSolverTransformer<double>(x1, MathFactory::ConstantValue(y->result())));
 
     std::cout << "y = " << *y << " = " << y->result() << '\n';
 
     std::cout << "a = " << *a << " = " << a->result() << '\n';
 
-    y = y->accept(MathOpRemoveNoOpVisitor<double>());
+    y = y->transform(MathOpRemoveNoOpTransformer<double>());
 
-    auto x = y->accept(MathOpFindVariableVisitor<double>("x"));
+    auto x = y->transform(MathOpFindVariableTransformer<double>("x"));
     if (x == x1)
     {
         std::cout << "OK!\n";
     }
 
-    auto r = y->accept(MathOpReplaceVisitor<double>(x, MathFactory::Variable("Replaced", 1.0)));
+    auto r = y->transform(MathOpReplaceTransformer<double>(x, MathFactory::Variable("Replaced", 1.0)));
     
     std::cout << "r = " << *r << " = " << r->result() << '\n';
     

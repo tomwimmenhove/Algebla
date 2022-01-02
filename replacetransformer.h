@@ -1,12 +1,12 @@
-#ifndef REPLACEVISITOR_H
-#define REPLACEVISITOR_H
+#ifndef REPLACETRANSFORMER_H
+#define REPLACETRANSFORMER_H
 
-#include "dummyvisitor.h"
+#include "dummytransformer.h"
 
 template <typename T>
-struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
+struct MathOpReplaceTransformer : MathOpDummyTransformer<T>
 {
-    MathOpReplaceVisitor(std::shared_ptr<MathOp<T>> subject, std::shared_ptr<MathOp<T>> replacement)
+    MathOpReplaceTransformer(std::shared_ptr<MathOp<T>> subject, std::shared_ptr<MathOp<T>> replacement)
         : subject(subject), replacement(replacement)
     { }
 
@@ -42,7 +42,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
 
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override
@@ -52,7 +52,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpLog<T>> op) override
@@ -62,7 +62,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSin<T>> op) override
@@ -72,7 +72,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpASin<T>> op) override
@@ -82,7 +82,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpCos<T>> op) override
@@ -92,7 +92,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpACos<T>> op) override
@@ -102,7 +102,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpTan<T>> op) override
@@ -112,7 +112,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpATan<T>> op) override
@@ -122,7 +122,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpPow<T>> op) override
@@ -132,7 +132,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMul<T>> op) override
@@ -142,7 +142,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpDiv<T>> op) override
@@ -152,7 +152,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpAdd<T>> op) override
@@ -162,7 +162,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSub<T>> op) override
@@ -172,7 +172,7 @@ struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
             return replacement;
         }
         
-        return MathOpDummyVisitor<T>::visit(op);
+        return MathOpDummyTransformer<T>::visit(op);
     }
 
 private:
@@ -180,4 +180,4 @@ private:
     std::shared_ptr<MathOp<T>> replacement;
 };
 
-#endif /* REPLACEVISITOR_H */
+#endif /* REPLACETRANSFORMER_H */

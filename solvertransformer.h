@@ -1,14 +1,14 @@
-#ifndef SOLVERVISITOR_H
-#define SOLVERVISITOR_H
+#ifndef SOLVERTRANSFORMER_H
+#define SOLVERTRANSFORMER_H
 
 #include "algeblah.h"
 
 #include <stack>
 
 template <typename T>
-struct MathOpSolverVisitor : public MathOpVisitor<T>
+struct MathOpSolverTransformer : public MathOpTransformer<T>
 {
-    MathOpSolverVisitor(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from_result)
+    MathOpSolverTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from_result)
         : solve_for(solve_for)
     {
         from.push(from_result);
@@ -44,7 +44,7 @@ private:
     {
         auto from_x = op->rearranged(x, from.top());
         from.push(from_x);
-        auto result = x->accept(*this);
+        auto result = x->transform(*this);
         from.pop();
 
         return result;
@@ -56,7 +56,7 @@ private:
         auto from_lhs = op->rearranged(lhs, from.top());
 
         from.push(from_lhs);
-        auto solved_lhs = lhs->accept(*this);
+        auto solved_lhs = lhs->transform(*this);
         from.pop();
         if (solved_lhs != nullptr)
         {
@@ -66,11 +66,11 @@ private:
         auto from_rhs = op->rearranged(rhs, from.top());
 
         from.push(from_rhs);
-        auto solved_rhs = rhs->accept(*this);
+        auto solved_rhs = rhs->transform(*this);
         from.pop();
 
         return solved_rhs;
     }
 };
 
-#endif /* SOLVERVISITOR_H */
+#endif /* SOLVERTRANSFORMER_H */
