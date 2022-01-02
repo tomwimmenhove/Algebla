@@ -4,7 +4,7 @@
 #include "dummyvisitor.h"
 
 template <typename T>
-struct MathOpReplaceVisitor : public MathOpDummyVisitor<T>
+struct MathOpReplaceVisitor : MathOpDummyVisitor<T>
 {
     MathOpReplaceVisitor(std::shared_ptr<MathOp<T>> subject, std::shared_ptr<MathOp<T>> replacement)
         : subject(subject), replacement(replacement)
