@@ -13,6 +13,8 @@ template<typename T> struct MathOp;
 template<typename T> struct MathOpMutableSymbol;
 template<typename T> struct MathOpConstantSymbol;
 template<typename T> struct MathOpVariable;
+template<typename T> struct MathOpValueVariable;
+template<typename T> struct MathOpNamedConstant;
 template<typename T> struct MathOpMutableValue;
 template<typename T> struct MathOpConstantValue;
 template<typename T> struct MathOpSqrt;
@@ -36,6 +38,8 @@ struct MathOpTransformer
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpVariable<T>> op) = 0;
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpValueVariable<T>> op) = 0;
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNamedConstant<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) = 0;
@@ -203,7 +207,7 @@ struct MathOpValue : public MathOp<T>
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
     std::shared_ptr<MathOp<T>> rearranged(std::shared_ptr<MathOp<T>>, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
-    std::ostream& to_stream(std::ostream& stream) const { return stream << symbol_str(); }
+    std::ostream& to_stream(std::ostream& stream) const { return stream << str(); }
 
 protected:
     MathOpValue(T value, bool is_constant)
@@ -212,7 +216,7 @@ protected:
 
     T value;
 
-    virtual std::string symbol_str() const
+    virtual std::string str() const
     {
         std::stringstream ss;
         ss << this->value;
@@ -231,7 +235,7 @@ protected:
         : symbol(symbol), MathOpValue<T>(value, is_constant)
     { }
 
-    std::string symbol_str() const override { return symbol; }
+    std::string str() const override { return symbol; }
     std::string symbol;
 };
 
@@ -272,11 +276,28 @@ private:
 };
 
 template<typename T>
-struct MathOpVariable : public MathOpValue<T>
+struct MathOpVariableBase : public MathOpValue<T>
 {
-    static std::shared_ptr<MathOpVariable<T>> create(std::string symbol, T x, bool show_value)
+    std::string get_symbol() const { return symbol; }
+
+protected:
+    std::string str() const override { return show_value ? MathOpValue<T>::str() : symbol; }
+
+    MathOpVariableBase(std::string symbol, T x, bool show_value)
+        : symbol(symbol), show_value(show_value), MathOpValue<T>(x, false)
+    { }
+
+private:
+    std::string symbol;
+    bool show_value;
+};
+
+template<typename T>
+struct MathOpVariable : public MathOpVariableBase<T>
+{
+    static std::shared_ptr<MathOpVariable<T>> create(std::string symbol, T x = 0)
     {
-        return std::shared_ptr<MathOpVariable<T>>(new MathOpVariable<T>(symbol, x, show_value));
+        return std::shared_ptr<MathOpVariable<T>>(new MathOpVariable<T>(symbol, x));
     }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
@@ -284,19 +305,44 @@ struct MathOpVariable : public MathOpValue<T>
         return visitor.visit(std::static_pointer_cast<MathOpVariable<T>>(this->shared_from_this()));
     }
 
-    std::string get_symbol() const { return symbol; }
-    bool get_show_value() const { return show_value; }
+private:
+    MathOpVariable(std::string symbol, T x) : MathOpVariableBase<T>(symbol, x, false) { }
+};
+
+template<typename T>
+struct MathOpValueVariable : public MathOpVariableBase<T>
+{
+    static std::shared_ptr<MathOpValueVariable<T>> create(std::string symbol, T x = 0)
+    {
+        return std::shared_ptr<MathOpValueVariable<T>>(new MathOpValueVariable<T>(symbol, x));
+    }
+
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<MathOpValueVariable<T>>(this->shared_from_this()));
+    }
 
 protected:
-    std::string symbol_str() const override { return show_value ? MathOpValue<T>::symbol_str() : symbol; }
+    MathOpValueVariable(std::string symbol, T x) : MathOpVariableBase<T>(symbol, x, true) { }
+};
+
+template<typename T>
+struct MathOpNamedConstant : public MathOpValueVariable<T>
+{
+    static std::shared_ptr<MathOpNamedConstant<T>> create(std::string symbol, T x = 0)
+    {
+        return std::shared_ptr<MathOpNamedConstant<T>>(new MathOpNamedConstant<T>(symbol, x));
+    }
+
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<MathOpNamedConstant<T>>(this->shared_from_this()));
+    }
+
+    void set(T x) = delete;
 
 private:
-    MathOpVariable(std::string symbol, T x, bool show_value)
-        : symbol(symbol), show_value(show_value), MathOpValue<T>(x, false)
-    { }
-
-    std::string symbol;
-    bool show_value;
+    MathOpNamedConstant(std::string symbol, T x) : MathOpValueVariable<T>(symbol, x) { }
 };
 
 template<typename T>
@@ -349,15 +395,21 @@ struct MathFactory
     template <typename T>
     static std::shared_ptr<MathOpVariable<T>> Variable(std::string symbol, T c = 0)
     {
-        return MathOpVariable<T>::create(symbol, c, false);
+        return MathOpVariable<T>::create(symbol, c);
     }
 
     template <typename T>
-    static std::shared_ptr<MathOpVariable<T>> ValueVariable(std::string symbol, T c = 0)
+    static std::shared_ptr<MathOpValueVariable<T>> ValueVariable(std::string symbol, T c = 0)
     {
-        return MathOpVariable<T>::create(symbol, c, true);
+        return MathOpValueVariable<T>::create(symbol, c);
     }
 
+    template <typename T>
+    static std::shared_ptr<MathOpNamedConstant<T>> NamedConstant(std::string symbol, T c = 0)
+    {
+        return MathOpNamedConstant<T>::create(symbol, c);
+    }
+    
     template <typename T>
     static std::shared_ptr<MathOpConstantValue<T>> ConstantValue(T c)
     {

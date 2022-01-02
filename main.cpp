@@ -114,8 +114,8 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 
 int main(int, char**)
 {
-    auto numerator = MathFactory::ValueVariable("numerator", 1.0);
-    auto denominator = MathFactory::ValueVariable("denominator", 1.0);
+    auto numerator = MathFactory::NamedConstant("numerator", 1.0);
+    auto denominator = MathFactory::NamedConstant("denominator", 1.0);
     std::vector<std::shared_ptr<MathOp<double>>> equations
     {
         numerator * MathFactory::SymbolPi<double>() / denominator,

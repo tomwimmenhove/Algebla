@@ -14,27 +14,29 @@ struct MathOpSolverTransformer : public MathOpTransformer<T>
         from.push(from_result);
     }
 
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpVariable<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpVariable<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpValueVariable<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNamedConstant<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
 
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpLog<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSin<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpASin<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpCos<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpACos<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpTan<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpATan<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpLog<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSin<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpASin<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpCos<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpACos<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpTan<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpATan<T>> op) override { return solve_for_unary(op, op->get_x()); }
 
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpPow<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMul<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpDiv<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpAdd<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSub<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpPow<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMul<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpDiv<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpAdd<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSub<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
 
 private:
     std::shared_ptr<MathOp<T>> solve_for;
