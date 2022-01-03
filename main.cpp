@@ -114,11 +114,14 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 
 int main(int, char**)
 {
-    auto numerator = MathFactory::NamedConstant("numerator", 1.0);
-    auto denominator = MathFactory::NamedConstant("denominator", 1.0);
-    std::vector<std::shared_ptr<MathOp<double>>> equations{
-        numerator * MathFactory::SymbolPi<double>() / denominator,
-        numerator / (MathFactory::SymbolPi<double>() * denominator)};
+    const auto numerator = MathFactory::NamedConstant("numerator", 1.0);
+    const auto denominator = MathFactory::NamedConstant("denominator", 1.0);
+    const auto pi = MathFactory::SymbolPi<double>();
+    std::vector<std::shared_ptr<MathOp<double>>> equations
+    {
+        numerator *  pi / denominator,
+        numerator / (pi * denominator)
+    };
 
     auto y1 = find_fraction(equations, 15.0 / 4.0 / M_PI, 1E-10, 1000);
     auto y2 = find_fraction(equations, 15.0 / 4.0 * M_PI, 1E-10, 1000);
