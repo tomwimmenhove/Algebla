@@ -36,28 +36,35 @@ private:
     std::string str_binary(std::shared_ptr<MathOp<T>> op,
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs, std::string symbol)
     {
-        int precedence = op->precedence();
-        int lhs_precedence = lhs->precedence();
-        int rhs_precedence = rhs->precedence();
-        int is_commutative = op->is_commutative();
         bool right_associative = op->right_associative();
-
-        bool left_paren = !right_associative || is_commutative ? precedence < lhs->precedence() : precedence <= lhs->precedence();
-        bool right_paren = right_associative || is_commutative ? precedence < rhs->precedence() : precedence <= rhs->precedence();
-
         std::stringstream ss;
 
-        if (left_paren) ss << '(';
-        ss << lhs->format(*this);
-        if (left_paren) ss << ')';
-
+        side_to_stream(ss, op, lhs, right_associative);
         ss << symbol;
-
-        if (right_paren) ss << '(';
-        ss << rhs->format(*this);
-        if (right_paren) ss << ')';
+        side_to_stream(ss, op, rhs, !right_associative);
         
         return ss.str();
+    }
+
+    void side_to_stream(std::stringstream& ss, std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> side,
+        bool use_commutation)
+    {
+        int parent_precedence = op->precedence();
+        bool use_parens = !use_commutation || op->is_commutative()
+            ? parent_precedence < side->precedence()
+            : parent_precedence <= side->precedence();
+
+        if (use_parens)
+        {
+            ss << '(';
+        }
+
+        ss << side->format(*this);
+
+        if (use_parens)
+        {
+            ss << ')';
+        }
     }
 
     std::string str_unary(std::shared_ptr<MathOp<T>> x, std::string symbol)

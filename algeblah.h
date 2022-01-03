@@ -103,34 +103,6 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>&& visitor) { return transform(visitor); }
     std::string format(MathOpFormatter<T>&& visitor) { return format(visitor); }
 
-    std::string parenthesize(int parent_precedence, bool parent_is_commutative, bool use_commutation) const
-    {
-        std::stringstream ss;
-
-        bool use_parens = !use_commutation || parent_is_commutative
-            ? parent_precedence < precedence()
-            : parent_precedence <= precedence();
-
-        if (use_parens)
-        {
-            ss << '(';
-        }
-
-        to_stream(ss);
-
-        if (use_parens)
-        {
-            ss << ')';
-        }
-
-        return ss.str();
-    }
-
-    friend std::ostream& operator<<(std::ostream &stream, const MathOp<T> &op)
-    {
-        return stream << op.parenthesize(std::numeric_limits<int>::max(), true, false);
-    }
-
     friend std::shared_ptr<MathOp<T>> operator+(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
         return MathOpAdd<T>::create(lhs, rhs);
@@ -157,75 +129,6 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     }
 
     virtual ~MathOp() { }
-
-protected:
-    virtual std::ostream& to_stream(std::ostream& stream) const = 0;
-};
-
-/* Formatters used to display unary operations */
-template<typename T>
-struct MathUnaryFormatter
-{
-    virtual std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> x) const = 0;
-};
-
-template<typename T>
-struct MathUnaryFunctionFormatter : public MathUnaryFormatter<T>
-{
-    MathUnaryFunctionFormatter(std::string name) : name(name) { }
-    
-    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> x) const override
-    {
-        return stream << name << '(' << *x << ')';
-    }
-
-private:
-    std::string name;
-};
-
-template<typename T>
-struct MathUnaryPostfixFormatter : public MathUnaryFormatter<T>
-{
-    MathUnaryPostfixFormatter(std::string postfix) : postfix(postfix) { }
-    
-    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> x) const override
-    {
-        return stream << '(' << *x << ')' << postfix;
-    }
-
-private:
-    std::string postfix;
-};
-
-/* Formatters used to display binary operations */
-template<typename T>
-struct MathBinaryFormatter
-{
-    virtual std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs) const = 0;
-};
-
-template<typename T>
-struct MathBinaryOperationFormatter : public MathBinaryFormatter<T>
-{
-    MathBinaryOperationFormatter(std::string symbol) : symbol(symbol) { }
-    
-    std::ostream& to_stream(std::ostream& stream, const MathOp<T>& op,
-        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs) const override
-    {
-        int precedence = op.precedence();
-        int is_commutative = op.is_commutative();
-        bool right_associative = op.right_associative();
-        return stream << lhs->parenthesize(precedence, is_commutative, right_associative)
-                      << symbol
-                      << rhs->parenthesize(precedence, is_commutative, !right_associative);
-    }
-
-private:
-    std::string symbol;
 };
 
 /* Primitive math values */
@@ -240,19 +143,19 @@ struct MathOpValue : public MathOp<T>
     std::shared_ptr<MathOp<T>> rearranged(std::shared_ptr<MathOp<T>>, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream) const { return stream << str(); }
 
-protected:
-    MathOpValue(T value, bool is_constant)
-        : value(value), is_const(is_constant)
-    { }
-
-    T value;
-
     virtual std::string str() const
     {
         std::stringstream ss;
         ss << this->value;
         return ss.str();
     }
+
+protected:
+    MathOpValue(T value, bool is_constant)
+        : value(value), is_const(is_constant)
+    { }
+
+    T value;
 
 private:
     bool is_const;
@@ -261,12 +164,13 @@ private:
 template<typename T>
 struct MathOpSymbol : public MathOpValue<T>
 {
+    std::string str() const override { return symbol; }
+
 protected:
     MathOpSymbol(std::string symbol, T value, bool is_constant)
         : symbol(symbol), MathOpValue<T>(value, is_constant)
     { }
 
-    std::string str() const override { return symbol; }
     std::string symbol;
 };
 
@@ -320,10 +224,9 @@ template<typename T>
 struct MathOpVariableBase : public MathOpValue<T>
 {
     std::string get_symbol() const { return symbol; }
-
-protected:
     std::string str() const override { return show_value ? MathOpValue<T>::str() : symbol; }
 
+protected:
     MathOpVariableBase(std::string symbol, T x, bool show_value)
         : symbol(symbol), show_value(show_value), MathOpValue<T>(x, false)
     { }
@@ -503,21 +406,14 @@ struct MathUnaryOp : public MathOp<T>
 
     std::shared_ptr<MathOp<T>> get_x() const { return x; }
     int get_precedence() const { return prec; }
-    std::unique_ptr<MathUnaryFormatter<T>> get_formatter() const { return formatter; }
-    
-    std::ostream& to_stream(std::ostream& stream) const override
-    {
-        return formatter->to_stream(stream, *this, x);
-    }
 
 protected:
-    MathUnaryOp(std::shared_ptr<MathOp<T>> x, int precedence, std::unique_ptr<MathUnaryFormatter<T>> formatter)
-        : x(x), prec(precedence), formatter(std::move(formatter))
+    MathUnaryOp(std::shared_ptr<MathOp<T>> x, int precedence)
+        : x(x), prec(precedence)
     { }
 
     std::shared_ptr<MathOp<T>>x;
     int prec;
-    std::unique_ptr<MathUnaryFormatter<T>> formatter;
     U f;
 };
 
@@ -532,23 +428,15 @@ struct MathBinaryOp : public MathOp<T>
     std::shared_ptr<MathOp<T>> get_lhs() const { return lhs; }
     std::shared_ptr<MathOp<T>> get_rhs() const { return rhs; }
     int get_precedence() const { return prec; }
-    std::unique_ptr<MathUnaryFormatter<T>> get_formatter() const { return formatter; }
-    
-    std::ostream& to_stream(std::ostream& stream) const override
-    {
-        return formatter->to_stream(stream, *this, lhs, rhs);
-    }
 
 protected:
-    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, int precedence,
-        std::unique_ptr<MathBinaryFormatter<T>> formatter)
-        : lhs(lhs), rhs(rhs), prec(precedence), formatter(std::move(formatter))
+    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, int precedence)
+        : lhs(lhs), rhs(rhs), prec(precedence)
     { }
 
     std::shared_ptr<MathOp<T>>lhs;
     std::shared_ptr<MathOp<T>>rhs;
     int prec;
-    std::unique_ptr<MathBinaryFormatter<T>> formatter;
     U f;
 };
 
@@ -681,7 +569,7 @@ struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
 
 private:
     MathOpSqrt(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, square_root<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("√"))
+        : MathUnaryOp<T, square_root<T>>(x, 2)
     { }
 };
 
@@ -711,7 +599,7 @@ struct MathOpSquare : public MathUnaryOp<T, squares<T>>
 
 private:
     MathOpSquare(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, squares<T>>(x, 2, std::make_unique<MathUnaryPostfixFormatter<T>>("²"))
+        : MathUnaryOp<T, squares<T>>(x, 2)
     { }
 };
 
@@ -738,7 +626,7 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
 
 private:
     MathOpLog(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, logarithm<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("log"))
+        : MathUnaryOp<T, logarithm<T>>(x, 2)
     { }
 };
 
@@ -765,7 +653,7 @@ struct MathOpSin : public MathUnaryOp<T, sine<T>>
 
 private:
     MathOpSin(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, sine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("sin"))
+        : MathUnaryOp<T, sine<T>>(x, 2)
     { }
 };
 
@@ -792,7 +680,7 @@ struct MathOpASin : public MathUnaryOp<T, inverse_sine<T>>
 
 private:
     MathOpASin(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_sine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("asin"))
+        : MathUnaryOp<T, inverse_sine<T>>(x, 2)
     { }
 };
 
@@ -819,7 +707,7 @@ struct MathOpCos : public MathUnaryOp<T, cosine<T>>
 
 private:
     MathOpCos(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, cosine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("cos"))
+        : MathUnaryOp<T, cosine<T>>(x, 2)
     { }
 };
 
@@ -846,7 +734,7 @@ struct MathOpACos : public MathUnaryOp<T, inverse_cosine<T>>
 
 private:
     MathOpACos(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_cosine<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("acos"))
+        : MathUnaryOp<T, inverse_cosine<T>>(x, 2)
     { }
 };
 
@@ -873,7 +761,7 @@ struct MathOpTan : public MathUnaryOp<T, tangent<T>>
 
 private:
     MathOpTan(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, tangent<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("tan"))
+        : MathUnaryOp<T, tangent<T>>(x, 2)
     { }
 };
 
@@ -900,7 +788,7 @@ struct MathOpATan : public MathUnaryOp<T, inverse_tangent<T>>
 
 private:
     MathOpATan(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_tangent<T>>(x, 2, std::make_unique<MathUnaryFunctionFormatter<T>>("atan"))
+        : MathUnaryOp<T, inverse_tangent<T>>(x, 2)
     { }
 };
 
@@ -954,7 +842,7 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
 
 private:
     MathOpPow(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, raises<T>>(lhs, rhs, 2, std::make_unique<MathBinaryOperationFormatter<T>>(" ^ "))
+        : MathBinaryOp<T, raises<T>>(lhs, rhs, 2)
     { }
 };
 
@@ -987,7 +875,7 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 
 private:
     MathOpMul(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, 10, std::make_unique<MathBinaryOperationFormatter<T>>(" * "))
+        : MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, 10)
     { }
 };
 
@@ -1020,7 +908,7 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 
 private:
     MathOpDiv(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::divides<T>>(lhs, rhs, 10, std::make_unique<MathBinaryOperationFormatter<T>>(" / "))
+        : MathBinaryOp<T, std::divides<T>>(lhs, rhs, 10)
     { }
 };
 
@@ -1053,7 +941,7 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 
 private:
     MathOpAdd(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::plus<T>>(lhs, rhs, 100, std::make_unique<MathBinaryOperationFormatter<T>>(" + "))
+        : MathBinaryOp<T, std::plus<T>>(lhs, rhs, 100)
     { }
 };
 
@@ -1086,7 +974,7 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
 
 private:
     MathOpSub(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100, std::make_unique<MathBinaryOperationFormatter<T>>(" - "))
+        : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100)
     { }
 };
 

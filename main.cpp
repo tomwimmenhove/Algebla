@@ -3,6 +3,7 @@
 #include "replacetransformer.h"
 #include "removenooptransformer.h"
 #include "solvertransformer.h"
+#include "defaultformatter.h"
 
 #include <iostream>
 #include <functional>
@@ -126,8 +127,12 @@ int main(int, char**)
     auto y1 = find_fraction(equations, 15.0 / 4.0 / M_PI, 1E-10, 1000);
     auto y2 = find_fraction(equations, 15.0 / 4.0 * M_PI, 1E-10, 1000);
 
-    std::cout << "y1 = " << *y1 << " = " << y1->result() << '\n';
-    std::cout << "y2 = " << *y2 << " = " << y2->result() << '\n';
+    MathOpDefaultFormatter<double> formatter;
+
+    std::cout << "y1 = " << y1->format(formatter) << " = " << y1->result() << '\n';
+    std::cout << "y2 = " << y2->format(formatter) << " = " << y2->result() << '\n';
+
+    std::cout << (pi - (pi + pi))->format(formatter) << '\n';
 
     return 0;
 }
@@ -140,9 +145,11 @@ int maidffren(int, char**)
     
     auto a = y->transform(MathOpSolverTransformer<double>(x1, MathFactory::ConstantValue(y->result())));
 
-    std::cout << "y = " << *y << " = " << y->result() << '\n';
+    MathOpDefaultFormatter<double> formatter;
 
-    std::cout << "a = " << *a << " = " << a->result() << '\n';
+    std::cout << "y = " << y->format(formatter) << " = " << y->result() << '\n';
+
+    std::cout << "a = " << a->format(formatter) << " = " << a->result() << '\n';
 
     y = y->transform(MathOpRemoveNoOpTransformer<double>());
 
@@ -154,12 +161,12 @@ int maidffren(int, char**)
 
     auto r = y->transform(MathOpReplaceTransformer<double>(x, MathFactory::Variable("Replaced", 1.0)));
     
-    std::cout << "r = " << *r << " = " << r->result() << '\n';
+    std::cout << "r = " << r->format(formatter) << " = " << r->result() << '\n';
     
 
-    std::cout << "x = " << *x << " = " << x->result() << '\n';
+    std::cout << "x = " << x->format(formatter) << " = " << x->result() << '\n';
 
-    std::cout << "y = " << *y << " = " << y->result() << '\n';
+    std::cout << "y = " << y->format(formatter) << " = " << y->result() << '\n';
 
     return 0;
 }
