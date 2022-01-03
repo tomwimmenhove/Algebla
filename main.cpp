@@ -2,7 +2,7 @@
 #include "findvariabetransformer.h"
 #include "replacetransformer.h"
 #include "removenooptransformer.h"
-#include "solvertransformer.h"
+#include "rearrangetransformer.h"
 #include "defaultformatter.h"
 
 #include <iostream>
@@ -75,7 +75,7 @@ Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> nume
 {
     auto result = MathFactory::ConstantValue(value);
 
-    auto solved = y->transform(MathOpSolverTransformer<T>(numerator, result));
+    auto solved = y->transform(MathOpRearrangeTransformer<T>(numerator, result));
     auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
 
     return fraction;
@@ -143,7 +143,7 @@ int maidffren(int, char**)
 
     auto y = sqrt(MathFactory::SymbolPi<double>() ^ (x1 * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
     
-    auto a = y->transform(MathOpSolverTransformer<double>(x1, MathFactory::ConstantValue(y->result())));
+    auto a = y->transform(MathOpRearrangeTransformer<double>(x1, MathFactory::ConstantValue(y->result())));
 
     MathOpDefaultFormatter<double> formatter;
 

@@ -1,13 +1,13 @@
-#ifndef SOLVERTRANSFORMER_H
-#define SOLVERTRANSFORMER_H
+#ifndef REARRANGETRANSFORMER_H
+#define REARRANGETRANSFORMER_H
 
 #include "algeblah.h"
-#include "rearragetransformer.h"
+#include "reversetransformer.h"
 
 template <typename T>
-struct MathOpSolverTransformer : public MathOpTransformer<T>
+struct MathOpRearrangeTransformer : public MathOpTransformer<T>
 {
-    MathOpSolverTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from)
+    MathOpRearrangeTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from)
         : solve_for(solve_for), from(from)
     { }
 
@@ -41,8 +41,8 @@ private:
 
     std::shared_ptr<MathOp<T>>solve_for_unary(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> x)
     {
-        auto from_x = op->transform(MathOpRearrangeTransformer<T>(x, from));
-        auto result = x->transform(MathOpSolverTransformer<T>(solve_for, from_x));
+        auto from_x = op->transform(MathOpReverseTransformer<T>(x, from));
+        auto result = x->transform(MathOpRearrangeTransformer<T>(solve_for, from_x));
 
         return result;
     }
@@ -50,19 +50,19 @@ private:
     std::shared_ptr<MathOp<T>>solve_for_binary(std::shared_ptr<MathOp<T>> op,
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
-        auto from_lhs = op->transform(MathOpRearrangeTransformer<T>(lhs, from));
+        auto from_lhs = op->transform(MathOpReverseTransformer<T>(lhs, from));
 
-        auto solved_lhs = lhs->transform(MathOpSolverTransformer<T>(solve_for, from_lhs));
+        auto solved_lhs = lhs->transform(MathOpRearrangeTransformer<T>(solve_for, from_lhs));
         if (solved_lhs != nullptr)
         {
             return solved_lhs;
         }
 
-        auto from_rhs = op->transform(MathOpRearrangeTransformer<T>(rhs, from));
-        auto solved_rhs = rhs->transform(MathOpSolverTransformer<T>(solve_for, from_rhs));
+        auto from_rhs = op->transform(MathOpReverseTransformer<T>(rhs, from));
+        auto solved_rhs = rhs->transform(MathOpRearrangeTransformer<T>(solve_for, from_rhs));
 
         return solved_rhs;
     }
 };
 
-#endif /* SOLVERTRANSFORMER_H */
+#endif /* REARRANGETRANSFORMER_H */

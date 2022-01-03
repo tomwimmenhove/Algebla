@@ -1,12 +1,12 @@
-#ifndef REARRANGETRANSFORMER_H
-#define REARRANGETRANSFORMER_H
+#ifndef REVERSETRANSFORMER_H
+#define REVERSETRANSFORMER_H
 
 #include "algeblah.h"
 
 template <typename T>
-struct MathOpRearrangeTransformer : public MathOpTransformer<T>
+struct MathOpReverseTransformer : public MathOpTransformer<T>
 {
-    MathOpRearrangeTransformer(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from)
+    MathOpReverseTransformer(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from)
         : for_side(for_side), from(from)
     { }
 
@@ -121,4 +121,4 @@ private:
     const std::shared_ptr<MathOp<T>> from;
 };
 
-#endif /* REARRANGETRANSFORMER_H */
+#endif /* REVERSETRANSFORMER_H */
