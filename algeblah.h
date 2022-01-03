@@ -94,6 +94,7 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     virtual int precedence() const = 0;
     virtual bool is_commutative() const = 0;
     virtual bool is_constant() const = 0;
+    virtual bool right_associative() const { return false; }
     virtual std::shared_ptr<MathOp<T>> rearranged(
         std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>> from) const = 0;
     virtual std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) = 0;
@@ -217,9 +218,10 @@ struct MathBinaryOperationFormatter : public MathBinaryFormatter<T>
     {
         int precedence = op.precedence();
         int is_commutative = op.is_commutative();
-        return stream << lhs->parenthesize(precedence, is_commutative, false)
+        bool right_associative = op.right_associative();
+        return stream << lhs->parenthesize(precedence, is_commutative, right_associative)
                       << symbol
-                      << rhs->parenthesize(precedence, is_commutative, true);
+                      << rhs->parenthesize(precedence, is_commutative, !right_associative);
     }
 
 private:
@@ -932,6 +934,7 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
     }
 
     bool is_commutative() const override { return false; }
+    bool right_associative() const override { return true; }
 
     std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
     {
