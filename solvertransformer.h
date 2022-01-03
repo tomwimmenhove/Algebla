@@ -8,19 +8,17 @@
 template <typename T>
 struct MathOpSolverTransformer : public MathOpTransformer<T>
 {
-    MathOpSolverTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from_result)
-        : solve_for(solve_for)
-    {
-        from.push(from_result);
-    }
+    MathOpSolverTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from)
+        : solve_for(solve_for), from(from)
+    { }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpVariable<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpValueVariable<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNamedConstant<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op == solve_for ? from.top() : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpVariable<T>> op) override { return op == solve_for ? from : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpValueVariable<T>> op) override { return op == solve_for ? from : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNamedConstant<T>> op) override { return op == solve_for ? from : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op == solve_for ? from : nullptr; }
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op == solve_for ? from : nullptr; }
 
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override { return solve_for_unary(op, op->get_x()); }
@@ -39,15 +37,13 @@ struct MathOpSolverTransformer : public MathOpTransformer<T>
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSub<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
 
 private:
-    std::shared_ptr<MathOp<T>> solve_for;
-    std::stack<std::shared_ptr<MathOp<T>>> from;
+    const std::shared_ptr<MathOp<T>> solve_for;
+    const std::shared_ptr<MathOp<T>> from;
 
     std::shared_ptr<MathOp<T>>solve_for_unary(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> x)
     {
-        auto from_x = op->rearranged(x, from.top());
-        from.push(from_x);
-        auto result = x->transform(*this);
-        from.pop();
+        auto from_x = op->rearranged(x, from);
+        auto result = x->transform(MathOpSolverTransformer<T>(solve_for, from_x));
 
         return result;
     }
@@ -55,21 +51,16 @@ private:
     std::shared_ptr<MathOp<T>>solve_for_binary(std::shared_ptr<MathOp<T>> op,
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
-        auto from_lhs = op->rearranged(lhs, from.top());
+        auto from_lhs = op->rearranged(lhs, from);
 
-        from.push(from_lhs);
-        auto solved_lhs = lhs->transform(*this);
-        from.pop();
+        auto solved_lhs = lhs->transform(MathOpSolverTransformer<T>(solve_for, from_lhs));
         if (solved_lhs != nullptr)
         {
             return solved_lhs;
         }
 
-        auto from_rhs = op->rearranged(rhs, from.top());
-
-        from.push(from_rhs);
-        auto solved_rhs = rhs->transform(*this);
-        from.pop();
+        auto from_rhs = op->rearranged(rhs, from);
+        auto solved_rhs = rhs->transform(MathOpSolverTransformer<T>(solve_for, from_rhs));
 
         return solved_rhs;
     }
