@@ -49,7 +49,7 @@ private:
     void side_to_stream(std::stringstream& ss, std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> side,
         bool use_commutation)
     {
-        int parent_precedence = op->precedence();
+        MathOpBodmas parent_precedence = op->precedence();
         bool use_parens = !use_commutation || op->is_commutative()
             ? parent_precedence < side->precedence()
             : parent_precedence <= side->precedence();

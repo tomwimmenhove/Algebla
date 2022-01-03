@@ -86,17 +86,24 @@ struct MathOpFormatter
     virtual ~MathOpFormatter() {}
 };
 
+/* BODMAS */
+enum class MathOpBodmas
+{
+    Parentheses,
+    Exponents,
+    MultiplicationDivision,
+    AdditionSubtraction
+};
+
 /* Math operation class base class */
 template<typename T>
 struct MathOp : public std::enable_shared_from_this<MathOp<T>>
 {
     virtual T result() const = 0;
-    virtual int precedence() const = 0;
+    virtual MathOpBodmas precedence() const = 0;
     virtual bool is_commutative() const = 0;
     virtual bool is_constant() const = 0;
     virtual bool right_associative() const { return false; }
-    virtual std::shared_ptr<MathOp<T>> rearranged(
-        std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>> from) const = 0;
     virtual std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) = 0;
     virtual std::string format(MathOpFormatter<T>& visitor) = 0;
 
@@ -137,10 +144,9 @@ struct MathOpValue : public MathOp<T>
 {
     T result() const override { return value; }
     void set(T x) { this->value = x; }
-    int precedence() const override { return 0; }
+    MathOpBodmas precedence() const override { return MathOpBodmas::Parentheses; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
-    std::shared_ptr<MathOp<T>> rearranged(std::shared_ptr<MathOp<T>>, std::shared_ptr<MathOp<T>>) const override { return nullptr; }
     std::ostream& to_stream(std::ostream& stream) const { return stream << str(); }
 
     virtual std::string str() const
@@ -400,20 +406,18 @@ template<typename T, typename U>
 struct MathUnaryOp : public MathOp<T>
 {
     T result() const override { return f(x->result()); }
-    int precedence() const override { return prec; }
+    MathOpBodmas precedence() const override { return MathOpBodmas::Parentheses; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return false; }
 
     std::shared_ptr<MathOp<T>> get_x() const { return x; }
-    int get_precedence() const { return prec; }
 
 protected:
-    MathUnaryOp(std::shared_ptr<MathOp<T>> x, int precedence)
-        : x(x), prec(precedence)
+    MathUnaryOp(std::shared_ptr<MathOp<T>> x)
+        : x(x)
     { }
 
     std::shared_ptr<MathOp<T>>x;
-    int prec;
     U f;
 };
 
@@ -422,21 +426,20 @@ template<typename T, typename U>
 struct MathBinaryOp : public MathOp<T>
 {
     T result() const override { return f(lhs->result(), rhs->result()); }
-    int precedence() const override { return prec; }
+    MathOpBodmas precedence() const override { return prec; }
     bool is_constant() const override { return false; }
 
     std::shared_ptr<MathOp<T>> get_lhs() const { return lhs; }
     std::shared_ptr<MathOp<T>> get_rhs() const { return rhs; }
-    int get_precedence() const { return prec; }
 
 protected:
-    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, int precedence)
+    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, MathOpBodmas precedence)
         : lhs(lhs), rhs(rhs), prec(precedence)
     { }
 
     std::shared_ptr<MathOp<T>>lhs;
     std::shared_ptr<MathOp<T>>rhs;
-    int prec;
+    MathOpBodmas prec;
     U f;
 };
 
@@ -561,15 +564,9 @@ struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>
         return visitor.visit(std::static_pointer_cast<MathOpSqrt<T>>(this->shared_from_this()));
     }
 
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return square(from);
-    }
-
 private:
     MathOpSqrt(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, square_root<T>>(x, 2)
+        : MathUnaryOp<T, square_root<T>>(x)
     { }
 };
 
@@ -591,15 +588,9 @@ struct MathOpSquare : public MathUnaryOp<T, squares<T>>
         return visitor.visit(std::static_pointer_cast<MathOpSquare<T>>(this->shared_from_this()));
     }
 
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return sqrt(from);
-    }
-
 private:
     MathOpSquare(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, squares<T>>(x, 2)
+        : MathUnaryOp<T, squares<T>>(x)
     { }
 };
 
@@ -607,12 +598,6 @@ template<typename T>
 struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<MathOpLog<T>>(new MathOpLog<T>(x)); }
-
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return MathFactory::SymbolE<T>() ^ from;
-    }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
@@ -626,7 +611,7 @@ struct MathOpLog : public MathUnaryOp<T, logarithm<T>>
 
 private:
     MathOpLog(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, logarithm<T>>(x, 2)
+        : MathUnaryOp<T, logarithm<T>>(x)
     { }
 };
 
@@ -634,12 +619,6 @@ template<typename T>
 struct MathOpSin : public MathUnaryOp<T, sine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<MathOpSin<T>>(new MathOpSin<T>(x)); }
-
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return asin(from);
-    }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
@@ -653,7 +632,7 @@ struct MathOpSin : public MathUnaryOp<T, sine<T>>
 
 private:
     MathOpSin(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, sine<T>>(x, 2)
+        : MathUnaryOp<T, sine<T>>(x)
     { }
 };
 
@@ -661,12 +640,6 @@ template<typename T>
 struct MathOpASin : public MathUnaryOp<T, inverse_sine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<MathOpASin<T>>(new MathOpASin<T>(x)); }
-
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return sin(from);
-    }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
@@ -680,7 +653,7 @@ struct MathOpASin : public MathUnaryOp<T, inverse_sine<T>>
 
 private:
     MathOpASin(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_sine<T>>(x, 2)
+        : MathUnaryOp<T, inverse_sine<T>>(x)
     { }
 };
 
@@ -688,12 +661,6 @@ template<typename T>
 struct MathOpCos : public MathUnaryOp<T, cosine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<MathOpCos<T>>(new MathOpCos<T>(x)); }
-
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return acos(from);
-    }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
@@ -707,7 +674,7 @@ struct MathOpCos : public MathUnaryOp<T, cosine<T>>
 
 private:
     MathOpCos(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, cosine<T>>(x, 2)
+        : MathUnaryOp<T, cosine<T>>(x)
     { }
 };
 
@@ -715,12 +682,6 @@ template<typename T>
 struct MathOpACos : public MathUnaryOp<T, inverse_cosine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<MathOpACos<T>>(new MathOpACos<T>(x)); }
-
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return cos(from);
-    }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
@@ -734,7 +695,7 @@ struct MathOpACos : public MathUnaryOp<T, inverse_cosine<T>>
 
 private:
     MathOpACos(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_cosine<T>>(x, 2)
+        : MathUnaryOp<T, inverse_cosine<T>>(x)
     { }
 };
 
@@ -742,12 +703,6 @@ template<typename T>
 struct MathOpTan : public MathUnaryOp<T, tangent<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<MathOpTan<T>>(new MathOpTan<T>(x)); }
-
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return atan(from);
-    }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
@@ -761,7 +716,7 @@ struct MathOpTan : public MathUnaryOp<T, tangent<T>>
 
 private:
     MathOpTan(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, tangent<T>>(x, 2)
+        : MathUnaryOp<T, tangent<T>>(x)
     { }
 };
 
@@ -769,12 +724,6 @@ template<typename T>
 struct MathOpATan : public MathUnaryOp<T, inverse_tangent<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<MathOpATan<T>>(new MathOpATan<T>(x)); }
-
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side != this->x) return nullptr;
-        return tan(from);
-    }
 
     std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
     {
@@ -788,7 +737,7 @@ struct MathOpATan : public MathUnaryOp<T, inverse_tangent<T>>
 
 private:
     MathOpATan(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_tangent<T>>(x, 2)
+        : MathUnaryOp<T, inverse_tangent<T>>(x)
     { }
 };
 
@@ -824,25 +773,9 @@ struct MathOpPow : public MathBinaryOp<T, raises<T>>
     bool is_commutative() const override { return false; }
     bool right_associative() const override { return true; }
 
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if (for_side == this->lhs)
-        {
-            return from ^ (MathFactory::ConstantValue(1.0) / this->rhs);
-        }
-        else if (for_side == this->rhs)
-        {
-            return log(from) / log(this->lhs);
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
-
 private:
     MathOpPow(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, raises<T>>(lhs, rhs, 2)
+        : MathBinaryOp<T, raises<T>>(lhs, rhs, MathOpBodmas::Exponents)
     { }
 };
 
@@ -866,16 +799,9 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 
     bool is_commutative() const override { return true; }
 
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if      (for_side == this->lhs) return from / this->rhs;
-        else if (for_side == this->rhs) return from / this->lhs;
-        else                            return nullptr;
-    }
-
 private:
     MathOpMul(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, 10)
+        : MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, MathOpBodmas::MultiplicationDivision)
     { }
 };
 
@@ -899,16 +825,9 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 
     bool is_commutative() const override { return false; }
 
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if      (for_side == this->lhs) return from * this->rhs;
-        else if (for_side == this->rhs) return this->lhs / from;
-        else                            return nullptr;
-    }
-
 private:
     MathOpDiv(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::divides<T>>(lhs, rhs, 10)
+        : MathBinaryOp<T, std::divides<T>>(lhs, rhs, MathOpBodmas::MultiplicationDivision)
     { }
 };
 
@@ -932,16 +851,9 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 
     bool is_commutative() const override { return true; }
 
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if      (for_side == this->lhs) return from - this->rhs;
-        else if (for_side == this->rhs) return from - this->lhs;
-        else                            return nullptr;
-    }
-
 private:
     MathOpAdd(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::plus<T>>(lhs, rhs, 100)
+        : MathBinaryOp<T, std::plus<T>>(lhs, rhs, MathOpBodmas::AdditionSubtraction)
     { }
 };
 
@@ -965,16 +877,9 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
 
     bool is_commutative() const override { return false; }
 
-    std::shared_ptr<MathOp<T>>rearranged(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from) const override
-    {
-        if      (for_side == this->lhs) return from + this->rhs;
-        else if (for_side == this->rhs) return this->lhs - from;
-        else                            return nullptr;
-    }
-
 private:
     MathOpSub(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::minus<T>>(lhs, rhs, 100)
+        : MathBinaryOp<T, std::minus<T>>(lhs, rhs, MathOpBodmas::AdditionSubtraction)
     { }
 };
 
