@@ -2,8 +2,7 @@
 #define SOLVERTRANSFORMER_H
 
 #include "algeblah.h"
-
-#include <stack>
+#include "rearragetransformer.h"
 
 template <typename T>
 struct MathOpSolverTransformer : public MathOpTransformer<T>
@@ -42,7 +41,7 @@ private:
 
     std::shared_ptr<MathOp<T>>solve_for_unary(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> x)
     {
-        auto from_x = op->rearranged(x, from);
+        auto from_x = op->transform(MathOpRearrangeTransformer<T>(x, from));
         auto result = x->transform(MathOpSolverTransformer<T>(solve_for, from_x));
 
         return result;
@@ -51,7 +50,7 @@ private:
     std::shared_ptr<MathOp<T>>solve_for_binary(std::shared_ptr<MathOp<T>> op,
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
-        auto from_lhs = op->rearranged(lhs, from);
+        auto from_lhs = op->transform(MathOpRearrangeTransformer<T>(lhs, from));
 
         auto solved_lhs = lhs->transform(MathOpSolverTransformer<T>(solve_for, from_lhs));
         if (solved_lhs != nullptr)
@@ -59,7 +58,7 @@ private:
             return solved_lhs;
         }
 
-        auto from_rhs = op->rearranged(rhs, from);
+        auto from_rhs = op->transform(MathOpRearrangeTransformer<T>(rhs, from));
         auto solved_rhs = rhs->transform(MathOpSolverTransformer<T>(solve_for, from_rhs));
 
         return solved_rhs;
