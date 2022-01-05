@@ -113,8 +113,26 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
                  ->transform(MathOpRemoveNoOpTransformer<T>());
 }
 
+#include "driver.h"
+
 int main(int, char**)
 {
+    driver drv;
+    //drv.trace_parsing = true;
+    //drv.trace_scanning = true;
+    if (drv.parse("/dev/stdin") != 0)
+    {
+        return 1;
+    }
+
+    MathOpDefaultFormatter<double> formatter;
+
+    for(auto& exp: drv.expressions)
+    {
+        std::cout << exp->format(formatter) << " = " << exp->result() << '\n';        
+    }
+
+    return 0;
     const auto numerator = MathFactory::NamedConstant("numerator", 1.0);
     const auto denominator = MathFactory::NamedConstant("denominator", 1.0);
     const auto pi = MathFactory::SymbolPi<double>();
@@ -126,8 +144,6 @@ int main(int, char**)
 
     auto y1 = find_fraction(equations, 15.0 / 4.0 / M_PI, 1E-10, 1000);
     auto y2 = find_fraction(equations, 15.0 / 4.0 * M_PI, 1E-10, 1000);
-
-    MathOpDefaultFormatter<double> formatter;
 
     std::cout << "y1 = " << y1->format(formatter) << " = " << y1->result() << '\n';
     std::cout << "y2 = " << y2->format(formatter) << " = " << y2->result() << '\n';

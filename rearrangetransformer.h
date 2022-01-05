@@ -51,8 +51,8 @@ private:
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
         auto from_lhs = op->transform(MathOpReverseTransformer<T>(lhs, from));
-
         auto solved_lhs = lhs->transform(MathOpRearrangeTransformer<T>(solve_for, from_lhs));
+
         if (solved_lhs != nullptr)
         {
             return solved_lhs;

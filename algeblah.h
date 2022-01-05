@@ -433,7 +433,7 @@ struct MathBinaryOp : public MathOp<T>
     std::shared_ptr<MathOp<T>> get_rhs() const { return rhs; }
 
 protected:
-    MathBinaryOp(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs, MathOpBodmas precedence)
+    MathBinaryOp(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs, MathOpBodmas precedence)
         : lhs(lhs), rhs(rhs), prec(precedence)
     { }
 
