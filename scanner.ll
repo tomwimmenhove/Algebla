@@ -6,7 +6,9 @@
 #include "driver.h"
 #include "parser.h"
 
-//{id}       return yy::parser::make_IDENTIFIER (yytext, loc);
+//#undef YY_INPUT
+//#define YY_INPUT(buf,result,max_size) yy_read_input
+
 // Work around an incompatibility in flex (at least versions
 // 2.5.31 through 2.5.33): it generates code that does
 // not conform to C89.  See Debian bug 333231
@@ -48,6 +50,8 @@ blank    [ \t]
 "/"      return yy::parser::make_SLASH     (loc);
 "("      return yy::parser::make_LPAREN    (loc);
 ")"      return yy::parser::make_RPAREN    (loc);
+"%pi"    return yy::parser::make_PI        (loc);
+"%e"     return yy::parser::make_E         (loc);
 "sqrt"   return yy::parser::make_SQRT      (loc);
 "log"    return yy::parser::make_LOG       (loc);
 "sin"    return yy::parser::make_SIN       (loc);
@@ -64,6 +68,8 @@ blank    [ \t]
 			return yy::parser::make_NUMBER (d, loc);
 		}
 
+{id}       return yy::parser::make_IDENTIFIER (yytext, loc);
+
 .		{
 			throw yy::parser::syntax_error
 			(loc, "invalid character: " + std::string(yytext));
@@ -72,6 +78,11 @@ blank    [ \t]
 %%
 
 void driver::scan_begin ()
+{
+  yy_flex_debug = trace_scanning;
+}
+
+void driver::scan_file_begin ()
 {
   yy_flex_debug = trace_scanning;
   if (file.empty () || file == "-")
@@ -83,7 +94,7 @@ void driver::scan_begin ()
     }
 }
 
-void driver::scan_end ()
+void driver::scan_file_end ()
 {
   fclose (yyin);
 }

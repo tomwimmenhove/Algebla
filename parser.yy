@@ -12,6 +12,7 @@
   #include <memory>
   #include "algeblah.h"
   class driver;
+  extern void yy_read_input(char *buf, int& result, int max_size);
 }
 
 // The parsing context.
@@ -36,6 +37,8 @@
                    SLASH         "/"
                    LPAREN        "("
                    RPAREN        ")"
+                   E             "%e"
+                   PI            "%pi"
                    SQRT          "sqrt"
                    LOG           "log"
                    SIN           "sin"
@@ -45,45 +48,39 @@
                    TAN           "tan"
                    ATAN          "atan"
     <double>       NUMBER        "number"
+    <std::string>  IDENTIFIER    "identifier"
 ;
 
-//    <std::string>  IDENTIFIER    "identifier"
-//%type  <double>                              parameter
-//%type  <std::vector<int>>                    parameters
-%type  <std::shared_ptr<MathOp<double>>>          exp
-
-/*
-%type  <declaration>                        declaration
-%type  <statement>                            statement
-%type  <std::vector<statement>>                statements
-%type  <std::shared_ptr<emjit_function>>    function
-%type  <std::vector<emjit_function>>        functions
-*/
+%type  <std::shared_ptr<MathOp<double>>>          expression
 
 %%
 %start expressions;
 
-expressions : exp             { drv.add_exp($1); };
+expressions :                            { }
+            | expressions expression     { drv.add_exp($2); }
+            ;
 
 %left "+" "-";
 %left "*" "/";
 %right "^";
-exp         : exp "+" exp             { $$ = $1 + $3; }
-            | exp "-" exp             { $$ = $1 - $3; }
-            | exp "*" exp             { $$ = $1 * $3; }
-            | exp "/" exp             { $$ = $1 / $3; }
-            | exp "^" exp             { $$ = $1 ^ $3; }
-            | "(" exp ")"             { $$ = $2; }
-            | "sqrt" "(" exp ")"      { $$ = sqrt<double>($3); }
-            | "log"  "(" exp ")"      { $$ = log<double>($3); }
-            | "sin"  "(" exp ")"      { $$ = sin<double>($3); }
-            | "asin" "(" exp ")"      { $$ = asin<double>($3); }
-            | "cos"  "(" exp ")"      { $$ = cos<double>($3); }
-            | "acos" "(" exp ")"      { $$ = acos<double>($3); }
-            | "tan"  "(" exp ")"      { $$ = tan<double>($3); }
-            | "atan" "(" exp ")"      { $$ = atan<double>($3); }
-            | "number"                { $$ = MathFactory::ConstantValue($1); }
-//            | "identifier"  { $$ = expression(expr_type::var, drv.get_var_id($1)); }
+expression  : expression "+" expression  { $$ = $1 + $3; }
+            | expression "-" expression  { $$ = $1 - $3; }
+            | expression "*" expression  { $$ = $1 * $3; }
+            | expression "/" expression  { $$ = $1 / $3; }
+            | expression "^" expression  { $$ = $1 ^ $3; }
+            | "(" expression ")"         { $$ = $2; }
+            | "sqrt" "(" expression ")"  { $$ = sqrt<double>($3); }
+            | "log"  "(" expression ")"  { $$ = log<double>($3); }
+            | "sin"  "(" expression ")"  { $$ = sin<double>($3); }
+            | "asin" "(" expression ")"  { $$ = asin<double>($3); }
+            | "cos"  "(" expression ")"  { $$ = cos<double>($3); }
+            | "acos" "(" expression ")"  { $$ = acos<double>($3); }
+            | "tan"  "(" expression ")"  { $$ = tan<double>($3); }
+            | "atan" "(" expression ")"  { $$ = atan<double>($3); }
+            | "number"                   { $$ = MathFactory::ConstantValue<double>($1); }
+            | "%pi"                      { $$ = MathFactory::SymbolPi<double>(); }
+            | "%e"                       { $$ = MathFactory::SymbolE<double>(); }
+            | "identifier"               { $$ = MathFactory::Variable<double>($1); }
             ;
 %%
 

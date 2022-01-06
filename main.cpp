@@ -118,9 +118,8 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 int main(int, char**)
 {
     driver drv;
-    //drv.trace_parsing = true;
-    //drv.trace_scanning = true;
-    if (drv.parse("/dev/stdin") != 0)
+    //if (drv.parse_file("/dev/stdin") != 0)
+    if (drv.parse_string("1 + 2 + 3") != 0)
     {
         return 1;
     }

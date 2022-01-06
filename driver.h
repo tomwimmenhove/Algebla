@@ -20,7 +20,9 @@ public:
 	driver ();
 
 	// Run the parser on file f.  Return 0 on success.
-	int parse (const std::string& f);
+	int parse_file(const std::string& f);
+	int parse_string(const std::string& line);
+
 	// The name of the file being parsed.
 	std::string file;
 	// Whether to generate parser debug traces.
@@ -28,7 +30,8 @@ public:
 
 	// Handling the scanner.
 	void scan_begin();
-	void scan_end();
+	void scan_file_begin();
+	void scan_file_end();
 	// Whether to generate scanner debug traces.
 	bool trace_scanning;
 	// The token's location used by the scanner.

@@ -52,8 +52,9 @@
   #include <memory>
   #include "algeblah.h"
   class driver;
+  extern void yy_read_input(char *buf, int& result, int max_size);
 
-#line 57 "parser.h"
+#line 58 "parser.h"
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -187,7 +188,7 @@
 #endif
 
 namespace yy {
-#line 191 "parser.h"
+#line 192 "parser.h"
 
 
 
@@ -404,8 +405,11 @@ namespace yy {
       // "number"
       char dummy1[sizeof (double)];
 
-      // exp
+      // expression
       char dummy2[sizeof (std::shared_ptr<MathOp<double>>)];
+
+      // "identifier"
+      char dummy3[sizeof (std::string)];
     };
 
     /// The size of the largest semantic type.
@@ -464,15 +468,18 @@ namespace yy {
     TOK_SLASH = 262,               // "/"
     TOK_LPAREN = 263,              // "("
     TOK_RPAREN = 264,              // ")"
-    TOK_SQRT = 265,                // "sqrt"
-    TOK_LOG = 266,                 // "log"
-    TOK_SIN = 267,                 // "sin"
-    TOK_ASIN = 268,                // "asin"
-    TOK_COS = 269,                 // "cos"
-    TOK_ACOS = 270,                // "acos"
-    TOK_TAN = 271,                 // "tan"
-    TOK_ATAN = 272,                // "atan"
-    TOK_NUMBER = 273               // "number"
+    TOK_E = 265,                   // "%e"
+    TOK_PI = 266,                  // "%pi"
+    TOK_SQRT = 267,                // "sqrt"
+    TOK_LOG = 268,                 // "log"
+    TOK_SIN = 269,                 // "sin"
+    TOK_ASIN = 270,                // "asin"
+    TOK_COS = 271,                 // "cos"
+    TOK_ACOS = 272,                // "acos"
+    TOK_TAN = 273,                 // "tan"
+    TOK_ATAN = 274,                // "atan"
+    TOK_NUMBER = 275,              // "number"
+    TOK_IDENTIFIER = 276           // "identifier"
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -489,7 +496,7 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 19, ///< Number of tokens.
+        YYNTOKENS = 22, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
@@ -501,18 +508,21 @@ namespace yy {
         S_SLASH = 7,                             // "/"
         S_LPAREN = 8,                            // "("
         S_RPAREN = 9,                            // ")"
-        S_SQRT = 10,                             // "sqrt"
-        S_LOG = 11,                              // "log"
-        S_SIN = 12,                              // "sin"
-        S_ASIN = 13,                             // "asin"
-        S_COS = 14,                              // "cos"
-        S_ACOS = 15,                             // "acos"
-        S_TAN = 16,                              // "tan"
-        S_ATAN = 17,                             // "atan"
-        S_NUMBER = 18,                           // "number"
-        S_YYACCEPT = 19,                         // $accept
-        S_expressions = 20,                      // expressions
-        S_exp = 21                               // exp
+        S_E = 10,                                // "%e"
+        S_PI = 11,                               // "%pi"
+        S_SQRT = 12,                             // "sqrt"
+        S_LOG = 13,                              // "log"
+        S_SIN = 14,                              // "sin"
+        S_ASIN = 15,                             // "asin"
+        S_COS = 16,                              // "cos"
+        S_ACOS = 17,                             // "acos"
+        S_TAN = 18,                              // "tan"
+        S_ATAN = 19,                             // "atan"
+        S_NUMBER = 20,                           // "number"
+        S_IDENTIFIER = 21,                       // "identifier"
+        S_YYACCEPT = 22,                         // $accept
+        S_expressions = 23,                      // expressions
+        S_expression = 24                        // expression
       };
     };
 
@@ -553,8 +563,12 @@ namespace yy {
         value.move< double > (std::move (that.value));
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.move< std::shared_ptr<MathOp<double>> > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.move< std::string > (std::move (that.value));
         break;
 
       default:
@@ -608,6 +622,20 @@ namespace yy {
       {}
 #endif
 
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, std::string&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const std::string& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
       /// Destroy the symbol.
       ~basic_symbol ()
       {
@@ -634,8 +662,12 @@ switch (yykind)
         value.template destroy< double > ();
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.template destroy< std::shared_ptr<MathOp<double>> > ();
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.template destroy< std::string > ();
         break;
 
       default:
@@ -744,6 +776,16 @@ switch (yykind)
 #endif
       {
         YY_ASSERT (tok == token::TOK_NUMBER);
+      }
+#if 201103L <= YY_CPLUSPLUS
+      symbol_type (int tok, std::string v, location_type l)
+        : super_type(token_type (tok), std::move (v), std::move (l))
+#else
+      symbol_type (int tok, const std::string& v, const location_type& l)
+        : super_type(token_type (tok), v, l)
+#endif
+      {
+        YY_ASSERT (tok == token::TOK_IDENTIFIER);
       }
     };
 
@@ -946,6 +988,36 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_E (location_type l)
+      {
+        return symbol_type (token::TOK_E, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_E (const location_type& l)
+      {
+        return symbol_type (token::TOK_E, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_PI (location_type l)
+      {
+        return symbol_type (token::TOK_PI, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_PI (const location_type& l)
+      {
+        return symbol_type (token::TOK_PI, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_SQRT (location_type l)
       {
         return symbol_type (token::TOK_SQRT, std::move (l));
@@ -1076,6 +1148,21 @@ switch (yykind)
       make_NUMBER (const double& v, const location_type& l)
       {
         return symbol_type (token::TOK_NUMBER, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_IDENTIFIER (std::string v, location_type l)
+      {
+        return symbol_type (token::TOK_IDENTIFIER, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_IDENTIFIER (const std::string& v, const location_type& l)
+      {
+        return symbol_type (token::TOK_IDENTIFIER, v, l);
       }
 #endif
 
@@ -1408,9 +1495,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 103,     ///< Last index in yytable_.
+      yylast_ = 120,     ///< Last index in yytable_.
       yynnts_ = 3,  ///< Number of nonterminal symbols.
-      yyfinal_ = 22 ///< Termination state number.
+      yyfinal_ = 2 ///< Termination state number.
     };
 
 
@@ -1456,10 +1543,10 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18
+      15,    16,    17,    18,    19,    20,    21
     };
     // Last valid token kind.
-    const int code_max = 273;
+    const int code_max = 276;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1482,8 +1569,12 @@ switch (yykind)
         value.copy< double > (YY_MOVE (that.value));
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.copy< std::shared_ptr<MathOp<double>> > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.copy< std::string > (YY_MOVE (that.value));
         break;
 
       default:
@@ -1519,8 +1610,12 @@ switch (yykind)
         value.move< double > (YY_MOVE (s.value));
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.move< std::shared_ptr<MathOp<double>> > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.move< std::string > (YY_MOVE (s.value));
         break;
 
       default:
@@ -1585,7 +1680,7 @@ switch (yykind)
   }
 
 } // yy
-#line 1589 "parser.h"
+#line 1684 "parser.h"
 
 
 

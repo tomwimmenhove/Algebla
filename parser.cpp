@@ -42,7 +42,7 @@
 
 
 // Unqualified %code blocks.
-#line 25 "parser.yy"
+#line 26 "parser.yy"
 
 # include "driver.h"
 
@@ -210,8 +210,12 @@ namespace yy {
         value.YY_MOVE_OR_COPY< double > (YY_MOVE (that.value));
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.YY_MOVE_OR_COPY< std::shared_ptr<MathOp<double>> > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.YY_MOVE_OR_COPY< std::string > (YY_MOVE (that.value));
         break;
 
       default:
@@ -233,8 +237,12 @@ namespace yy {
         value.move< double > (YY_MOVE (that.value));
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.move< std::shared_ptr<MathOp<double>> > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.move< std::string > (YY_MOVE (that.value));
         break;
 
       default:
@@ -256,8 +264,12 @@ namespace yy {
         value.copy< double > (that.value);
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.copy< std::shared_ptr<MathOp<double>> > (that.value);
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.copy< std::string > (that.value);
         break;
 
       default:
@@ -278,8 +290,12 @@ namespace yy {
         value.move< double > (that.value);
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         value.move< std::shared_ptr<MathOp<double>> > (that.value);
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        value.move< std::string > (that.value);
         break;
 
       default:
@@ -545,8 +561,12 @@ namespace yy {
         yylhs.value.emplace< double > ();
         break;
 
-      case symbol_kind::S_exp: // exp
+      case symbol_kind::S_expression: // expression
         yylhs.value.emplace< std::shared_ptr<MathOp<double>> > ();
+        break;
+
+      case symbol_kind::S_IDENTIFIER: // "identifier"
+        yylhs.value.emplace< std::string > ();
         break;
 
       default:
@@ -569,104 +589,128 @@ namespace yy {
         {
           switch (yyn)
             {
-  case 2: // expressions: exp
+  case 2: // expressions: %empty
+#line 59 "parser.yy"
+                                         { }
+#line 596 "parser.cpp"
+    break;
+
+  case 3: // expressions: expressions expression
+#line 60 "parser.yy"
+                                         { drv.add_exp(yystack_[0].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 602 "parser.cpp"
+    break;
+
+  case 4: // expression: expression "+" expression
 #line 66 "parser.yy"
-                              { drv.add_exp(yystack_[0].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 576 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () + yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
+#line 608 "parser.cpp"
     break;
 
-  case 3: // exp: exp "+" exp
+  case 5: // expression: expression "-" expression
+#line 67 "parser.yy"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () - yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
+#line 614 "parser.cpp"
+    break;
+
+  case 6: // expression: expression "*" expression
+#line 68 "parser.yy"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () * yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
+#line 620 "parser.cpp"
+    break;
+
+  case 7: // expression: expression "/" expression
+#line 69 "parser.yy"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () / yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
+#line 626 "parser.cpp"
+    break;
+
+  case 8: // expression: expression "^" expression
+#line 70 "parser.yy"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () ^ yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
+#line 632 "parser.cpp"
+    break;
+
+  case 9: // expression: "(" expression ")"
 #line 71 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () + yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
-#line 582 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[1].value.as < std::shared_ptr<MathOp<double>> > (); }
+#line 638 "parser.cpp"
     break;
 
-  case 4: // exp: exp "-" exp
+  case 10: // expression: "sqrt" "(" expression ")"
 #line 72 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () - yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
-#line 588 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = sqrt<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 644 "parser.cpp"
     break;
 
-  case 5: // exp: exp "*" exp
+  case 11: // expression: "log" "(" expression ")"
 #line 73 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () * yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
-#line 594 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = log<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 650 "parser.cpp"
     break;
 
-  case 6: // exp: exp "/" exp
+  case 12: // expression: "sin" "(" expression ")"
 #line 74 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () / yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
-#line 600 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = sin<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 656 "parser.cpp"
     break;
 
-  case 7: // exp: exp "^" exp
+  case 13: // expression: "asin" "(" expression ")"
 #line 75 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[2].value.as < std::shared_ptr<MathOp<double>> > () ^ yystack_[0].value.as < std::shared_ptr<MathOp<double>> > (); }
-#line 606 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = asin<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 662 "parser.cpp"
     break;
 
-  case 8: // exp: "(" exp ")"
+  case 14: // expression: "cos" "(" expression ")"
 #line 76 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = yystack_[1].value.as < std::shared_ptr<MathOp<double>> > (); }
-#line 612 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = cos<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 668 "parser.cpp"
     break;
 
-  case 9: // exp: "sqrt" "(" exp ")"
+  case 15: // expression: "acos" "(" expression ")"
 #line 77 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = sqrt<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 618 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = acos<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 674 "parser.cpp"
     break;
 
-  case 10: // exp: "log" "(" exp ")"
+  case 16: // expression: "tan" "(" expression ")"
 #line 78 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = log<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 624 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = tan<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 680 "parser.cpp"
     break;
 
-  case 11: // exp: "sin" "(" exp ")"
+  case 17: // expression: "atan" "(" expression ")"
 #line 79 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = sin<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 630 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = atan<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
+#line 686 "parser.cpp"
     break;
 
-  case 12: // exp: "asin" "(" exp ")"
+  case 18: // expression: "number"
 #line 80 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = asin<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 636 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = MathFactory::ConstantValue<double>(yystack_[0].value.as < double > ()); }
+#line 692 "parser.cpp"
     break;
 
-  case 13: // exp: "cos" "(" exp ")"
+  case 19: // expression: "%pi"
 #line 81 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = cos<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 642 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = MathFactory::SymbolPi<double>(); }
+#line 698 "parser.cpp"
     break;
 
-  case 14: // exp: "acos" "(" exp ")"
+  case 20: // expression: "%e"
 #line 82 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = acos<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 648 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = MathFactory::SymbolE<double>(); }
+#line 704 "parser.cpp"
     break;
 
-  case 15: // exp: "tan" "(" exp ")"
+  case 21: // expression: "identifier"
 #line 83 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = tan<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 654 "parser.cpp"
-    break;
-
-  case 16: // exp: "atan" "(" exp ")"
-#line 84 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = atan<double>(yystack_[1].value.as < std::shared_ptr<MathOp<double>> > ()); }
-#line 660 "parser.cpp"
-    break;
-
-  case 17: // exp: "number"
-#line 85 "parser.yy"
-                                      { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = MathFactory::ConstantValue(yystack_[0].value.as < double > ()); }
-#line 666 "parser.cpp"
+                                         { yylhs.value.as < std::shared_ptr<MathOp<double>> > () = MathFactory::Variable<double>(yystack_[0].value.as < std::string > ()); }
+#line 710 "parser.cpp"
     break;
 
 
-#line 670 "parser.cpp"
+#line 714 "parser.cpp"
 
             default:
               break;
@@ -1022,89 +1066,98 @@ namespace yy {
   const signed char
   parser::yypact_[] =
   {
-      -7,    -7,    -6,     4,    13,    91,    92,    93,    94,    95,
-      -8,    32,    87,    24,    -7,    -7,    -7,    -7,    -7,    -7,
-      -7,    -7,    -8,    -7,    -7,    -7,    -7,    -7,    -8,    31,
-      38,    45,    52,    59,    66,    73,    80,    90,    90,    34,
-      34,    34,    -8,    -8,    -8,    -8,    -8,    -8,    -8,    -8
+      -8,    28,    -8,    -7,    -8,    -8,    -6,    29,   107,   108,
+     109,   110,   111,   112,    -8,    -8,   103,    26,    -7,    -7,
+      -7,    -7,    -7,    -7,    -7,    -7,    -7,    -7,    -7,    -7,
+      -7,    -8,    47,    54,    61,    68,    75,    82,    89,    96,
+     106,   106,    50,    50,    50,    -8,    -8,    -8,    -8,    -8,
+      -8,    -8,    -8
   };
 
   const signed char
   parser::yydefact_[] =
   {
+       2,     0,     1,     0,    20,    19,     0,     0,     0,     0,
+       0,     0,     0,     0,    18,    21,     3,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-      17,     0,     2,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     1,     0,     0,     0,     0,     0,     8,     0,
-       0,     0,     0,     0,     0,     0,     0,     4,     3,     7,
-       5,     6,     9,    10,    11,    12,    13,    14,    15,    16
+       0,     9,     0,     0,     0,     0,     0,     0,     0,     0,
+       5,     4,     8,     6,     7,    10,    11,    12,    13,    14,
+      15,    16,    17
   };
 
   const signed char
   parser::yypgoto_[] =
   {
-      -8,    -8,    -1
+      -8,    -8,    -3
   };
 
   const signed char
   parser::yydefgoto_[] =
   {
-       0,    11,    12
+       0,     1,    16
   };
 
   const signed char
   parser::yytable_[] =
   {
-      13,     1,    14,     2,     3,     4,     5,     6,     7,     8,
-       9,    10,    15,    29,    30,    31,    32,    33,    34,    35,
-      36,    16,    37,    38,    39,    40,    41,    23,    24,    25,
-      26,    27,    22,    28,    23,    24,    25,    26,    27,    25,
-      42,    23,    24,    25,    26,    27,     0,    43,    23,    24,
-      25,    26,    27,     0,    44,    23,    24,    25,    26,    27,
-       0,    45,    23,    24,    25,    26,    27,     0,    46,    23,
-      24,    25,    26,    27,     0,    47,    23,    24,    25,    26,
-      27,     0,    48,    23,    24,    25,    26,    27,     0,    49,
-      23,    24,    25,    26,    27,    25,    26,    27,     0,    17,
-      18,    19,    20,    21
+      17,     3,    18,     4,     5,     6,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    32,    33,    34,    35,    36,
+      37,    38,    39,    40,    41,    42,    43,    44,     2,    26,
+      27,    28,    29,    30,     0,    31,     3,    19,     4,     5,
+       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
+      26,    27,    28,    29,    30,    28,    45,    26,    27,    28,
+      29,    30,     0,    46,    26,    27,    28,    29,    30,     0,
+      47,    26,    27,    28,    29,    30,     0,    48,    26,    27,
+      28,    29,    30,     0,    49,    26,    27,    28,    29,    30,
+       0,    50,    26,    27,    28,    29,    30,     0,    51,    26,
+      27,    28,    29,    30,     0,    52,    26,    27,    28,    29,
+      30,    28,    29,    30,     0,    20,    21,    22,    23,    24,
+      25
   };
 
   const signed char
   parser::yycheck_[] =
   {
-       1,     8,     8,    10,    11,    12,    13,    14,    15,    16,
-      17,    18,     8,    14,    15,    16,    17,    18,    19,    20,
-      21,     8,    23,    24,    25,    26,    27,     3,     4,     5,
-       6,     7,     0,     9,     3,     4,     5,     6,     7,     5,
+       3,     8,     8,    10,    11,    12,    13,    14,    15,    16,
+      17,    18,    19,    20,    21,    18,    19,    20,    21,    22,
+      23,    24,    25,    26,    27,    28,    29,    30,     0,     3,
+       4,     5,     6,     7,    -1,     9,     8,     8,    10,    11,
+      12,    13,    14,    15,    16,    17,    18,    19,    20,    21,
+       3,     4,     5,     6,     7,     5,     9,     3,     4,     5,
+       6,     7,    -1,     9,     3,     4,     5,     6,     7,    -1,
        9,     3,     4,     5,     6,     7,    -1,     9,     3,     4,
        5,     6,     7,    -1,     9,     3,     4,     5,     6,     7,
       -1,     9,     3,     4,     5,     6,     7,    -1,     9,     3,
        4,     5,     6,     7,    -1,     9,     3,     4,     5,     6,
-       7,    -1,     9,     3,     4,     5,     6,     7,    -1,     9,
-       3,     4,     5,     6,     7,     5,     6,     7,    -1,     8,
-       8,     8,     8,     8
+       7,     5,     6,     7,    -1,     8,     8,     8,     8,     8,
+       8
   };
 
   const signed char
   parser::yystos_[] =
   {
-       0,     8,    10,    11,    12,    13,    14,    15,    16,    17,
-      18,    20,    21,    21,     8,     8,     8,     8,     8,     8,
-       8,     8,     0,     3,     4,     5,     6,     7,     9,    21,
-      21,    21,    21,    21,    21,    21,    21,    21,    21,    21,
-      21,    21,     9,     9,     9,     9,     9,     9,     9,     9
+       0,    23,     0,     8,    10,    11,    12,    13,    14,    15,
+      16,    17,    18,    19,    20,    21,    24,    24,     8,     8,
+       8,     8,     8,     8,     8,     8,     3,     4,     5,     6,
+       7,     9,    24,    24,    24,    24,    24,    24,    24,    24,
+      24,    24,    24,    24,    24,     9,     9,     9,     9,     9,
+       9,     9,     9
   };
 
   const signed char
   parser::yyr1_[] =
   {
-       0,    19,    20,    21,    21,    21,    21,    21,    21,    21,
-      21,    21,    21,    21,    21,    21,    21,    21
+       0,    22,    23,    23,    24,    24,    24,    24,    24,    24,
+      24,    24,    24,    24,    24,    24,    24,    24,    24,    24,
+      24,    24
   };
 
   const signed char
   parser::yyr2_[] =
   {
-       0,     2,     1,     3,     3,     3,     3,     3,     3,     4,
-       4,     4,     4,     4,     4,     4,     4,     1
+       0,     2,     0,     2,     3,     3,     3,     3,     3,     3,
+       4,     4,     4,     4,     4,     4,     4,     4,     1,     1,
+       1,     1
   };
 
 
@@ -1115,9 +1168,10 @@ namespace yy {
   const parser::yytname_[] =
   {
   "\"end of file\"", "error", "\"invalid token\"", "\"-\"", "\"+\"",
-  "\"^\"", "\"*\"", "\"/\"", "\"(\"", "\")\"", "\"sqrt\"", "\"log\"",
-  "\"sin\"", "\"asin\"", "\"cos\"", "\"acos\"", "\"tan\"", "\"atan\"",
-  "\"number\"", "$accept", "expressions", "exp", YY_NULLPTR
+  "\"^\"", "\"*\"", "\"/\"", "\"(\"", "\")\"", "\"%e\"", "\"%pi\"",
+  "\"sqrt\"", "\"log\"", "\"sin\"", "\"asin\"", "\"cos\"", "\"acos\"",
+  "\"tan\"", "\"atan\"", "\"number\"", "\"identifier\"", "$accept",
+  "expressions", "expression", YY_NULLPTR
   };
 #endif
 
@@ -1126,8 +1180,9 @@ namespace yy {
   const signed char
   parser::yyrline_[] =
   {
-       0,    66,    66,    71,    72,    73,    74,    75,    76,    77,
-      78,    79,    80,    81,    82,    83,    84,    85
+       0,    59,    59,    60,    66,    67,    68,    69,    70,    71,
+      72,    73,    74,    75,    76,    77,    78,    79,    80,    81,
+      82,    83
   };
 
   void
@@ -1159,9 +1214,9 @@ namespace yy {
 
 
 } // yy
-#line 1163 "parser.cpp"
+#line 1218 "parser.cpp"
 
-#line 88 "parser.yy"
+#line 85 "parser.yy"
 
 
 void yy::parser::error (const location_type& l, const std::string& m)
