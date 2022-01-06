@@ -3,7 +3,7 @@
 #include <climits>
 #include <cstdlib>
 #include <string>
-#include "driver.h"
+#include "../driver.h"
 #include "parser.h"
 
 //#undef YY_INPUT

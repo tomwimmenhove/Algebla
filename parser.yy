@@ -10,7 +10,7 @@
   #include <string>
   #include <iostream>
   #include <memory>
-  #include "algeblah.h"
+  #include "../algeblah.h"
   class driver;
   extern void yy_read_input(char *buf, int& result, int max_size);
 }
@@ -24,7 +24,7 @@
 %define parse.error verbose
 
 %code {
-# include "driver.h"
+# include "../driver.h"
 }
 
 %define api.token.prefix {TOK_}
