@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <map>
 
 // Tell Flex the lexer's prototype ...
 # define YY_DECL \
@@ -42,7 +43,12 @@ public:
 	std::vector<std::shared_ptr<MathOp<double>>> expressions;
 	std::shared_ptr<MathOp<double>> solve(std::shared_ptr<MathOp<double>> op, std::string variable, double result);
 
+	std::shared_ptr<MathOpVariableBase<double>> find_of_create_var(std::string variable);
+
+	std::shared_ptr<MathOp<double>> assign(std::string variable, std::shared_ptr<MathOp<double>> op);
+
 private:
+	std::map<std::string, std::shared_ptr<MathOpVariableBase<double>>> variables;
 	int var_id = 0;
 };
 #endif // ! DRIVER_HH

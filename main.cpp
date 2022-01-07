@@ -9,19 +9,20 @@
 #include <functional>
 
 /* Fractions */
-template<typename T>
+template <typename T>
 struct Fraction
 {
     T numerator;
     T denominator;
 
-    bool is_nan()      const { return std::isnan(numerator) || std::isnan(denominator); }
+    bool is_nan() const { return std::isnan(numerator) || std::isnan(denominator); }
     bool is_integral() const { return denominator == 1; }
-    T    result()      const { return numerator / denominator; }
+    T result() const { return numerator / denominator; }
 
     Fraction(T numerator, T denominator)
         : numerator(numerator), denominator(denominator)
-    { }
+    {
+    }
 
     std::shared_ptr<MathOp<T>> to_math_op() const
     {
@@ -70,7 +71,7 @@ struct Fraction
     }
 };
 
-template<typename T>
+template <typename T>
 Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> numerator, T value, T max_error, int iters)
 {
     auto result = MathFactory::ConstantValue(value);
@@ -81,14 +82,14 @@ Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> nume
     return fraction;
 }
 
-template<typename T>
+template <typename T>
 std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>> equations,
-    T value, T max_error, int iters)
+                                         T value, T max_error, int iters)
 {
     auto best_fraction = Fraction<T>::quiet_NaN();
-    std::shared_ptr<MathOp<T>> best_numerator,best_denominator, best_y;
+    std::shared_ptr<MathOp<T>> best_numerator, best_denominator, best_y;
 
-    for (auto y: equations)
+    for (auto y : equations)
     {
         auto numerator = y->transform(MathOpFindVariableTransformer<T>("numerator"));
 
@@ -108,39 +109,51 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         return nullptr;
     }
 
-    return best_y->transform(MathOpReplaceTransformer<T>(best_numerator,   MathFactory::ConstantValue(best_fraction.numerator)))
-                 ->transform(MathOpReplaceTransformer<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
-                 ->transform(MathOpRemoveNoOpTransformer<T>());
+    return best_y->transform(MathOpReplaceTransformer<T>(best_numerator, MathFactory::ConstantValue(best_fraction.numerator)))
+        ->transform(MathOpReplaceTransformer<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
+        ->transform(MathOpRemoveNoOpTransformer<T>());
 }
 
 #include "driver.h"
 
-int main(int, char**)
+int main(int, char **)
 {
     driver drv;
     //if (drv.parse_file("/dev/stdin") != 0)
-    if (drv.parse_string("solve a: 12 + a * 2 = 122") != 0)
-    //if (drv.parse_string("a + 2 + 3") != 0)
-    {
-        return 1;
-    }
+    // if (drv.parse_string("solve a: 12 + a * x == 1012") != 0)
+    // //if (drv.parse_string("a + 2 + 3") != 0)
+    // {
+    //     return 1;
+    // }
 
     MathOpDefaultFormatter<double> formatter;
 
-    for(auto& exp: drv.expressions)
+    for(;;)
     {
-        std::cout << exp->format(formatter) << " = " << exp->result() << '\n';        
+        std::string s;
+        std::cout << "> ";
+        std::getline(std::cin, s);
+
+        drv.expressions.clear();
+
+        if (drv.parse_string(s) != 0)
+        {
+            continue;
+        }
+
+        for (auto &exp : drv.expressions)
+        {
+            std::cout << "  " << exp->format(formatter) << " = " << exp->result() << '\n';
+        }
     }
 
     return 0;
     const auto numerator = MathFactory::NamedConstant("numerator", 1.0);
     const auto denominator = MathFactory::NamedConstant("denominator", 1.0);
     const auto pi = MathFactory::SymbolPi<double>();
-    std::vector<std::shared_ptr<MathOp<double>>> equations
-    {
-        numerator *  pi / denominator,
-        numerator / (pi * denominator)
-    };
+    std::vector<std::shared_ptr<MathOp<double>>> equations{
+        numerator * pi / denominator,
+        numerator / (pi * denominator)};
 
     auto y1 = find_fraction(equations, 15.0 / 4.0 / M_PI, 1E-10, 1000);
     auto y2 = find_fraction(equations, 15.0 / 4.0 * M_PI, 1E-10, 1000);
@@ -153,12 +166,12 @@ int main(int, char**)
     return 0;
 }
 
-int maidffren(int, char**)
+int maidffren(int, char **)
 {
     auto x1 = MathFactory::ValueVariable("x", 21.0);
 
     auto y = sqrt(MathFactory::SymbolPi<double>() ^ (x1 * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
-    
+
     auto a = y->transform(MathOpRearrangeTransformer<double>(x1, MathFactory::ConstantValue(y->result())));
 
     MathOpDefaultFormatter<double> formatter;
@@ -176,9 +189,8 @@ int maidffren(int, char**)
     }
 
     auto r = y->transform(MathOpReplaceTransformer<double>(x, MathFactory::Variable("Replaced", 1.0)));
-    
+
     std::cout << "r = " << r->format(formatter) << " = " << r->result() << '\n';
-    
 
     std::cout << "x = " << x->format(formatter) << " = " << x->result() << '\n';
 

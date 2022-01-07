@@ -359,13 +359,10 @@ private:
 struct MathFactory
 {
     template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolPi() { return MathOpConstantSymbol<T>::create("π", M_PI); }
+    static std::shared_ptr<MathOp<T>> SymbolPi() { return MathOpConstantSymbol<T>::create("%pi", M_PI); }
 
     template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolE() { return MathOpConstantSymbol<T>::create("e", M_E); }
-
-    template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolSqrt2() { return MathOpConstantSymbol<T>::create("√(2)", M_SQRT2); }
+    static std::shared_ptr<MathOp<T>> SymbolE() { return MathOpConstantSymbol<T>::create("%e", M_E); }
 
     template <typename T>
     static std::shared_ptr<MathOpVariable<T>> Variable(std::string symbol, T c = 0)
