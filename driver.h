@@ -3,6 +3,8 @@
 
 #include "parser.h"
 
+#include "config.h"
+
 #include <string>
 #include <iostream>
 #include <memory>
@@ -38,16 +40,16 @@ public:
 	// The token's location used by the scanner.
 	yy::location location;
 
-	void add_exp(std::shared_ptr<MathOp<double>> exp);
-	std::shared_ptr<MathOp<double>> solve(std::shared_ptr<MathOp<double>> op, std::string variable, double result);
-	std::shared_ptr<MathOpVariableBase<double>> find_var(std::string variable);
-	std::shared_ptr<MathOp<double>> assign(std::string variable, std::shared_ptr<MathOp<double>> op);
-	const std::vector<std::shared_ptr<MathOp<double>>> get_expressions() const { return expressions; }
+	void add_exp(std::shared_ptr<MathOp<number>> exp);
+	std::shared_ptr<MathOp<number>> solve(std::shared_ptr<MathOp<number>> op, std::string variable, number result);
+	std::shared_ptr<MathOpVariableBase<number>> find_var(std::string variable);
+	std::shared_ptr<MathOp<number>> assign(std::string variable, std::shared_ptr<MathOp<number>> op);
+	const std::vector<std::shared_ptr<MathOp<number>>> get_expressions() const { return expressions; }
 	void make_var(std::string variable);
 
 private:
-	std::vector<std::shared_ptr<MathOp<double>>> expressions;
-	std::map<std::string, std::shared_ptr<MathOpVariableBase<double>>> variables;
+	std::vector<std::shared_ptr<MathOp<number>>> expressions;
+	std::map<std::string, std::shared_ptr<MathOpVariableBase<number>>> variables;
 	int var_id = 0;
 };
 #endif // ! DRIVER_HH

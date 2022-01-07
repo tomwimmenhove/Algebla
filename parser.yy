@@ -11,6 +11,7 @@
   #include <iostream>
   #include <memory>
   #include "../algeblah.h"
+  #include "../config.h"
   class driver;
   extern void yy_read_input(char *buf, int& result, int max_size);
 }
@@ -51,11 +52,11 @@
                    ATAN          "atan"
                    SOLVE         "solve"
                    COLON         ":"
-    <double>       NUMBER        "number"
+    <number>       NUMBER        "number"
     <std::string>  IDENTIFIER    "identifier"
 ;
 
-%type  <std::shared_ptr<MathOp<double>>>          expression
+%type  <std::shared_ptr<MathOp<number>>>          expression
 
 %%
 %start expressions;
@@ -77,17 +78,17 @@ expression  : "solve" "identifier" { drv.make_var($2); } ":" expression "==" "nu
             | expression "/" expression    { $$ = $1 / $3; }
             | expression "^" expression    { $$ = $1 ^ $3; }
             | "(" expression ")"           { $$ = $2; }
-            | "sqrt" "(" expression ")"    { $$ = sqrt<double>($3); }
-            | "log"  "(" expression ")"    { $$ = log<double>($3); }
-            | "sin"  "(" expression ")"    { $$ = sin<double>($3); }
-            | "asin" "(" expression ")"    { $$ = asin<double>($3); }
-            | "cos"  "(" expression ")"    { $$ = cos<double>($3); }
-            | "acos" "(" expression ")"    { $$ = acos<double>($3); }
-            | "tan"  "(" expression ")"    { $$ = tan<double>($3); }
-            | "atan" "(" expression ")"    { $$ = atan<double>($3); }
-            | "number"                     { $$ = MathFactory::ConstantValue<double>($1); }
-            | "%pi"                        { $$ = MathFactory::SymbolPi<double>(); }
-            | "%e"                         { $$ = MathFactory::SymbolE<double>(); }
+            | "sqrt" "(" expression ")"    { $$ = sqrt<number>($3); }
+            | "log"  "(" expression ")"    { $$ = log<number>($3); }
+            | "sin"  "(" expression ")"    { $$ = sin<number>($3); }
+            | "asin" "(" expression ")"    { $$ = asin<number>($3); }
+            | "cos"  "(" expression ")"    { $$ = cos<number>($3); }
+            | "acos" "(" expression ")"    { $$ = acos<number>($3); }
+            | "tan"  "(" expression ")"    { $$ = tan<number>($3); }
+            | "atan" "(" expression ")"    { $$ = atan<number>($3); }
+            | "number"                     { $$ = MathFactory::ConstantValue<number>($1); }
+            | "%pi"                        { $$ = MathFactory::SymbolPi<number>(); }
+            | "%e"                         { $$ = MathFactory::SymbolE<number>(); }
             | "identifier"                 { $$ = drv.find_var($1); }
             ;
 %%

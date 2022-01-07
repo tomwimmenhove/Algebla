@@ -26,7 +26,7 @@
 %option noyywrap nounput batch debug noinput
 
 id       [a-zA-Z][a-zA-Z_0-9]*
-double   [-+]?[0-9]+[.]?[0-9]*([eE][-+]?[0-9]+)?
+number   [-+]?[0-9]+[.]?[0-9]*([eE][-+]?[0-9]+)?
 blank    [ \t]
 
 %{
@@ -65,9 +65,9 @@ blank    [ \t]
 "solve"  return yy::parser::make_SOLVE     (loc);
 ":"      return yy::parser::make_COLON     (loc);
 
-{double}	{
+{number}	{
 			errno = 0;
-			double d = strtod(yytext, NULL);
+			number d = strtod(yytext, NULL);
 			// XXX: TODO: Check input
 			return yy::parser::make_NUMBER (d, loc);
 		}

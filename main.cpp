@@ -5,6 +5,8 @@
 #include "rearrangetransformer.h"
 #include "defaultformatter.h"
 
+#include "config.h"
+
 #include <iostream>
 #include <functional>
 #include <readline/readline.h>
@@ -79,7 +81,7 @@ Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> nume
     auto result = MathFactory::ConstantValue(value);
 
     auto solved = y->transform(MathOpRearrangeTransformer<T>(numerator, result));
-    auto fraction = Fraction<double>::find(solved->result(), max_error, iters);
+    auto fraction = Fraction<number>::find(solved->result(), max_error, iters);
 
     return fraction;
 }
@@ -95,7 +97,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
     {
         auto numerator = y->transform(MathOpFindVariableTransformer<T>("numerator"));
 
-        auto fraction = solver(y, numerator, value, 1E-10, 1000);
+        auto fraction = solver<T>(y, numerator, value, 1E-10, 1000);
 
         if (!fraction.is_nan() && (best_fraction.is_nan() || fraction.numerator < best_fraction.numerator))
         {
@@ -121,7 +123,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 int main(int, char **)
 {
     driver drv;
-    MathOpDefaultFormatter<double> formatter;
+    MathOpDefaultFormatter<number> formatter;
 
 #if 0
     if (drv.parse_string("solve a: 12 + a * 123 == 1012") != 0)
@@ -161,15 +163,15 @@ int main(int, char **)
     }
 
     return 0;
-    const auto numerator = MathFactory::NamedConstant("numerator", 1.0);
-    const auto denominator = MathFactory::NamedConstant("denominator", 1.0);
-    const auto pi = MathFactory::SymbolPi<double>();
-    std::vector<std::shared_ptr<MathOp<double>>> equations{
+    const auto numerator = MathFactory::NamedConstant<number>("numerator", 1.0);
+    const auto denominator = MathFactory::NamedConstant<number>("denominator", 1.0);
+    const auto pi = MathFactory::SymbolPi<number>();
+    std::vector<std::shared_ptr<MathOp<number>>> equations{
         numerator * pi / denominator,
         numerator / (pi * denominator)};
 
-    auto y1 = find_fraction(equations, 15.0 / 4.0 / M_PI, 1E-10, 1000);
-    auto y2 = find_fraction(equations, 15.0 / 4.0 * M_PI, 1E-10, 1000);
+    auto y1 = find_fraction<number>(equations, 15.0 / 4.0 / M_PI, 1E-10, 1000);
+    auto y2 = find_fraction<number>(equations, 15.0 / 4.0 * M_PI, 1E-10, 1000);
 
     std::cout << "y1 = " << y1->format(formatter) << " = " << y1->result() << '\n';
     std::cout << "y2 = " << y2->format(formatter) << " = " << y2->result() << '\n';
@@ -181,27 +183,27 @@ int main(int, char **)
 
 int maidffren(int, char **)
 {
-    auto x1 = MathFactory::ValueVariable("x", 21.0);
+    auto x1 = MathFactory::ValueVariable<number>("x", 21.0);
 
-    auto y = sqrt(MathFactory::SymbolPi<double>() ^ (x1 * (MathFactory::ConstantValue(2.0) + MathFactory::SymbolPi<double>())));
+    auto y = sqrt(MathFactory::SymbolPi<number>() ^ (x1 * (MathFactory::ConstantValue<number>(2.0) + MathFactory::SymbolPi<number>())));
 
-    auto a = y->transform(MathOpRearrangeTransformer<double>(x1, MathFactory::ConstantValue(y->result())));
+    auto a = y->transform(MathOpRearrangeTransformer<number>(x1, MathFactory::ConstantValue(y->result())));
 
-    MathOpDefaultFormatter<double> formatter;
+    MathOpDefaultFormatter<number> formatter;
 
     std::cout << "y = " << y->format(formatter) << " = " << y->result() << '\n';
 
     std::cout << "a = " << a->format(formatter) << " = " << a->result() << '\n';
 
-    y = y->transform(MathOpRemoveNoOpTransformer<double>());
+    y = y->transform(MathOpRemoveNoOpTransformer<number>());
 
-    auto x = y->transform(MathOpFindVariableTransformer<double>("x"));
+    auto x = y->transform(MathOpFindVariableTransformer<number>("x"));
     if (x == x1)
     {
         std::cout << "OK!\n";
     }
 
-    auto r = y->transform(MathOpReplaceTransformer<double>(x, MathFactory::Variable("Replaced", 1.0)));
+    auto r = y->transform(MathOpReplaceTransformer<number>(x, MathFactory::Variable<number>("Replaced", 1.0)));
 
     std::cout << "r = " << r->format(formatter) << " = " << r->result() << '\n';
 

@@ -76,7 +76,7 @@ struct MathOpReverseTransformer : public MathOpTransformer<T>
     {
         if (for_side == op->get_lhs())
         {
-            return from ^ (MathFactory::ConstantValue(1.0) / op->get_rhs());
+            return from ^ (MathFactory::ConstantValue<T>(1.0) / op->get_rhs());
         }
         else if (for_side == op->get_rhs())
         {

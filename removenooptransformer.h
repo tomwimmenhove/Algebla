@@ -66,12 +66,12 @@ struct MathOpRemoveNoOpTransformer : public MathOpTransformer<T>
 
         if (lhs->is_constant() && lhs->result() == 0)
         {
-            return MathFactory::ConstantValue(0.0);
+            return MathFactory::ConstantValue<T>(0.0);
         }
 
         if (rhs->is_constant() && rhs->result() == 0)
         {
-            return MathFactory::ConstantValue(1.0);
+            return MathFactory::ConstantValue<T>(1.0);
         }
 
         if (rhs->is_constant() && rhs->result() == 1)
@@ -100,7 +100,7 @@ struct MathOpRemoveNoOpTransformer : public MathOpTransformer<T>
         if ((lhs->is_constant() && lhs->result() == 0) ||
             (rhs->is_constant() && rhs->result() == 0))
         {
-            return MathFactory::ConstantValue(0.0);
+            return MathFactory::ConstantValue<T>(0.0);
         }
 
         return lhs  * rhs;
@@ -113,7 +113,7 @@ struct MathOpRemoveNoOpTransformer : public MathOpTransformer<T>
 
         if (lhs->is_constant() && rhs->is_constant() && lhs->result() == rhs->result())
         {
-            return MathFactory::ConstantValue(1.0);
+            return MathFactory::ConstantValue<T>(1.0);
         }
 
         if (rhs->is_constant() && rhs->result() == 1)
@@ -123,7 +123,7 @@ struct MathOpRemoveNoOpTransformer : public MathOpTransformer<T>
 
         if (lhs->is_constant() && lhs->result() == 0)
         {
-            return MathFactory::ConstantValue(0.0);
+            return MathFactory::ConstantValue<T>(0.0);
         }
 
         return lhs / rhs;

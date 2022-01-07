@@ -48,18 +48,18 @@ void driver::make_var(std::string variable)
     auto it = variables.find(variable);
     if (it == variables.end())
     {
-        variables[variable] = MathFactory::Variable<double>(variable);
+        variables[variable] = MathFactory::Variable<number>(variable);
     }
 }
 
-std::shared_ptr<MathOp<double>> driver::solve(std::shared_ptr<MathOp<double>> op, std::string variable, double result)
+std::shared_ptr<MathOp<number>> driver::solve(std::shared_ptr<MathOp<number>> op, std::string variable, number result)
 {
-    auto v = op->transform(MathOpFindVariableTransformer<double>(variable));
+    auto v = op->transform(MathOpFindVariableTransformer<number>(variable));
 
-    return op->transform(MathOpRearrangeTransformer<double>(v, MathFactory::ConstantValue<double>(result)));
+    return op->transform(MathOpRearrangeTransformer<number>(v, MathFactory::ConstantValue<number>(result)));
 }
 
-std::shared_ptr<MathOp<double>> driver::assign(std::string variable, std::shared_ptr<MathOp<double>> op)
+std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared_ptr<MathOp<number>> op)
 {
     auto result = op->result();
 
@@ -76,19 +76,19 @@ std::shared_ptr<MathOp<double>> driver::assign(std::string variable, std::shared
 
 #include <exception>
 
-std::shared_ptr<MathOpVariableBase<double>> driver::find_var(std::string variable)
+std::shared_ptr<MathOpVariableBase<number>> driver::find_var(std::string variable)
 {
     auto it = variables.find(variable);
     if (it == variables.end())
     {
-        //return variables[variable] = MathFactory::Variable(variable, std::numeric_limits<double>::quiet_NaN());
+        //return variables[variable] = MathFactory::Variable(variable, std::numeric_limits<number>::quiet_NaN());
         throw yy::parser::syntax_error(location, "variable " + variable + " has not been declared");
     }
 
     return it->second;
 }
 
-void driver::add_exp(std::shared_ptr<MathOp<double>> exp)
+void driver::add_exp(std::shared_ptr<MathOp<number>> exp)
 {
     expressions.push_back(exp);
 }
