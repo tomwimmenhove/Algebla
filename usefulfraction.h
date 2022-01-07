@@ -85,7 +85,7 @@ Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> nume
 
 template <typename T>
 std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>> equations,
-                                         T value, T max_error, int iters, T max_denominator)
+                                         T value, T max_error, int iters, T max_num_denominator)
 {
     auto best_fraction = Fraction<T>::quiet_NaN();
     std::shared_ptr<MathOp<T>> best_numerator, best_denominator, best_y;
@@ -105,7 +105,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         }
     }
 
-    if (!best_y || best_fraction.denominator > max_denominator)
+    if (!best_y || best_fraction.denominator > max_num_denominator || best_fraction.numerator > max_num_denominator)
     {
         return nullptr;
     }

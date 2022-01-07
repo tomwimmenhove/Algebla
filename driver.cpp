@@ -52,11 +52,17 @@ void driver::make_var(std::string variable)
     }
 }
 
-std::shared_ptr<MathOp<number>> driver::solve(std::shared_ptr<MathOp<number>> op, std::string variable, number result)
+std::shared_ptr<MathOp<number>> driver::solve(std::shared_ptr<MathOp<number>> op,
+    std::string variable, std::shared_ptr<MathOp<number>> result)
 {
-    auto v = op->transform(MathOpFindVariableTransformer<number>(variable));
+    auto v = std::static_pointer_cast<MathOpVariableBase<number>>(
+        op->transform(MathOpFindVariableTransformer<number>(variable)));
 
-    return op->transform(MathOpRearrangeTransformer<number>(v, MathFactory::ConstantValue<number>(result)));
+    auto solved = op->transform(MathOpRearrangeTransformer<number>(v, MathFactory::ConstantValue<number>(result->result())));
+
+    v->set(solved->result());
+
+    return solved;
 }
 
 std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared_ptr<MathOp<number>> op)
@@ -74,14 +80,11 @@ std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared
     return it->second;
 }
 
-#include <exception>
-
 std::shared_ptr<MathOpVariableBase<number>> driver::find_var(std::string variable)
 {
     auto it = variables.find(variable);
     if (it == variables.end())
     {
-        //return variables[variable] = MathFactory::Variable(variable, std::numeric_limits<number>::quiet_NaN());
         throw yy::parser::syntax_error(location, "variable " + variable + " has not been declared");
     }
 

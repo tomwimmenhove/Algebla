@@ -69,8 +69,8 @@ expressions :                            { }
 %left "+" "-";
 %left "*" "/";
 %right "^";
-expression  : "solve" "identifier" { drv.make_var($2); } ":" expression "==" "number" { $$ = drv.solve($5, $2, $7); }
-            | "solve" "identifier" { drv.make_var($2); } ":" "number" "==" expression { $$ = drv.solve($7, $2, $5); }
+expression  
+            : "solve" "identifier" { drv.make_var($2); } ":" expression "==" expression { $$ = drv.solve($5, $2, $7); }
             | "identifier" "=" expression  { $$ = drv.assign($1, $3); }
             | expression "+" expression    { $$ = $1 + $3; }
             | expression "-" expression    { $$ = $1 - $3; }
