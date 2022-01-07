@@ -67,7 +67,7 @@ blank    [ \t]
 
 {number}	{
 			errno = 0;
-			number d = strtod(yytext, NULL);
+			number d = strtold(yytext, NULL);
 			// XXX: TODO: Check input
 			return yy::parser::make_NUMBER (d, loc);
 		}
