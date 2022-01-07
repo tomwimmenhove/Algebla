@@ -118,6 +118,15 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 template<typename T>
 std::string useful_fraction(T x)
 {
+    std::stringstream ss;
+
+    if (x == 0)
+    {
+        ss << x;
+
+        return ss.str();
+    }
+
     const auto numerator = MathFactory::NamedConstant<T>("numerator", 1.0);
     const auto denominator = MathFactory::NamedConstant<T>("denominator", 1.0);
     const auto pi = MathFactory::SymbolPi<T>();
@@ -133,8 +142,6 @@ std::string useful_fraction(T x)
     };
 
     auto y = find_fraction<T>(equations, x, 1E-15, 1000, 10000);
-
-    std::stringstream ss;
 
     if (!y)
     {
