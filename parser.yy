@@ -68,27 +68,27 @@ expressions :                            { }
 %left "+" "-";
 %left "*" "/";
 %right "^";
-expression  : "solve" "identifier" ":" expression "==" "number" { $$ = drv.solve($4, $2, $6); }
-            | "solve" "identifier" ":" "number" "==" expression { $$ = drv.solve($6, $2, $4); }
-            | "identifier" "=" expression                       { $$ = drv.assign($1, $3); }
-            | expression "+" expression                         { $$ = $1 + $3; }
-            | expression "-" expression                         { $$ = $1 - $3; }
-            | expression "*" expression                         { $$ = $1 * $3; }
-            | expression "/" expression                         { $$ = $1 / $3; }
-            | expression "^" expression                         { $$ = $1 ^ $3; }
-            | "(" expression ")"                                { $$ = $2; }
-            | "sqrt" "(" expression ")"                         { $$ = sqrt<double>($3); }
-            | "log"  "(" expression ")"                         { $$ = log<double>($3); }
-            | "sin"  "(" expression ")"                         { $$ = sin<double>($3); }
-            | "asin" "(" expression ")"                         { $$ = asin<double>($3); }
-            | "cos"  "(" expression ")"                         { $$ = cos<double>($3); }
-            | "acos" "(" expression ")"                         { $$ = acos<double>($3); }
-            | "tan"  "(" expression ")"                         { $$ = tan<double>($3); }
-            | "atan" "(" expression ")"                         { $$ = atan<double>($3); }
-            | "number"                                          { $$ = MathFactory::ConstantValue<double>($1); }
-            | "%pi"                                             { $$ = MathFactory::SymbolPi<double>(); }
-            | "%e"                                              { $$ = MathFactory::SymbolE<double>(); }
-            | "identifier"                                      { $$ = drv.find_of_create_var($1); }
+expression  : "solve" "identifier" { drv.make_var($2); } ":" expression "==" "number" { $$ = drv.solve($5, $2, $7); }
+            | "solve" "identifier" { drv.make_var($2); } ":" "number" "==" expression { $$ = drv.solve($7, $2, $5); }
+            | "identifier" "=" expression  { $$ = drv.assign($1, $3); }
+            | expression "+" expression    { $$ = $1 + $3; }
+            | expression "-" expression    { $$ = $1 - $3; }
+            | expression "*" expression    { $$ = $1 * $3; }
+            | expression "/" expression    { $$ = $1 / $3; }
+            | expression "^" expression    { $$ = $1 ^ $3; }
+            | "(" expression ")"           { $$ = $2; }
+            | "sqrt" "(" expression ")"    { $$ = sqrt<double>($3); }
+            | "log"  "(" expression ")"    { $$ = log<double>($3); }
+            | "sin"  "(" expression ")"    { $$ = sin<double>($3); }
+            | "asin" "(" expression ")"    { $$ = asin<double>($3); }
+            | "cos"  "(" expression ")"    { $$ = cos<double>($3); }
+            | "acos" "(" expression ")"    { $$ = acos<double>($3); }
+            | "tan"  "(" expression ")"    { $$ = tan<double>($3); }
+            | "atan" "(" expression ")"    { $$ = atan<double>($3); }
+            | "number"                     { $$ = MathFactory::ConstantValue<double>($1); }
+            | "%pi"                        { $$ = MathFactory::SymbolPi<double>(); }
+            | "%e"                         { $$ = MathFactory::SymbolE<double>(); }
+            | "identifier"                 { $$ = drv.find_var($1); }
             ;
 %%
 

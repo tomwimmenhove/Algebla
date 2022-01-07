@@ -16,6 +16,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(Fractions main.cpp driver.cpp ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS})
 
+target_link_libraries(Fractions readline)
+
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CMAKE_VERBOSE_MAKEFILE ON)

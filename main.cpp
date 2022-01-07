@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <functional>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 /* Fractions */
 template <typename T>
@@ -119,32 +121,43 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
 int main(int, char **)
 {
     driver drv;
-    //if (drv.parse_file("/dev/stdin") != 0)
-    // if (drv.parse_string("solve a: 12 + a * x == 1012") != 0)
-    // //if (drv.parse_string("a + 2 + 3") != 0)
-    // {
-    //     return 1;
-    // }
-
     MathOpDefaultFormatter<double> formatter;
 
-    for(;;)
+#if 0
+    if (drv.parse_string("solve a: 12 + a * 123 == 1012") != 0)
+    //if (drv.parse_string("a + 2 + 3") != 0)
     {
-        std::string s;
-        std::cout << "> ";
-        std::getline(std::cin, s);
+        return 1;
+    }
 
-        drv.expressions.clear();
+    for (auto &exp : drv.get_expressions())
+    {
+        std::cout << "  " << exp->format(formatter) << " = " << exp->result() << '\n';
+    }
 
-        if (drv.parse_string(s) != 0)
+    return 0;
+#endif
+
+    char *line_buf;
+    while ((line_buf = readline("> ")) != nullptr)
+    {
+        if (strlen(line_buf) > 0)
+        {
+            add_history(line_buf);
+        }
+
+        if (drv.parse_string(line_buf) != 0)
         {
             continue;
         }
 
-        for (auto &exp : drv.expressions)
+        for (auto &exp : drv.get_expressions())
         {
             std::cout << "  " << exp->format(formatter) << " = " << exp->result() << '\n';
         }
+
+        // readline malloc's a new buffer every time.
+        free(line_buf);
     }
 
     return 0;

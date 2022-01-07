@@ -39,15 +39,14 @@ public:
 	yy::location location;
 
 	void add_exp(std::shared_ptr<MathOp<double>> exp);
-
-	std::vector<std::shared_ptr<MathOp<double>>> expressions;
 	std::shared_ptr<MathOp<double>> solve(std::shared_ptr<MathOp<double>> op, std::string variable, double result);
-
-	std::shared_ptr<MathOpVariableBase<double>> find_of_create_var(std::string variable);
-
+	std::shared_ptr<MathOpVariableBase<double>> find_var(std::string variable);
 	std::shared_ptr<MathOp<double>> assign(std::string variable, std::shared_ptr<MathOp<double>> op);
+	const std::vector<std::shared_ptr<MathOp<double>>> get_expressions() const { return expressions; }
+	void make_var(std::string variable);
 
 private:
+	std::vector<std::shared_ptr<MathOp<double>>> expressions;
 	std::map<std::string, std::shared_ptr<MathOpVariableBase<double>>> variables;
 	int var_id = 0;
 };
