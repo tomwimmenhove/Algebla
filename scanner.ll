@@ -50,6 +50,7 @@ blank    [ \t]
 "/"      return yy::parser::make_SLASH     (loc);
 "("      return yy::parser::make_LPAREN    (loc);
 ")"      return yy::parser::make_RPAREN    (loc);
+"="      return yy::parser::make_EQUALS    (loc);
 "%pi"    return yy::parser::make_PI        (loc);
 "%e"     return yy::parser::make_E         (loc);
 "sqrt"   return yy::parser::make_SQRT      (loc);
@@ -60,6 +61,8 @@ blank    [ \t]
 "acos"   return yy::parser::make_ACOS      (loc);
 "tan"    return yy::parser::make_TAN       (loc);
 "atan"   return yy::parser::make_ATAN      (loc);
+"solve"  return yy::parser::make_SOLVE     (loc);
+":"      return yy::parser::make_COLON     (loc);
 
 {double}	{
 			errno = 0;

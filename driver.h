@@ -40,6 +40,7 @@ public:
 	void add_exp(std::shared_ptr<MathOp<double>> exp);
 
 	std::vector<std::shared_ptr<MathOp<double>>> expressions;
+	std::shared_ptr<MathOp<double>> solve(std::shared_ptr<MathOp<double>> op, std::string variable, double result);
 
 private:
 	int var_id = 0;

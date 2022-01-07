@@ -2,6 +2,8 @@
 
 #include "driver.h"
 #include "parser.h"
+#include "findvariabetransformer.h"
+#include "rearrangetransformer.h"
 
 using namespace std;
 
@@ -36,6 +38,18 @@ int driver::parse_string(const std::string& line)
   yy::parser parser(*this);
   parser.set_debug_level(trace_parsing);
   return parser.parse();
+}
+
+#include "defaultformatter.h"
+
+std::shared_ptr<MathOp<double>> driver::solve(std::shared_ptr<MathOp<double>> op, std::string variable, double result)
+{
+  MathOpDefaultFormatter<double> formatter;
+  std::cout << "Trying to solve " << op->format(formatter) << '\n';
+
+  auto v = op->transform(MathOpFindVariableTransformer<double>(variable));
+
+  return op->transform(MathOpRearrangeTransformer<double>(v, MathFactory::ConstantValue<double>(result)));
 }
 
 void driver::add_exp(std::shared_ptr<MathOp<double>> exp)

@@ -119,7 +119,8 @@ int main(int, char**)
 {
     driver drv;
     //if (drv.parse_file("/dev/stdin") != 0)
-    if (drv.parse_string("1 + 2 + 3") != 0)
+    if (drv.parse_string("solve a: 12 + a * 2 = 122") != 0)
+    //if (drv.parse_string("a + 2 + 3") != 0)
     {
         return 1;
     }

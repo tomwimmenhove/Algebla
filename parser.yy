@@ -24,7 +24,7 @@
 %define parse.error verbose
 
 %code {
-# include "../driver.h"
+#include "../driver.h"
 }
 
 %define api.token.prefix {TOK_}
@@ -37,6 +37,7 @@
                    SLASH         "/"
                    LPAREN        "("
                    RPAREN        ")"
+                   EQUALS        "="
                    E             "%e"
                    PI            "%pi"
                    SQRT          "sqrt"
@@ -47,6 +48,8 @@
                    ACOS          "acos"
                    TAN           "tan"
                    ATAN          "atan"
+                   SOLVE         "solve"
+                   COLON         ":"
     <double>       NUMBER        "number"
     <std::string>  IDENTIFIER    "identifier"
 ;
@@ -60,10 +63,13 @@ expressions :                            { }
             | expressions expression     { drv.add_exp($2); }
             ;
 
+%right "=";
 %left "+" "-";
 %left "*" "/";
 %right "^";
-expression  : expression "+" expression  { $$ = $1 + $3; }
+expression  : "solve" "identifier" ":" expression "=" "number" { $$ = drv.solve($4, $2, $6); }
+            | "solve" "identifier" ":" "number" "=" expression { $$ = drv.solve($6, $2, $4); }
+            | expression "+" expression  { $$ = $1 + $3; }
             | expression "-" expression  { $$ = $1 - $3; }
             | expression "*" expression  { $$ = $1 * $3; }
             | expression "/" expression  { $$ = $1 / $3; }
