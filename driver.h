@@ -49,6 +49,10 @@ public:
 	void add_var(std::shared_ptr<MathOpVariable<number>> variable);
 	void make_var(std::string variable);
 
+	void show_variables();
+	void help();
+	void warranty();
+
 private:
 	std::shared_ptr<MathOpVariable<number>> get_var(std::string variable);
 

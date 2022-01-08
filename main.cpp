@@ -20,6 +20,13 @@
 
 int main(int, char **)
 {
+    std::cout << "Algebla: An equation solving, arbitrary precision calculator\n"
+                 "Copyright (C) 2022 Tom Wimmenhove\n"
+                 "\n"
+                 "This is free software with ABSOLUTELY NO WARRANTY.\n"
+                 "For details type `warranty'. \n"
+                 "\n";
+
     driver drv;
 
     auto precision = MathFactory::Variable<number>("precision", 50);

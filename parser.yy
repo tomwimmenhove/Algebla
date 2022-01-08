@@ -54,6 +54,10 @@
                    TAN           "tan"
                    ATAN          "atan"
                    SOLVE         "solve"
+                   SHOW          "show"
+                   HELP          "help"
+                   QUESTION      "?"
+                   WARRANTY      "warranty"
     <number>       NUMBER        "number"
     <std::string>  IDENTIFIER    "identifier"
 ;
@@ -73,6 +77,10 @@
 expressions : %empty
             | expression                      { drv.add_exp($1); }
             | expressions ";" expression      { drv.add_exp($3); }
+            | "show"                          { drv.show_variables(); }
+            | "help"                          { drv.help(); }
+            | "?"                             { drv.help(); }
+            | "warranty"                      { drv.warranty(); }
             ;
 
 expression  : "number"                        { $$ = MathFactory::ConstantValue<number>($1); }

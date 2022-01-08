@@ -57,12 +57,58 @@ void driver::make_var(std::string variable)
     }
 }
 
+void driver::show_variables()
+{
+    for (auto variable: variables)
+    {
+        expressions.push_back(variable);
+    }
+}
+
+void driver::help()
+{
+    std::cout << "Syntax:\n";
+    std::cout << "  Assignments                 : <variable name> = <expression>\n";
+    std::cout << "  Solve for a variable        : solve <variable name>: <expression> == <expession>\n";
+    std::cout << "  Show all assigned variables : show\n";
+    std::cout << "  Help                        : help, ?\n";
+    std::cout << "  Constants                   : %pi, %e\n";
+    std::cout << "  Math functions              : pow(), log(), sqrt(), sin(), asin(), cos(), acos(), tan(), atan()\n";
+    std::cout << "\n";
+    std::cout << "Default variables:\n";
+    std::cout << "  digits                      : The number of significant digits to display (default: 5)\n";
+    std::cout << "  precision                   : The number of significant digits used internally (default: 50)\n";
+    std::cout << "\n";
+    std::cout << "Exit                          : Control-D\n";
+    std::cout << '\n';
+}
+
+void driver::warranty()
+{
+    std::cout << "Algebla: An equation solving, arbitrary precision calculator\n"
+                 "Copyright (C) 2022 Tom Wimmenhove\n"
+                 "\n"
+                 "This program is free software; you can redistribute it and/or\n"
+                 "modify it under the terms of the GNU General Public License\n"
+                 "as published by the Free Software Foundation; either version 2\n"
+                 "of the License, or (at your option) any later version.\n"
+                 "\n"
+                 "This program is distributed in the hope that it will be useful,\n"
+                 "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+                 "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+                 "GNU General Public License for more details.\n"
+                 "\n"
+                 "You should have received a copy of the GNU General Public License\n"
+                 "along with this program; if not, write to the Free Software\n"
+                 "Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.\n"
+                 "\n";
+}
+
 std::shared_ptr<MathOp<number>> driver::solve(std::shared_ptr<MathOp<number>> lhs,
-    std::shared_ptr<MathOp<number>> rhs, std::string variable)
+                                              std::shared_ptr<MathOp<number>> rhs, std::string variable)
 {
     auto solve_for = std::static_pointer_cast<MathOpVariableBase<number>>(
         lhs->transform(MathOpFindVariableTransformer<number>(variable)));
-    //auto solved = op->transform(MathOpRearrangeTransformer<number>(v, MathFactory::ConstantValue<number>(result->result())));
 
     if (solve_for)
     {
