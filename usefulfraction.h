@@ -38,7 +38,7 @@ struct Fraction
         T fractional = std::modf(value, &integral);
 
         /* XXX: This is a hack */
-        if (fractional < max_error)
+        if (std::abs(fractional) < max_error)
         {
             fractional = 0;
         }
