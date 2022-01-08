@@ -41,7 +41,8 @@ public:
 	yy::location location;
 
 	void add_exp(std::shared_ptr<MathOp<number>> exp);
-	std::shared_ptr<MathOp<number>> solve(std::shared_ptr<MathOp<number>> op, std::string variable, std::shared_ptr<MathOp<number>> result);
+	std::shared_ptr<MathOp<number>> solve(std::shared_ptr<MathOp<number>> lhs,
+    	std::shared_ptr<MathOp<number>> rhs, std::string variable);
 	std::shared_ptr<MathOpVariable<number>> find_var(std::string variable);
 	std::shared_ptr<MathOp<number>> assign(std::string variable, std::shared_ptr<MathOp<number>> op);
 	const std::vector<std::shared_ptr<MathOp<number>>> get_expressions() const { return expressions; }

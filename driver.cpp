@@ -51,22 +51,39 @@ void driver::add_var(std::shared_ptr<MathOpVariable<number>> variable)
 
 void driver::make_var(std::string variable)
 {
-    auto v = get_var(variable);
-    if (!v)
+    if (!get_var(variable))
     {
         variables.push_back(MathFactory::Variable<number>(variable));
     }
 }
 
-std::shared_ptr<MathOp<number>> driver::solve(std::shared_ptr<MathOp<number>> op,
-    std::string variable, std::shared_ptr<MathOp<number>> result)
+std::shared_ptr<MathOp<number>> driver::solve(std::shared_ptr<MathOp<number>> lhs,
+    std::shared_ptr<MathOp<number>> rhs, std::string variable)
 {
-    auto v = std::static_pointer_cast<MathOpVariableBase<number>>(
-        op->transform(MathOpFindVariableTransformer<number>(variable)));
+    auto solve_for = std::static_pointer_cast<MathOpVariableBase<number>>(
+        lhs->transform(MathOpFindVariableTransformer<number>(variable)));
+    //auto solved = op->transform(MathOpRearrangeTransformer<number>(v, MathFactory::ConstantValue<number>(result->result())));
 
-    auto solved = op->transform(MathOpRearrangeTransformer<number>(v, MathFactory::ConstantValue<number>(result->result())));
+    if (solve_for)
+    {
+        auto solved = lhs->transform(MathOpRearrangeTransformer<number>(solve_for, rhs));
 
-    v->set(solved->result());
+        solve_for->set(solved->result());
+
+        return solved;
+    }
+
+    solve_for = std::static_pointer_cast<MathOpVariableBase<number>>(
+        rhs->transform(MathOpFindVariableTransformer<number>(variable)));
+
+    if (!solve_for)
+    {
+        throw yy::parser::syntax_error(location, "variable " + variable + " appears on neither left or right side");        
+    }
+
+    auto solved = rhs->transform(MathOpRearrangeTransformer<number>(solve_for, lhs));
+
+    solve_for->set(solved->result());
 
     return solved;
 }
