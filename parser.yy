@@ -55,6 +55,7 @@
                    ATAN          "atan"
                    SOLVE         "solve"
                    SHOW          "show"
+                   CLEAR         "clear"
                    HELP          "help"
                    QUESTION      "?"
                    WARRANTY      "warranty"
@@ -78,6 +79,7 @@ expressions : %empty
             | expression                      { drv.add_exp($1); }
             | expressions ";" expression      { drv.add_exp($3); }
             | "show"                          { drv.show_variables(); }
+            | "clear"                         { drv.clear_variables(); }
             | "help"                          { drv.help(); }
             | "?"                             { drv.help(); }
             | "warranty"                      { drv.warranty(); }

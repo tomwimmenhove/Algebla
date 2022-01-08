@@ -52,6 +52,16 @@ int main(int, char **)
             continue;
         }
 
+        if (!drv.get_var(precision->get_symbol()))
+        {
+            drv.add_var(precision);
+        }
+
+        if (!drv.get_var(digits->get_symbol()))
+        {
+            drv.add_var(digits);
+        }
+
         int int_digits = (int) digits->result();
         digits->set(int_digits);
         std::cout << std::setprecision(int_digits);

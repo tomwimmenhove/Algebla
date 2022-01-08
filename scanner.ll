@@ -65,6 +65,7 @@ blank    [ \t]
 "atan"     return yy::parser::make_ATAN      (loc);
 "solve"    return yy::parser::make_SOLVE     (loc);
 "show"     return yy::parser::make_SHOW      (loc);
+"clear"    return yy::parser::make_CLEAR     (loc);
 "help"     return yy::parser::make_HELP      (loc);
 "warranty" return yy::parser::make_WARRANTY  (loc);
 "?"        return yy::parser::make_QUESTION  (loc);

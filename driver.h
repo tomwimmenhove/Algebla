@@ -44,18 +44,18 @@ public:
 	std::shared_ptr<MathOp<number>> solve(std::shared_ptr<MathOp<number>> lhs,
     	std::shared_ptr<MathOp<number>> rhs, std::string variable);
 	std::shared_ptr<MathOpVariable<number>> find_var(std::string variable);
+	std::shared_ptr<MathOpVariable<number>> get_var(std::string variable);
 	std::shared_ptr<MathOp<number>> assign(std::string variable, std::shared_ptr<MathOp<number>> op);
 	const std::vector<std::shared_ptr<MathOp<number>>> get_expressions() const { return expressions; }
 	void add_var(std::shared_ptr<MathOpVariable<number>> variable);
 	void make_var(std::string variable);
 
 	void show_variables();
+	void clear_variables();
 	void help();
 	void warranty();
 
 private:
-	std::shared_ptr<MathOpVariable<number>> get_var(std::string variable);
-
 	std::vector<std::shared_ptr<MathOp<number>>> expressions;
 	std::vector<std::shared_ptr<MathOpVariable<number>>> variables;
 	int var_id = 0;

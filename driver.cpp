@@ -65,23 +65,29 @@ void driver::show_variables()
     }
 }
 
+void driver::clear_variables()
+{
+    variables.clear();
+}
+
 void driver::help()
 {
     std::cout << "Syntax:\n"
-                 "  Assignments                 : <variable name> = <expression>\n"
-                 "                                 Example: c = sqrt(a^2 + b^2)\n"
-                 "  Solve for a variable        : solve <variable name>: <expression> == <expession>\n"
-                 "                                 Example: solve a: a^2 + b^2 == c^2\n"
-                 "  Show all assigned variables : show\n"
-                 "  Help                        : help, ?\n"
-                 "  Constants                   : %pi, %e\n"
-                 "  Math functions              : pow(), log(), sqrt(), sin(), asin(), cos(), acos(), tan(), atan()\n"
+                 "  Assignments                  : <variable name> = <expression>\n"
+                 "                                  Example: c = sqrt(a^2 + b^2)\n"
+                 "  Solve for a variable         : solve <variable name>: <expression> == <expession>\n"
+                 "                                  Example: solve a: a^2 + b^2 == c^2\n"
+                 "  Show all assigned variables  : show\n"
+                 "  Clear all assigned variables : clear\n"
+                 "  Help                         : help, ?\n"
+                 "  Constants                    : %pi, %e\n"
+                 "  Math functions               : pow(), log(), sqrt(), sin(), asin(), cos(), acos(), tan(), atan()\n"
                  "\n"
                  "Default variables:\n"
-                 "  digits                      : The number of significant digits to display (default: 5)\n"
-                 "  precision                   : The number of significant digits used internally (default: 50)\n"
+                 "  digits                       : The number of significant digits to display (default: 5)\n"
+                 "  precision                    : The number of significant digits used internally (default: 50)\n"
                  "\n"
-                 "Exit                          : Control-D\n"
+                 "Exit                           : Control-D\n"
                  "\n";
 }
 
