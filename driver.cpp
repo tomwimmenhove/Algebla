@@ -17,6 +17,8 @@ driver::driver()
 {
     variables.push_back(precision);
     variables.push_back(digits);
+
+    mpfr::mpreal::set_default_prec(mpfr::digits2bits((int) precision->result()));
 }
 
 int driver::parse_file(const std::string &f)
