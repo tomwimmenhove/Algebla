@@ -4,17 +4,22 @@
 #include "algeblah.h"
 
 #include <sstream>
+#include <iomanip>
 
 template<typename T>
 struct MathOpDefaultFormatter : MathOpFormatter<T>
 {
-    std::string visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op->str(); }
-    std::string visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op->str(); }
-    std::string visit(std::shared_ptr<MathOpVariable<T>> op) override { return op->str(); }
-    std::string visit(std::shared_ptr<MathOpValueVariable<T>> op) override { return op->str(); }
-    std::string visit(std::shared_ptr<MathOpNamedConstant<T>> op) override { return op->str(); }
-    std::string visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op->str(); }
-    std::string visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op->str(); }
+    MathOpDefaultFormatter(int precision = 5)
+     : precision(precision)
+    { }    
+
+    std::string visit(std::shared_ptr<MathOpMutableSymbol<T>> op) override { return op->get_symbol(); }
+    std::string visit(std::shared_ptr<MathOpConstantSymbol<T>> op) override { return op->get_symbol(); }
+    std::string visit(std::shared_ptr<MathOpVariable<T>> op) override { return op->get_symbol(); }
+    std::string visit(std::shared_ptr<MathOpValueVariable<T>> op) override { return value_to_string(op->result()); }
+    std::string visit(std::shared_ptr<MathOpNamedConstant<T>> op) override { return op->get_symbol(); }
+    std::string visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return value_to_string(op->result()); }
+    std::string visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return value_to_string(op->result()); }
 
     std::string visit(std::shared_ptr<MathOpNegate<T>> op) override { return str_unary(op->get_x(), "-"); }
     std::string visit(std::shared_ptr<MathOpSqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }
@@ -34,6 +39,15 @@ struct MathOpDefaultFormatter : MathOpFormatter<T>
     std::string visit(std::shared_ptr<MathOpSub<T>> op) override { return str_binary(op, op->get_lhs(), op->get_rhs(), " - "); }
 
 private:
+    int precision;
+
+    std::string value_to_string(T x) const
+    {
+        std::stringstream ss;
+        ss << std::setprecision(precision) << (double) x;
+        return ss.str();        
+    }
+
     std::string str_binary(std::shared_ptr<MathOp<T>> op,
         std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs, std::string symbol)
     {

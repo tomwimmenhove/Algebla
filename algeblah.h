@@ -155,14 +155,6 @@ struct MathOpValue : public MathOp<T>
     MathOpBodmas precedence() const override { return MathOpBodmas::Parentheses; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return is_const; }
-    std::ostream& to_stream(std::ostream& stream) const { return stream << str(); }
-
-    virtual std::string str() const
-    {
-        std::stringstream ss;
-        ss << this->value;
-        return ss.str();
-    }
 
 protected:
     MathOpValue(T value, bool is_constant)
@@ -178,7 +170,7 @@ private:
 template<typename T>
 struct MathOpSymbol : public MathOpValue<T>
 {
-    std::string str() const override { return symbol; }
+    std::string get_symbol() const { return symbol; }
 
 protected:
     MathOpSymbol(std::string symbol, T value, bool is_constant)
@@ -238,16 +230,14 @@ template<typename T>
 struct MathOpVariableBase : public MathOpValue<T>
 {
     std::string get_symbol() const { return symbol; }
-    std::string str() const override { return show_value ? MathOpValue<T>::str() : symbol; }
 
 protected:
-    MathOpVariableBase(std::string symbol, T x, bool show_value)
-        : symbol(symbol), show_value(show_value), MathOpValue<T>(x, false)
+    MathOpVariableBase(std::string symbol, T x)
+        : symbol(symbol), MathOpValue<T>(x, false)
     { }
 
 private:
     std::string symbol;
-    bool show_value;
 };
 
 template<typename T>
@@ -269,7 +259,7 @@ struct MathOpVariable : public MathOpVariableBase<T>
     }
     
 private:
-    MathOpVariable(std::string symbol, T x) : MathOpVariableBase<T>(symbol, x, false) { }
+    MathOpVariable(std::string symbol, T x) : MathOpVariableBase<T>(symbol, x) { }
 };
 
 template<typename T>
@@ -291,7 +281,7 @@ struct MathOpValueVariable : public MathOpVariableBase<T>
     }
 
 protected:
-    MathOpValueVariable(std::string symbol, T x) : MathOpVariableBase<T>(symbol, x, true) { }
+    MathOpValueVariable(std::string symbol, T x) : MathOpVariableBase<T>(symbol, x) { }
 };
 
 template<typename T>
