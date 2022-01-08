@@ -80,13 +80,21 @@ struct MathOpReverseTransformer : public MathOpTransformer<T>
 
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpPow<T>> op)
     {
-        if (for_side == op->get_lhs())
+        auto lhs = op->get_lhs();
+        auto rhs = op->get_rhs();
+
+        if (for_side == lhs)
         {
-            return from ^ (MathFactory::ConstantValue<T>(1.0) / op->get_rhs());
+            if (rhs->is_constant() && rhs->result() == 2.0)
+            {
+                return sqrt(from);
+            }
+            
+            return from ^ (MathFactory::ConstantValue<T>(1.0) / rhs);
         }
-        else if (for_side == op->get_rhs())
+        else if (for_side == rhs)
         {
-            return log(from) / log(op->get_lhs());
+            return log(from) / log(lhs);
         }
         else
         {
