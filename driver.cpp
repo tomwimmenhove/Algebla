@@ -40,10 +40,6 @@ extern YY_BUFFER_STATE yy_scan_string(const char *yy_str);
 
 int driver::parse_string(const std::string &line)
 {
-    int int_prec = (int)precision->result();
-    precision->set(int_prec);
-    mpfr::mpreal::set_default_prec(mpfr::digits2bits(int_prec));
-
     yy_scan_string(line.c_str());
     scan_begin();
     std::string file("string input");
@@ -157,6 +153,21 @@ std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared
 {
     auto result = op->result();
 
+    /* Special variables */
+    if (variable == "precision")
+    {
+        mpfr::mpreal::set_default_prec(mpfr::digits2bits((int) result));
+        precision->set((int) result);
+
+        return precision;
+    }
+    else if (variable == "digits")
+    {
+        digits->set((int) result);
+
+        return digits;
+    }
+
     auto v = get_var(variable);
     if (!v)
     {
@@ -194,19 +205,16 @@ std::shared_ptr<MathOpVariable<number>> driver::get_var(std::string variable)
 
 void driver::print_result(std::shared_ptr<MathOp<number>> op)
 {
-    int int_digits = (int)digits->result();
-    digits->set(int_digits);
-    std::cout << std::setprecision(int_digits);
-
-    int int_prec = (int)precision->result();
-    if (int_digits > int_prec)
+    int int_digits = (int) digits->result();
+    int int_precision =(int) precision->result();
+    if (int_digits > int_precision)
     {
-        std::cerr << "WARNING: Number of digits (digits=" << int_digits << ") exceeds internal precision (precision" << int_prec << ")\n";
+        std::cerr << "WARNING: Number of digits (digits = " << int_digits << ") exceeds internal precision (precision = " << int_precision << ")\n";
     }
 
     MathOpDefaultFormatter<number> formatter(int_digits);
 
-    std::cout << "  " << op->format(formatter) << " = ";
+    std::cout << std::setprecision(int_digits) << "  " << op->format(formatter) << " = ";
 
     std::string uf = useful_fraction<number>(op->result());
     if (uf.empty())

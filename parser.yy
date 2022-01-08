@@ -59,6 +59,8 @@
                    HELP          "help"
                    QUESTION      "?"
                    WARRANTY      "warranty"
+                   PRECISION     "precision"
+                   DIGITS        "digits"
     <number>       NUMBER        "number"
     <std::string>  IDENTIFIER    "identifier"
 ;
