@@ -42,14 +42,15 @@ public:
 
 	void add_exp(std::shared_ptr<MathOp<number>> exp);
 	std::shared_ptr<MathOp<number>> solve(std::shared_ptr<MathOp<number>> op, std::string variable, std::shared_ptr<MathOp<number>> result);
-	std::shared_ptr<MathOpVariableBase<number>> find_var(std::string variable);
+	std::shared_ptr<MathOpVariable<number>> find_var(std::string variable);
 	std::shared_ptr<MathOp<number>> assign(std::string variable, std::shared_ptr<MathOp<number>> op);
 	const std::vector<std::shared_ptr<MathOp<number>>> get_expressions() const { return expressions; }
+	void add_var(std::shared_ptr<MathOpVariable<number>> variable);
 	void make_var(std::string variable);
 
 private:
 	std::vector<std::shared_ptr<MathOp<number>>> expressions;
-	std::map<std::string, std::shared_ptr<MathOpVariableBase<number>>> variables;
+	std::map<std::string, std::shared_ptr<MathOpVariable<number>>> variables;
 	int var_id = 0;
 };
 #endif // ! DRIVER_HH

@@ -10,6 +10,7 @@
 #include "config.h"
 
 #include <iostream>
+#include <iomanip>
 #include <functional>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -18,6 +19,10 @@ int main(int, char **)
 {
     driver drv;
     MathOpDefaultFormatter<number> formatter;
+
+    auto precision = MathFactory::Variable<number>("precision", 5);
+
+    drv.add_var(precision);
 
     char *line_buf;
     while ((line_buf = readline("> ")) != nullptr)
@@ -32,9 +37,23 @@ int main(int, char **)
             continue;
         }
 
+        int int_pred = (int) precision->result();
+        precision->set(int_pred);
+        std::cout << std::setprecision(int_pred);
+
         for (auto &exp : drv.get_expressions())
         {
-            std::cout << "  " << exp->format(formatter) << " = " << useful_fraction<number>(exp->result()) << '\n';
+            std::cout << "  " << exp->format(formatter) << " = ";
+
+            std::string uf = useful_fraction<number>(exp->result());
+            if (uf.empty())
+            {
+                std::cout << exp->result() << '\n';
+            }
+            else
+            {
+                std::cout << exp->result() << " (~= " << uf << " )\n";                
+            }
         }
 
         free(line_buf);

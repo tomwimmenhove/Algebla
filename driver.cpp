@@ -43,6 +43,11 @@ int driver::parse_string(const std::string &line)
     return parser.parse();
 }
 
+void driver::add_var(std::shared_ptr<MathOpVariable<number>> variable)
+{
+    variables[variable->get_symbol()] = variable;
+}
+
 void driver::make_var(std::string variable)
 {
     auto it = variables.find(variable);
@@ -80,7 +85,7 @@ std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared
     return it->second;
 }
 
-std::shared_ptr<MathOpVariableBase<number>> driver::find_var(std::string variable)
+std::shared_ptr<MathOpVariable<number>> driver::find_var(std::string variable)
 {
     auto it = variables.find(variable);
     if (it == variables.end())

@@ -122,9 +122,7 @@ std::string useful_fraction(T x)
 
     if (x == 0)
     {
-        ss << x;
-
-        return ss.str();
+        return { };
     }
 
     const auto numerator = MathFactory::NamedConstant<T>("numerator", 1.0);
@@ -145,15 +143,10 @@ std::string useful_fraction(T x)
 
     if (!y)
     {
-        ss << x;
-
-        return ss.str();
+        return { };
     }
 
-    MathOpDefaultFormatter<T> formatter;
-    ss << x << " (~= " << y->format(formatter) << " )";
-
-    return ss.str();
+    return y->format(MathOpDefaultFormatter<T>());
 }
 
 #endif /* USEFULFRACTION_H */
