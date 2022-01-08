@@ -54,7 +54,10 @@ public:
 	void help();
 	void warranty();
 
+	bool input_is_file() const { return is_file; }
+
 private:
+	bool is_file;
 	std::vector<std::shared_ptr<MathOpVariable<number>>> variables;
 	int var_id = 0;
 

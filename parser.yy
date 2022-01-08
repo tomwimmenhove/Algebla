@@ -31,7 +31,8 @@
 
 %define api.token.prefix {TOK_}
 %token
-                   END        0  "end of file"
+                   //END        0  "end of file"
+                   END        0  "end"
                    MINUS         "-"
                    PLUS          "+"
                    CARET         "^"
@@ -98,8 +99,8 @@ expression  : "number"                        { $$ = MathFactory::ConstantValue<
             | expression "-" expression       { $$ = $1 - $3; }
             | expression "*" expression       { $$ = $1 * $3; }
             | expression "/" expression       { $$ = $1 / $3; }
-            | "-" expression  %prec POSNEG    { $$ = -$2; }
-            | "+" expression  %prec POSNEG    { $$ = $2; }
+            | "-" expression %prec POSNEG     { $$ = -$2; }
+            | "+" expression %prec POSNEG     { $$ = $2; }
             | expression "^" expression       { $$ = $1 ^ $3; }
             | "(" expression ")"              { $$ = $2; }
             | "sqrt" "(" expression ")"       { $$ = sqrt<number>($3); }
@@ -115,6 +116,13 @@ expression  : "number"                        { $$ = MathFactory::ConstantValue<
 
 void yy::parser::error (const location_type& l, const std::string& m)
 {
-  std::cerr << l << ": " << m << "\n";
+  if (drv.input_is_file())
+  {
+    std::cerr << l << ": " << m << "\n";
+  }
+  else
+  {
+    std::cerr << "Column " << l.begin.column << '-' << l.end.column << ": " << m << "\n";
+  }
 }
 

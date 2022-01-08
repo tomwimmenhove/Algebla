@@ -21,6 +21,7 @@ driver::driver()
 
 int driver::parse_file(const std::string &f)
 {
+    is_file = true;
     file = f;
     location.initialize(&file);
     scan_file_begin();
@@ -40,9 +41,10 @@ extern YY_BUFFER_STATE yy_scan_string(const char *yy_str);
 
 int driver::parse_string(const std::string &line)
 {
+    is_file = false;
     yy_scan_string(line.c_str());
     scan_begin();
-    std::string file("string input");
+    std::string file({});
     location.initialize(&file);
     yy::parser parser(*this);
     parser.set_debug_level(trace_parsing);
