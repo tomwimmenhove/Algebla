@@ -1,6 +1,7 @@
 #ifndef USEFULFRACTION_H
 #define USEFULFRACTION_H
 
+#include "defaulthelper.h"
 #include "algeblah.h"
 #include "defaultformatter.h"
 
@@ -10,7 +11,7 @@ struct Fraction
     T numerator;
     T denominator;
 
-    bool is_nan() const { return std::isnan(numerator) || std::isnan(denominator); }
+    bool is_nan() const { return MathOpFunctionIsnan(numerator) || MathOpFunctionIsnan(denominator); }
     bool is_integral() const { return denominator == 1; }
     T result() const { return numerator / denominator; }
 
@@ -35,13 +36,13 @@ struct Fraction
         Fraction<T> upper(1, 1);
 
         T integral;
-        T fractional = std::modf(value, &integral);
+        T fractional = MathOpFunctionModf(value, integral);
 
         /* XXX: This is a hack */
-        if (std::abs(fractional) < max_error)
-        {
-            fractional = 0;
-        }
+        // if (MathOpFunctionAbs(fractional) < max_error)
+        // {
+        //     fractional = 0;
+        // }
 
         if (fractional == 0.0)
         {
@@ -53,7 +54,7 @@ struct Fraction
             Fraction<T> middle(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
             T test = middle.result();
 
-            if (std::abs(test - fractional) <= max_error)
+            if (MathOpFunctionAbs(test - fractional) <= max_error)
             {
                 return Fraction<T>(middle.numerator + integral * middle.denominator, middle.denominator);
             }

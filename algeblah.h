@@ -357,10 +357,10 @@ private:
 struct MathFactory
 {
     template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolPi() { return MathOpConstantSymbol<T>::create("%pi", M_PI); }
+    static std::shared_ptr<MathOp<T>> SymbolPi() { return MathOpConstantSymbol<T>::create("%pi", MathOpFunctionGetConstantPi<T>()); }
 
     template <typename T>
-    static std::shared_ptr<MathOp<T>> SymbolE() { return MathOpConstantSymbol<T>::create("%e", M_E); }
+    static std::shared_ptr<MathOp<T>> SymbolE() { return MathOpConstantSymbol<T>::create("%e", MathOpFunctionGetConstantE<T>()); }
 
     template <typename T>
     static std::shared_ptr<MathOpVariable<T>> Variable(std::string symbol, T c = 0)
@@ -440,11 +440,20 @@ protected:
 
 /* Unary operation helpers */
 template <typename T>
+struct negate : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return -x;
+    }
+};
+
+template <typename T>
 struct logarithm : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::log(x);
+        return MathOpFunctionLog(x);
     }
 };
 
@@ -453,7 +462,7 @@ struct square_root : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::sqrt(x);
+        return MathOpFunctionSqrt(x);
     }
 };
 
@@ -471,7 +480,7 @@ struct sine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::sin(x);
+        return MathOpFunctionSin(x);
     }
 };
 
@@ -480,7 +489,7 @@ struct inverse_sine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::asin(x);
+        return MathOpFunctionAsin(x);
     }
 };
 
@@ -489,7 +498,7 @@ struct cosine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::cos(x);
+        return MathOpFunctionCos(x);
     }
 };
 
@@ -498,7 +507,7 @@ struct inverse_cosine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::acos(x);
+        return MathOpFunctionAcos(x);
     }
 };
 
@@ -507,7 +516,7 @@ struct tangent : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::tan(x);
+        return MathOpFunctionTan(x);
     }
 };
 
@@ -516,7 +525,7 @@ struct inverse_tangent : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return std::atan(x);
+        return MathOpFunctionAtan(x);
     }
 };
 
@@ -526,7 +535,43 @@ struct raises : public std::binary_function<T, T, T>
 {
     T operator()(T x, T y) const
     {
-        return std::pow(x, y);
+        return MathOpFunctionPow(x, y);
+    }
+};
+
+template <typename T>
+struct multiplies : public std::binary_function<T, T, T>
+{
+    T operator()(T x, T y) const
+    {
+        return x * y;
+    }
+};
+
+template <typename T>
+struct divides : public std::binary_function<T, T, T>
+{
+    T operator()(T x, T y) const
+    {
+        return x / y;
+    }
+};
+
+template <typename T>
+struct plus : public std::binary_function<T, T, T>
+{
+    T operator()(T x, T y) const
+    {
+        return x + y;
+    }
+};
+
+template <typename T>
+struct minus : public std::binary_function<T, T, T>
+{
+    T operator()(T x, T y) const
+    {
+        return x - y;
     }
 };
 
@@ -542,7 +587,7 @@ template<typename T> std::shared_ptr<MathOp<T>> tan(std::shared_ptr<MathOp<T>> x
 template<typename T> std::shared_ptr<MathOp<T>> atan(std::shared_ptr<MathOp<T>> x);
 
 template<typename T>
-struct MathOpNegate : public MathUnaryOp<T, std::negate<T>>
+struct MathOpNegate : public MathUnaryOp<T, negate<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x)
     {
@@ -561,7 +606,7 @@ struct MathOpNegate : public MathUnaryOp<T, std::negate<T>>
 
 private:
     MathOpNegate(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, std::negate<T>>(x)
+        : MathUnaryOp<T, negate<T>>(x)
     { }
 };
 
@@ -799,7 +844,7 @@ private:
 };
 
 template<typename T>
-struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
+struct MathOpMul : public MathBinaryOp<T, multiplies<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>> rhs)
     {
@@ -820,12 +865,12 @@ struct MathOpMul : public MathBinaryOp<T, std::multiplies<T>>
 
 private:
     MathOpMul(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::multiplies<T>>(lhs, rhs, MathOpBodmas::MultiplicationDivision)
+        : MathBinaryOp<T, multiplies<T>>(lhs, rhs, MathOpBodmas::MultiplicationDivision)
     { }
 };
 
 template<typename T>
-struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
+struct MathOpDiv : public MathBinaryOp<T, divides<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>> rhs)
     {
@@ -846,12 +891,12 @@ struct MathOpDiv : public MathBinaryOp<T, std::divides<T>>
 
 private:
     MathOpDiv(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::divides<T>>(lhs, rhs, MathOpBodmas::MultiplicationDivision)
+        : MathBinaryOp<T, divides<T>>(lhs, rhs, MathOpBodmas::MultiplicationDivision)
     { }
 };
 
 template<typename T>
-struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
+struct MathOpAdd : public MathBinaryOp<T, plus<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
     {
@@ -872,12 +917,12 @@ struct MathOpAdd : public MathBinaryOp<T, std::plus<T>>
 
 private:
     MathOpAdd(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::plus<T>>(lhs, rhs, MathOpBodmas::AdditionSubtraction)
+        : MathBinaryOp<T, plus<T>>(lhs, rhs, MathOpBodmas::AdditionSubtraction)
     { }
 };
 
 template<typename T>
-struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
+struct MathOpSub : public MathBinaryOp<T, minus<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
     {
@@ -898,7 +943,7 @@ struct MathOpSub : public MathBinaryOp<T, std::minus<T>>
 
 private:
     MathOpSub(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, std::minus<T>>(lhs, rhs, MathOpBodmas::AdditionSubtraction)
+        : MathBinaryOp<T, minus<T>>(lhs, rhs, MathOpBodmas::AdditionSubtraction)
     { }
 };
 

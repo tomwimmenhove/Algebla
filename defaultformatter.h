@@ -44,7 +44,7 @@ private:
     std::string value_to_string(T x) const
     {
         std::stringstream ss;
-        ss << std::setprecision(precision) << (double) x;
+        ss << std::setprecision(precision) << x;
         return ss.str();        
     }
 

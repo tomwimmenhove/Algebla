@@ -10,6 +10,7 @@
   #include <string>
   #include <iostream>
   #include <memory>
+  #include "../defaulthelper.h"
   #include "../algeblah.h"
   #include "../config.h"
   class driver;

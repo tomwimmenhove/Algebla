@@ -3,11 +3,10 @@
 #include <climits>
 #include <cstdlib>
 #include <string>
+#include <mpreal.h>
+
 #include "../driver.h"
 #include "parser.h"
-
-//#undef YY_INPUT
-//#define YY_INPUT(buf,result,max_size) yy_read_input
 
 // Work around an incompatibility in flex (at least versions
 // 2.5.31 through 2.5.33): it generates code that does
@@ -68,7 +67,8 @@ blank    [ \t]
 
 {number}	{
 			errno = 0;
-			number d = strtold(yytext, NULL);
+			//number d = strtold(yytext, NULL);
+      mpfr::mpreal d(yytext);
 			// XXX: TODO: Check input
 			return yy::parser::make_NUMBER (d, loc);
 		}
