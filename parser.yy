@@ -38,6 +38,7 @@
                    SLASH         "/"
                    LPAREN        "("
                    RPAREN        ")"
+                   SEMICOLON     ";"
                    ASSIGN        "="
                    EQUALS        "=="
                    E             "%e"
@@ -58,25 +59,36 @@
 
 %type  <std::shared_ptr<MathOp<number>>>          expression
 
-%%
-%start expressions;
+%right "=";
+%right "=="; 
+%left "-" "+"
+%left "*" "/"
+%precedence POSNEG   /* negation--unary minus */
+%right "^"        /* exponentiation */
 
-expressions :                            { }
-            | expressions expression     { drv.add_exp($2); }
+%%
+%start input;
+
+input       : %empty
+            | input line
             ;
 
-%right "=";
-%right "==";
-%left "+" "-";
-%left "*" "/";
-%right "^";
-expression  
-            : "solve" "identifier" { drv.make_var($2); } ":" expression "==" expression { $$ = drv.solve($5, $7, $2); }
+line        : ";"
+            | expression ";"  { drv.add_exp($1); }
+            ;
+
+expression  : "number"                     { $$ = MathFactory::ConstantValue<number>($1); }
+            | "%pi"                        { $$ = MathFactory::SymbolPi<number>(); }
+            | "%e"                         { $$ = MathFactory::SymbolE<number>(); }
+            | "identifier"                 { $$ = drv.find_var($1); }
+            | "solve" "identifier" { drv.make_var($2); } ":" expression "==" expression { $$ = drv.solve($5, $7, $2); }
             | "identifier" "=" expression  { $$ = drv.assign($1, $3); }
             | expression "+" expression    { $$ = $1 + $3; }
             | expression "-" expression    { $$ = $1 - $3; }
             | expression "*" expression    { $$ = $1 * $3; }
             | expression "/" expression    { $$ = $1 / $3; }
+            | "-" expression  %prec POSNEG { $$ = -$2; }
+            | "+" expression  %prec POSNEG { $$ = $2; }
             | expression "^" expression    { $$ = $1 ^ $3; }
             | "(" expression ")"           { $$ = $2; }
             | "sqrt" "(" expression ")"    { $$ = sqrt<number>($3); }
@@ -87,15 +99,11 @@ expression
             | "acos" "(" expression ")"    { $$ = acos<number>($3); }
             | "tan"  "(" expression ")"    { $$ = tan<number>($3); }
             | "atan" "(" expression ")"    { $$ = atan<number>($3); }
-            | "number"                     { $$ = MathFactory::ConstantValue<number>($1); }
-            | "%pi"                        { $$ = MathFactory::SymbolPi<number>(); }
-            | "%e"                         { $$ = MathFactory::SymbolE<number>(); }
-            | "identifier"                 { $$ = drv.find_var($1); }
-            ;
+;
 %%
 
 void yy::parser::error (const location_type& l, const std::string& m)
 {
-  std::cerr << l << ": " << m << '\n';
+  std::cerr << l << ": " << m << "\n";
 }
 

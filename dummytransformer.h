@@ -14,6 +14,11 @@ struct MathOpDummyTransformer : public MathOpTransformer<T>
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op; }
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op; }
 
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNegate<T>> op) override
+    {
+        return -(op->get_x()->transform(*this));
+    }
+
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override
     {
         return sqrt(op->get_x()->transform(*this));

@@ -45,6 +45,16 @@ struct MathOpReplaceTransformer : MathOpDummyTransformer<T>
         return op == subject ? replacement : op;
     }
 
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNegate<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+
+        return MathOpDummyTransformer<T>::visit(op);
+    }
+
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override
     {
         if (op == subject)

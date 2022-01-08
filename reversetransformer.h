@@ -17,6 +17,12 @@ struct MathOpReverseTransformer : public MathOpTransformer<T>
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNamedConstant<T>> op) override { return nullptr; }
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return nullptr; }
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return nullptr; }
+ 
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNegate<T>> op)
+    {
+        if (for_side != op->get_x()) return nullptr;
+        return -from;
+    }
 
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op)
     {

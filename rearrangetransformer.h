@@ -19,6 +19,7 @@ struct MathOpRearrangeTransformer : public MathOpTransformer<T>
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) override { return op == solve_for ? from : nullptr; }
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) override { return op == solve_for ? from : nullptr; }
 
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNegate<T>> op) override { return solve_for_unary(op, op->get_x()); }
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override { return solve_for_unary(op, op->get_x()); }
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpLog<T>> op) override { return solve_for_unary(op, op->get_x()); }

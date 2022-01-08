@@ -17,6 +17,7 @@ template<typename T> struct MathOpValueVariable;
 template<typename T> struct MathOpNamedConstant;
 template<typename T> struct MathOpMutableValue;
 template<typename T> struct MathOpConstantValue;
+template<typename T> struct MathOpNegate;
 template<typename T> struct MathOpSqrt;
 template<typename T> struct MathOpSquare;
 template<typename T> struct MathOpLog;
@@ -42,6 +43,7 @@ struct MathOpTransformer
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNamedConstant<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpMutableValue<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpConstantValue<T>> op) = 0;
+    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNegate<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSqrt<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) = 0;
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpLog<T>> op) = 0;
@@ -69,6 +71,7 @@ struct MathOpFormatter
     virtual std::string visit(std::shared_ptr<MathOpNamedConstant<T>> op) = 0;
     virtual std::string visit(std::shared_ptr<MathOpMutableValue<T>> op) = 0;
     virtual std::string visit(std::shared_ptr<MathOpConstantValue<T>> op) = 0;
+    virtual std::string visit(std::shared_ptr<MathOpNegate<T>> op) = 0;
     virtual std::string visit(std::shared_ptr<MathOpSqrt<T>> op) = 0;
     virtual std::string visit(std::shared_ptr<MathOpSquare<T>> op) = 0;
     virtual std::string visit(std::shared_ptr<MathOpLog<T>> op) = 0;
@@ -118,6 +121,11 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     friend std::shared_ptr<MathOp<T>> operator-(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
         return MathOpSub<T>::create(lhs, rhs);
+    }
+
+    friend std::shared_ptr<MathOp<T>> operator-(std::shared_ptr<MathOp<T>> op)
+    {
+        return MathOpNegate<T>::create(op);
     }
 
     friend std::shared_ptr<MathOp<T>> operator*(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
@@ -542,6 +550,30 @@ template<typename T> std::shared_ptr<MathOp<T>> cos(std::shared_ptr<MathOp<T>> x
 template<typename T> std::shared_ptr<MathOp<T>> acos(std::shared_ptr<MathOp<T>> x);
 template<typename T> std::shared_ptr<MathOp<T>> tan(std::shared_ptr<MathOp<T>> x);
 template<typename T> std::shared_ptr<MathOp<T>> atan(std::shared_ptr<MathOp<T>> x);
+
+template<typename T>
+struct MathOpNegate : public MathUnaryOp<T, std::negate<T>>
+{
+    static auto create(std::shared_ptr<MathOp<T>> x)
+    {
+        return std::shared_ptr<MathOpNegate<T>>(new MathOpNegate<T>(x));
+    }
+
+    std::shared_ptr<MathOp<T>> transform(MathOpTransformer<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<MathOpNegate<T>>(this->shared_from_this()));
+    }
+
+    std::string format(MathOpFormatter<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<MathOpNegate<T>>(this->shared_from_this()));
+    }
+
+private:
+    MathOpNegate(std::shared_ptr<MathOp<T>> x)
+        : MathUnaryOp<T, std::negate<T>>(x)
+    { }
+};
 
 template<typename T>
 struct MathOpSqrt : public MathUnaryOp<T, square_root<T>>

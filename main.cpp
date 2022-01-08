@@ -32,7 +32,7 @@ int main(int, char **)
             add_history(line_buf);
         }
 
-        if (drv.parse_string(line_buf) != 0)
+        if (drv.parse_string(std::string(line_buf) + ";") != 0)
         {
             continue;
         }

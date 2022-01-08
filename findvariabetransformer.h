@@ -35,6 +35,11 @@ struct MathOpFindVariableTransformer : public MathOpTransformer<T>
         return op->get_x()->transform(*this);
     }
 
+    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpNegate<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MathOpSquare<T>> op) override
     {
         return op->get_x()->transform(*this);

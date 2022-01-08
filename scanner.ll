@@ -26,7 +26,7 @@
 %option noyywrap nounput batch debug noinput
 
 id       [a-zA-Z][a-zA-Z_0-9]*
-number   [-+]?[0-9]+[.]?[0-9]*([eE][-+]?[0-9]+)?
+number   [0-9]+[.]?[0-9]*([eE][-+]?[0-9]+)?
 blank    [ \t]
 
 %{
@@ -50,6 +50,7 @@ blank    [ \t]
 "/"      return yy::parser::make_SLASH     (loc);
 "("      return yy::parser::make_LPAREN    (loc);
 ")"      return yy::parser::make_RPAREN    (loc);
+";"      return yy::parser::make_SEMICOLON (loc);
 "="      return yy::parser::make_ASSIGN    (loc);
 "=="     return yy::parser::make_EQUALS    (loc);
 "%pi"    return yy::parser::make_PI        (loc);
