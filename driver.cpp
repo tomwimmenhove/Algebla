@@ -158,14 +158,14 @@ std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared
     auto result = op->result();
 
     /* Special variables */
-    if (variable == "precision")
+    if (variable == precision->get_symbol())
     {
         mpfr::mpreal::set_default_prec(mpfr::digits2bits((int) result));
         precision->set((int) result);
 
         return precision;
     }
-    else if (variable == "digits")
+    else if (variable == digits->get_symbol())
     {
         digits->set((int) result);
 
