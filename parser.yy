@@ -76,8 +76,8 @@
 %start expressions;
 
 expressions : %empty
-            | expression                      { drv.add_exp($1); }
-            | expressions ";" expression      { drv.add_exp($3); }
+            | expression                      { drv.print_result($1); }
+            | expressions ";" expression      { drv.print_result($3); }
             | "show"                          { drv.show_variables(); }
             | "clear"                         { drv.clear_variables(); }
             | "help"                          { drv.help(); }

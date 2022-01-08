@@ -40,13 +40,12 @@ public:
 	// The token's location used by the scanner.
 	yy::location location;
 
-	void add_exp(std::shared_ptr<MathOp<number>> exp);
+	void print_result(std::shared_ptr<MathOp<number>> op);
 	std::shared_ptr<MathOp<number>> solve(std::shared_ptr<MathOp<number>> lhs,
     	std::shared_ptr<MathOp<number>> rhs, std::string variable);
 	std::shared_ptr<MathOpVariable<number>> find_var(std::string variable);
 	std::shared_ptr<MathOpVariable<number>> get_var(std::string variable);
 	std::shared_ptr<MathOp<number>> assign(std::string variable, std::shared_ptr<MathOp<number>> op);
-	const std::vector<std::shared_ptr<MathOp<number>>> get_expressions() const { return expressions; }
 	void add_var(std::shared_ptr<MathOpVariable<number>> variable);
 	void make_var(std::string variable);
 
@@ -56,8 +55,10 @@ public:
 	void warranty();
 
 private:
-	std::vector<std::shared_ptr<MathOp<number>>> expressions;
 	std::vector<std::shared_ptr<MathOpVariable<number>>> variables;
 	int var_id = 0;
+
+	std::shared_ptr<MathOpVariable<number>> precision;
+	std::shared_ptr<MathOpVariable<number>> digits;
 };
 #endif // ! DRIVER_HH

@@ -4,6 +4,8 @@
 #include "defaulthelper.h"
 #include "algeblah.h"
 #include "defaultformatter.h"
+#include "replacetransformer.h"
+#include "removenooptransformer.h"
 
 template <typename T>
 struct Fraction

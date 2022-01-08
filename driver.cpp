@@ -5,17 +5,22 @@
 #include "parser.h"
 #include "findvariabetransformer.h"
 #include "rearrangetransformer.h"
+#include "defaultformatter.h"
+#include "usefulfraction.h"
 
 using namespace std;
 
 driver::driver()
-    : trace_parsing(false), trace_scanning(false)
+    : trace_parsing(false), trace_scanning(false),
+      precision(MathFactory::Variable<number>("precision", 50)),
+      digits(MathFactory::Variable<number>("digits", 5))
 {
+    variables.push_back(precision);
+    variables.push_back(digits);
 }
 
 int driver::parse_file(const std::string &f)
 {
-    expressions.clear();
     file = f;
     location.initialize(&file);
     scan_file_begin();
@@ -23,6 +28,7 @@ int driver::parse_file(const std::string &f)
     parser.set_debug_level(trace_parsing);
     int res = parser.parse();
     scan_file_end();
+
     return res;
 }
 
@@ -34,7 +40,10 @@ extern YY_BUFFER_STATE yy_scan_string(const char *yy_str);
 
 int driver::parse_string(const std::string &line)
 {
-    expressions.clear();
+    int int_prec = (int)precision->result();
+    precision->set(int_prec);
+    mpfr::mpreal::set_default_prec(mpfr::digits2bits(int_prec));
+
     yy_scan_string(line.c_str());
     scan_begin();
     std::string file("string input");
@@ -61,13 +70,15 @@ void driver::show_variables()
 {
     for (auto variable: variables)
     {
-        expressions.push_back(variable);
+        print_result(variable);
     }
 }
 
 void driver::clear_variables()
 {
     variables.clear();
+    variables.push_back(precision);
+    variables.push_back(digits);
 }
 
 void driver::help()
@@ -181,7 +192,29 @@ std::shared_ptr<MathOpVariable<number>> driver::get_var(std::string variable)
         : *it;
 }
 
-void driver::add_exp(std::shared_ptr<MathOp<number>> exp)
+void driver::print_result(std::shared_ptr<MathOp<number>> op)
 {
-    expressions.push_back(exp);
+    int int_digits = (int)digits->result();
+    digits->set(int_digits);
+    std::cout << std::setprecision(int_digits);
+
+    int int_prec = (int)precision->result();
+    if (int_digits > int_prec)
+    {
+        std::cerr << "WARNING: Number of digits (digits=" << int_digits << ") exceeds internal precision (precision" << int_prec << ")\n";
+    }
+
+    MathOpDefaultFormatter<number> formatter(int_digits);
+
+    std::cout << "  " << op->format(formatter) << " = ";
+
+    std::string uf = useful_fraction<number>(op->result());
+    if (uf.empty())
+    {
+        std::cout << op->result() << '\n';
+    }
+    else
+    {
+        std::cout << op->result() << " (~= " << uf << " )\n";
+    }
 }
