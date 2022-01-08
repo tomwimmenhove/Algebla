@@ -49,8 +49,10 @@ public:
 	void make_var(std::string variable);
 
 private:
+	std::shared_ptr<MathOpVariable<number>> get_var(std::string variable);
+
 	std::vector<std::shared_ptr<MathOp<number>>> expressions;
-	std::map<std::string, std::shared_ptr<MathOpVariable<number>>> variables;
+	std::vector<std::shared_ptr<MathOpVariable<number>>> variables;
 	int var_id = 0;
 };
 #endif // ! DRIVER_HH

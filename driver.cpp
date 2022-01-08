@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 #include "driver.h"
 #include "parser.h"
@@ -45,15 +46,15 @@ int driver::parse_string(const std::string &line)
 
 void driver::add_var(std::shared_ptr<MathOpVariable<number>> variable)
 {
-    variables[variable->get_symbol()] = variable;
+    variables.push_back(variable);
 }
 
 void driver::make_var(std::string variable)
 {
-    auto it = variables.find(variable);
-    if (it == variables.end())
+    auto v = get_var(variable);
+    if (!v)
     {
-        variables[variable] = MathFactory::Variable<number>(variable);
+        variables.push_back(MathFactory::Variable<number>(variable));
     }
 }
 
@@ -74,26 +75,39 @@ std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared
 {
     auto result = op->result();
 
-    auto it = variables.find(variable);
-    if (it == variables.end())
+    auto v = get_var(variable);
+    if (!v)
     {
-        return variables[variable] = MathFactory::Variable(variable, result);
+        auto new_variable = MathFactory::Variable(variable, result);
+        variables.push_back(new_variable);
+
+        return new_variable;
     }
 
-    it->second->set(result);
+    v->set(result);
 
-    return it->second;
+    return v;
 }
 
 std::shared_ptr<MathOpVariable<number>> driver::find_var(std::string variable)
 {
-    auto it = variables.find(variable);
-    if (it == variables.end())
+    auto v = get_var(variable);
+    if (!v)
     {
         throw yy::parser::syntax_error(location, "variable " + variable + " has not been declared");
     }
 
-    return it->second;
+    return v;
+}
+
+std::shared_ptr<MathOpVariable<number>> driver::get_var(std::string variable)
+{
+    auto it = std::find_if(variables.begin(), variables.end(),
+        [&variable](std::shared_ptr<MathOpVariable<number>> v) { return v->get_symbol() == variable; });
+
+    return it == variables.end()
+        ? nullptr
+        : *it;
 }
 
 void driver::add_exp(std::shared_ptr<MathOp<number>> exp)
