@@ -66,6 +66,7 @@ expressions :                            { }
             ;
 
 %right "=";
+%right "==";
 %left "+" "-";
 %left "*" "/";
 %right "^";
