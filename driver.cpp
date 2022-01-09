@@ -227,6 +227,6 @@ void driver::print_result(std::shared_ptr<MathOp<number>> op)
     }
     else
     {
-        std::cout << op->result() << " (~= " << uf << " )\n";
+        std::cout << op->result() << " (~" << uf << ")\n";
     }
 }
