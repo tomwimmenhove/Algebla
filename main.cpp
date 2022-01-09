@@ -1,24 +1,71 @@
 #include "driver.h"
+#include "options.h"
 #include "config.h"
 
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <getopt.h>
+#include <stdio.h>
 
-int main(int, char **)
+bool get_input(std::string& str)
 {
-    std::cout << "Algebla: An equation solving, arbitrary precision calculator\n"
-                 "Copyright (C) 2022 Tom Wimmenhove\n"
-                 "\n"
-                 "This is free software with ABSOLUTELY NO WARRANTY.\n"
-                 "For details type `warranty'. \n"
-                 "\n";
+    if (!isatty(fileno(stdin)))
+    {
+	    if(std::getline(std::cin, str))
+        {
+            return true;
+        }
 
-    driver drv;
+        return false;
+    }
+    
+    char *line_buf = readline("> ");
+    if (!line_buf)
+    {
+        return false;
+    }
+
+    str = std::string(line_buf);
+
+    free(line_buf);
+
+    return true;
+}
+
+int main(int argc, char** argv)
+{
+    options opt(argc, argv);
+
+    if (!opt.quiet && opt.filenames.empty() && isatty(fileno(stdin)))
+    {
+        std::cout << "Algebla: An equation solving, arbitrary precision calculator\n"
+                     "Copyright (C) 2022 Tom Wimmenhove\n"
+                     "\n"
+                     "This is free software with ABSOLUTELY NO WARRANTY.\n"
+                     "For details type `warranty'. \n"
+                     "\n";
+    }
+
+    if (!opt.filenames.empty())
+    {
+        for (auto filename : opt.filenames)
+        {
+            driver drv(opt);
+            int r = drv.parse_file(filename.c_str());
+            if (r != 0)
+            {
+                return r;
+            }
+        }
+
+        return 0;
+    }
 
     /* Read history */
     std::string last_line;
@@ -31,17 +78,16 @@ int main(int, char **)
         add_history(history_line.c_str());
     }
 
-    char *line_buf;
+    driver drv(opt);
+    std::string line;
     rl_bind_key('\t', rl_insert);
-    while ((line_buf = readline("> ")) != nullptr)
+    while (get_input(line))
     {
-        std::string line(line_buf);
-
         if (!line.empty())
         {
             if (line != last_line)
             {
-                add_history(line_buf);
+                add_history(line.c_str());
                 std::ofstream history_file(history_path, std::ios_base::app | std::ios_base::out);
                 history_file << line << '\n';
             }
@@ -53,8 +99,6 @@ int main(int, char **)
         {
             continue;
         }
-
-        free(line_buf);
     }
 
     return 0;

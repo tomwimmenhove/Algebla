@@ -5,4 +5,6 @@
 
 typedef mpfr::mpreal number;
 
+#define ALGEBLA_VERSION "Algebla-0.0.1"
+
 #endif /* CONFIG_H */

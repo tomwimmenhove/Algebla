@@ -2,7 +2,7 @@
 #define DRIVER_HH
 
 #include "parser.h"
-
+#include "options.h"
 #include "config.h"
 
 #include <string>
@@ -20,7 +20,7 @@ YY_DECL;
 class driver
 {
 public:
-	driver ();
+	driver (options opt);
 
 	// Run the parser on file f.  Return 0 on success.
 	int parse_file(const std::string& f);
@@ -57,6 +57,7 @@ public:
 	bool input_is_file() const { return is_file; }
 
 private:
+	options opt;
 	bool is_file;
 	std::vector<std::shared_ptr<MathOpVariable<number>>> variables;
 	int var_id = 0;

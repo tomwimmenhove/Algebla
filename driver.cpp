@@ -10,10 +10,11 @@
 
 using namespace std;
 
-driver::driver()
-    : trace_parsing(false), trace_scanning(false),
-      precision(MathFactory::Variable<number>("precision", 50)),
-      digits(MathFactory::Variable<number>("digits", 5))
+driver::driver(options opt)
+    : opt(opt),
+      trace_parsing(false), trace_scanning(false),
+      precision(MathFactory::Variable<number>("precision", opt.precision)),
+      digits(MathFactory::Variable<number>("digits", opt.digits))
 {
     variables.push_back(precision);
     variables.push_back(digits);
@@ -96,7 +97,7 @@ void driver::help()
                  "\n"
                  "Default variables:\n"
                  "  digits                       : The number of significant digits to display (default: 5)\n"
-                 "  precision                    : The number of significant digits used internally (default: 50)\n"
+                 "  precision                    : The number of internal significant digits (default: 50)\n"
                  "\n"
                  "Exit                           : Control-D\n"
                  "\n";
@@ -216,9 +217,17 @@ void driver::print_result(std::shared_ptr<MathOp<number>> op)
         std::cerr << "WARNING: Number of digits (digits = " << int_digits << ") exceeds internal precision (precision = " << int_precision << ")\n";
     }
 
+    std::cout << std::setprecision(int_digits);
+
+    if (opt.answer_only)
+    {
+        std::cout << op->result() << '\n';
+        return;
+    }
+
     MathOpDefaultFormatter<number> formatter(int_digits);
 
-    std::cout << std::setprecision(int_digits) << "  " << op->format(formatter) << " = ";
+    std::cout << "  " << op->format(formatter) << " = ";
 
     std::string uf = useful_fraction<number>(op->result());
     if (uf.empty())
