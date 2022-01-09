@@ -1,9 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <mpreal.h>
+#include <boost/multiprecision/mpfr.hpp>
 
-typedef mpfr::mpreal number;
+typedef boost::multiprecision::mpfr_float number;
 
 #define ALGEBLA_VERSION "Algebla-0.0.1"
 

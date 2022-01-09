@@ -6,6 +6,7 @@
 #include <mpreal.h>
 
 #include "../driver.h"
+#include "../config.h"
 #include "parser.h"
 
 // Work around an incompatibility in flex (at least versions
@@ -72,7 +73,7 @@ blank    [ \t]
 {number}	{
 			errno = 0;
 			//number d = strtold(yytext, NULL);
-      mpfr::mpreal d(yytext);
+      number d(yytext);
 			// XXX: TODO: Check input
 			return yy::parser::make_NUMBER (d, loc);
 		}

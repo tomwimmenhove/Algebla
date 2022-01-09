@@ -19,7 +19,7 @@ driver::driver(options opt)
     variables.push_back(precision);
     variables.push_back(digits);
 
-    mpfr::mpreal::set_default_prec(mpfr::digits2bits((int) precision->result()));
+    boost::multiprecision::mpfr_float::default_precision((int) precision->result());
 }
 
 int driver::parse_file(const std::string &f)
@@ -161,7 +161,7 @@ std::shared_ptr<MathOp<number>> driver::assign(std::string variable, std::shared
     /* Special variables */
     if (variable == precision->get_symbol())
     {
-        mpfr::mpreal::set_default_prec(mpfr::digits2bits((int) result));
+        boost::multiprecision::mpfr_float::default_precision((int) result);
         precision->set((int) result);
 
         return precision;
