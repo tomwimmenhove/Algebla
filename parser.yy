@@ -67,9 +67,9 @@
 ;
 
 %type  <std::shared_ptr<MathOp<number>>> expression
-%type  <std::shared_ptr<MathOp<number>>> statement
+/* %type  <std::shared_ptr<MathOp<number>>> statement
 %type  <std::shared_ptr<MathOp<number>>> assignment
-%type  <std::shared_ptr<MathOp<number>>> solver
+%type  <std::shared_ptr<MathOp<number>>> solver */
 
 %right "=";
 %right "==";
@@ -82,15 +82,17 @@
 %start entries;
 
 entries     : %empty
-            | statement                       { drv.print_result($1); }
-            | entries ";" statement           { drv.print_result($3); }
+            /* | statement                       { drv.print_result($1); }
+            | entries ";" statement           { drv.print_result($3); } */
+            | expression                      { drv.print_result($1); }
+            | entries ";" expression          { drv.print_result($3); }
             | "show"                          { drv.show_variables(); }
             | "clear"                         { drv.clear_variables(); }
             | "help"                          { drv.help(); }
             | "?"                             { drv.help(); }
             | "warranty"                      { drv.warranty(); }
             ;
-
+/* 
 statement   : expression
             | assignment
             | solver
@@ -100,11 +102,15 @@ solver      : "solve" "identifier"            { drv.make_var($2); }
               ":" expression "=" expression   { $$ = drv.solve($5, $7, $2); }
 
 assignment  : "identifier" "=" statement      { $$ = drv.assign($1, $3); }
-
+ */
 expression  : "number"                        { $$ = MathFactory::ConstantValue<number>($1); }
             | "%pi"                           { $$ = MathFactory::SymbolPi<number>(); }
             | "%e"                            { $$ = MathFactory::SymbolE<number>(); }
             | "identifier"                    { $$ = drv.find_var($1); }
+            | "solve" "identifier"            { drv.make_var($2); } 
+              ":" expression "==" expression  { $$ = drv.solve($5, $7, $2); }
+            /* | "identifier" "=" statement      { $$ = drv.assign($1, $3); } */
+            | "identifier" "=" expression      { $$ = drv.assign($1, $3); }
             | expression "+" expression       { $$ = $1 + $3; }
             | expression "-" expression       { $$ = $1 - $3; }
             | expression "*" expression       { $$ = $1 * $3; }
