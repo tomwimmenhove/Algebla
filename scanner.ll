@@ -3,7 +3,6 @@
 #include <climits>
 #include <cstdlib>
 #include <string>
-#include <mpreal.h>
 
 #include "../driver.h"
 #include "../config.h"

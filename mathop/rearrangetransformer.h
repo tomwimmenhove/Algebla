@@ -4,6 +4,9 @@
 #include "algeblah.h"
 #include "reversetransformer.h"
 
+namespace MathOps
+{
+
 template <typename T>
 struct MathOpRearrangeTransformer : public MathOpTransformer<T>
 {
@@ -65,5 +68,7 @@ private:
         return solved_rhs;
     }
 };
+
+} /* namespace MathOps */
 
 #endif /* REARRANGETRANSFORMER_H */

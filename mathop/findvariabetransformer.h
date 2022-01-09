@@ -3,6 +3,9 @@
 
 #include "algeblah.h"
 
+namespace MathOps
+{
+
 template <typename T>
 struct MathOpFindVariableTransformer : public MathOpTransformer<T>
 {
@@ -113,5 +116,7 @@ struct MathOpFindVariableTransformer : public MathOpTransformer<T>
 private:
     std::string symbol;
 };
+
+} /* namespace MathOps */
 
 #endif /* FINDVARIABLETRANSFORMER_H */

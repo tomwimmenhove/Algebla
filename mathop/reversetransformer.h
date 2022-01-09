@@ -3,6 +3,9 @@
 
 #include "algeblah.h"
 
+namespace MathOps
+{
+
 template <typename T>
 struct MathOpReverseTransformer : public MathOpTransformer<T>
 {
@@ -134,5 +137,7 @@ private:
     const std::shared_ptr<MathOp<T>> for_side;
     const std::shared_ptr<MathOp<T>> from;
 };
+
+} /* namespace MathOps */
 
 #endif /* REVERSETRANSFORMER_H */

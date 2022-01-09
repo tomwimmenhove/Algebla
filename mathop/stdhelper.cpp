@@ -2,6 +2,9 @@
 
 #include <cmath>
 
+namespace MathOps
+{
+
 float MathOpFunctionModf(float x, float& integral) { return std::modf(x, &integral); }
 float MathOpFunctionIsnan(float x) { return std::isnan(x); }
 float MathOpFunctionAbs(float x) { return std::abs(x); }
@@ -45,3 +48,5 @@ long double MathOpFunctionAcos(long double x) { return std::acos(x); }
 long double MathOpFunctionTan(long double x) { return std::tan(x); }
 long double MathOpFunctionAtan(long double x) { return std::atan(x); }
 long double MathOpFunctionPow(long double a, long double b) { return std::pow(a, b); }
+
+} /* namespace MathOps */

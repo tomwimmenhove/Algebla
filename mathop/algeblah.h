@@ -8,6 +8,9 @@
 #include <memory>
 #include <vector>
 
+namespace MathOps
+{
+
 /* Forward declarations */
 template<typename T> struct MathOp;
 template<typename T> struct MathOpMutableSymbol;
@@ -946,5 +949,7 @@ private:
         : MathBinaryOp<T, minus<T>>(lhs, rhs, MathOpBodmas::AdditionSubtraction)
     { }
 };
+
+} /* namespace MathOps */
 
 #endif /*ALGEBLAH_H */

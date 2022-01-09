@@ -6,6 +6,9 @@
 #include <sstream>
 #include <iomanip>
 
+namespace MathOps
+{
+
 template<typename T>
 struct MathOpDefaultFormatter : MathOpFormatter<T>
 {
@@ -100,5 +103,7 @@ private:
         return ss.str();
     }
 };
+
+} /* namespace MathOps */
 
 #endif /* DEFAULTFORMATTER_H */

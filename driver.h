@@ -40,13 +40,13 @@ public:
 	// The token's location used by the scanner.
 	yy::location location;
 
-	void print_result(std::shared_ptr<MathOp<number>> op);
-	std::shared_ptr<MathOp<number>> solve(std::shared_ptr<MathOp<number>> lhs,
-    	std::shared_ptr<MathOp<number>> rhs, std::string variable);
-	std::shared_ptr<MathOpVariable<number>> find_var(std::string variable);
-	std::shared_ptr<MathOpVariable<number>> get_var(std::string variable);
-	std::shared_ptr<MathOp<number>> assign(std::string variable, std::shared_ptr<MathOp<number>> op);
-	void add_var(std::shared_ptr<MathOpVariable<number>> variable);
+	void print_result(std::shared_ptr<MathOps::MathOp<number>> op);
+	std::shared_ptr<MathOps::MathOp<number>> solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
+    	std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable);
+	std::shared_ptr<MathOps::MathOpVariable<number>> find_var(std::string variable);
+	std::shared_ptr<MathOps::MathOpVariable<number>> get_var(std::string variable);
+	std::shared_ptr<MathOps::MathOp<number>> assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
+	void add_var(std::shared_ptr<MathOps::MathOpVariable<number>> variable);
 	void make_var(std::string variable);
 
 	void show_variables();
@@ -59,10 +59,10 @@ public:
 private:
 	options opt;
 	bool is_file;
-	std::vector<std::shared_ptr<MathOpVariable<number>>> variables;
+	std::vector<std::shared_ptr<MathOps::MathOpVariable<number>>> variables;
 	int var_id = 0;
 
-	std::shared_ptr<MathOpVariable<number>> precision;
-	std::shared_ptr<MathOpVariable<number>> digits;
+	std::shared_ptr<MathOps::MathOpVariable<number>> precision;
+	std::shared_ptr<MathOps::MathOpVariable<number>> digits;
 };
 #endif // ! DRIVER_HH

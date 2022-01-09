@@ -2,10 +2,10 @@
 #define USEFULFRACTION_H
 
 #include "defaulthelper.h"
-#include "algeblah.h"
-#include "defaultformatter.h"
-#include "replacetransformer.h"
-#include "removenooptransformer.h"
+#include "mathop/algeblah.h"
+#include "mathop/defaultformatter.h"
+#include "mathop/replacetransformer.h"
+#include "mathop/removenooptransformer.h"
 
 template <typename T>
 struct Fraction
@@ -13,7 +13,7 @@ struct Fraction
     T numerator;
     T denominator;
 
-    bool is_nan() const { return MathOpFunctionIsnan(numerator) || MathOpFunctionIsnan(denominator); }
+    bool is_nan() const { return MathOps::MathOpFunctionIsnan(numerator) || MathOps::MathOpFunctionIsnan(denominator); }
     bool is_integral() const { return denominator == 1; }
     T result() const { return numerator / denominator; }
 
@@ -22,9 +22,9 @@ struct Fraction
     {
     }
 
-    std::shared_ptr<MathOp<T>> to_math_op() const
+    std::shared_ptr<MathOps::MathOp<T>> to_math_op() const
     {
-        return MathFactory::ConstantValue(numerator) / MathFactory::ConstantValue(denominator);
+        return MathOps::MathFactory::ConstantValue(numerator) / MathOps::MathFactory::ConstantValue(denominator);
     }
 
     static Fraction<T> quiet_NaN()
@@ -38,10 +38,10 @@ struct Fraction
         Fraction<T> upper(1, 1);
 
         T integral;
-        T fractional = MathOpFunctionModf(value, integral);
+        T fractional = MathOps::MathOpFunctionModf(value, integral);
 
         /* XXX: This is a hack */
-        // if (MathOpFunctionAbs(fractional) < max_error)
+        // if (MathOps::MathOpFunctionAbs(fractional) < max_error)
         // {
         //     fractional = 0;
         // }
@@ -56,7 +56,7 @@ struct Fraction
             Fraction<T> middle(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
             T test = middle.result();
 
-            if (MathOpFunctionAbs(test - fractional) <= max_error)
+            if (MathOps::MathOpFunctionAbs(test - fractional) <= max_error)
             {
                 return Fraction<T>(middle.numerator + integral * middle.denominator, middle.denominator);
             }
@@ -76,26 +76,26 @@ struct Fraction
 };
 
 template <typename T>
-Fraction<T> solver(std::shared_ptr<MathOp<T>> y, std::shared_ptr<MathOp<T>> numerator, T value, T max_error, int iters)
+Fraction<T> solver(std::shared_ptr<MathOps::MathOp<T>> y, std::shared_ptr<MathOps::MathOp<T>> numerator, T value, T max_error, int iters)
 {
-    auto result = MathFactory::ConstantValue(value);
+    auto result = MathOps::MathFactory::ConstantValue(value);
 
-    auto solved = y->transform(MathOpRearrangeTransformer<T>(numerator, result));
+    auto solved = y->transform(MathOps::MathOpRearrangeTransformer<T>(numerator, result));
     auto fraction = Fraction<T>::find(solved->result(), max_error, iters);
 
     return fraction;
 }
 
 template <typename T>
-std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>> equations,
+std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOps::MathOp<T>>> equations,
                                          T value, T max_error, int iters, T max_num_denominator)
 {
     auto best_fraction = Fraction<T>::quiet_NaN();
-    std::shared_ptr<MathOp<T>> best_numerator, best_denominator, best_y;
+    std::shared_ptr<MathOps::MathOp<T>> best_numerator, best_denominator, best_y;
 
     for (auto y : equations)
     {
-        auto numerator = y->transform(MathOpFindVariableTransformer<T>("numerator"));
+        auto numerator = y->transform(MathOps::MathOpFindVariableTransformer<T>("numerator"));
 
         auto fraction = solver<T>(y, numerator, value, max_error, iters);
 
@@ -103,7 +103,7 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         {
             best_fraction = fraction;
             best_numerator = numerator;
-            best_denominator = y->transform(MathOpFindVariableTransformer<T>("denominator"));
+            best_denominator = y->transform(MathOps::MathOpFindVariableTransformer<T>("denominator"));
             best_y = y;
         }
     }
@@ -113,9 +113,9 @@ std::shared_ptr<MathOp<T>> find_fraction(std::vector<std::shared_ptr<MathOp<T>>>
         return nullptr;
     }
 
-    return best_y->transform(MathOpReplaceTransformer<T>(best_numerator, MathFactory::ConstantValue(best_fraction.numerator)))
-        ->transform(MathOpReplaceTransformer<T>(best_denominator, MathFactory::ConstantValue(best_fraction.denominator)))
-        ->transform(MathOpRemoveNoOpTransformer<T>());
+    return best_y->transform(MathOps::MathOpReplaceTransformer<T>(best_numerator, MathOps::MathFactory::ConstantValue(best_fraction.numerator)))
+        ->transform(MathOps::MathOpReplaceTransformer<T>(best_denominator, MathOps::MathFactory::ConstantValue(best_fraction.denominator)))
+        ->transform(MathOps::MathOpRemoveNoOpTransformer<T>());
 }
 
 template<typename T>
@@ -128,12 +128,12 @@ std::string useful_fraction(T x)
         return { };
     }
 
-    const auto numerator = MathFactory::NamedConstant<T>("numerator", 1.0);
-    const auto denominator = MathFactory::NamedConstant<T>("denominator", 1.0);
-    const auto pi = MathFactory::SymbolPi<T>();
-    const auto e = MathFactory::SymbolE<T>();
-    const auto sq2 = sqrt<T>(MathFactory::ConstantValue<T>(2));
-    std::vector<std::shared_ptr<MathOp<T>>> equations{
+    const auto numerator = MathOps::MathFactory::NamedConstant<T>("numerator", 1.0);
+    const auto denominator = MathOps::MathFactory::NamedConstant<T>("denominator", 1.0);
+    const auto pi = MathOps::MathFactory::SymbolPi<T>();
+    const auto e = MathOps::MathFactory::SymbolE<T>();
+    const auto sq2 = sqrt<T>(MathOps::MathFactory::ConstantValue<T>(2));
+    std::vector<std::shared_ptr<MathOps::MathOp<T>>> equations{
         numerator * pi / denominator,
         numerator / (pi * denominator),
         numerator * e / denominator,
@@ -149,7 +149,7 @@ std::string useful_fraction(T x)
         return { };
     }
 
-    return y->format(MathOpDefaultFormatter<T>());
+    return y->format(MathOps::MathOpDefaultFormatter<T>());
 }
 
 #endif /* USEFULFRACTION_H */

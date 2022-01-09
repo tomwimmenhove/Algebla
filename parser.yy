@@ -11,7 +11,7 @@
   #include <iostream>
   #include <memory>
   #include "../defaulthelper.h"
-  #include "../algeblah.h"
+  #include "../mathop/algeblah.h"
   #include "../config.h"
   class driver;
   extern void yy_read_input(char *buf, int& result, int max_size);
@@ -65,9 +65,9 @@
     <std::string>  IDENTIFIER    "identifier"
 ;
 
-%type  <std::shared_ptr<MathOp<number>>> expression
-%type  <std::shared_ptr<MathOp<number>>> statement
-%type  <std::shared_ptr<MathOp<number>>> assignment
+%type  <std::shared_ptr<MathOps::MathOp<number>>> expression
+%type  <std::shared_ptr<MathOps::MathOp<number>>> statement
+%type  <std::shared_ptr<MathOps::MathOp<number>>> assignment
 
 %right "=";
 %right "==";
@@ -96,9 +96,9 @@ statement   : expression                      { drv.print_result($1); }
 assignment  : "identifier" "=" expression     { $$ = drv.assign($1, $3); }
             ;
 
-expression  : "number"                        { $$ = MathFactory::ConstantValue<number>($1); }
-            | "%pi"                           { $$ = MathFactory::SymbolPi<number>(); }
-            | "%e"                            { $$ = MathFactory::SymbolE<number>(); }
+expression  : "number"                        { $$ = MathOps::MathFactory::ConstantValue<number>($1); }
+            | "%pi"                           { $$ = MathOps::MathFactory::SymbolPi<number>(); }
+            | "%e"                            { $$ = MathOps::MathFactory::SymbolE<number>(); }
             | "identifier"                    { $$ = drv.find_var($1); }
             | "solve" "identifier"            { drv.make_var($2); } 
               ":" expression "=" expression   { $$ = drv.solve($5, $7, $2); }

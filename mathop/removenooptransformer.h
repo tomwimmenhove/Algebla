@@ -3,6 +3,9 @@
 
 #include "algeblah.h"
 
+namespace MathOps
+{
+
 template <typename T>
 struct MathOpRemoveNoOpTransformer : public MathOpTransformer<T>
 {
@@ -165,4 +168,7 @@ struct MathOpRemoveNoOpTransformer : public MathOpTransformer<T>
         return lhs - rhs;
     }
 };
+
+} /* namespace MathOps */
+
 #endif /* REMOVENOOPVISITOR_H */

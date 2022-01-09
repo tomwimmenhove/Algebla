@@ -3,6 +3,9 @@
 
 #include <boost/multiprecision/mpfr.hpp>
 
+namespace MathOps
+{
+
 template<typename T>
 T MathOpFunctionGetConstantPi() { return boost::math::constants::pi<T>(); }
 
@@ -22,5 +25,7 @@ boost::multiprecision::mpfr_float MathOpFunctionAcos(boost::multiprecision::mpfr
 boost::multiprecision::mpfr_float MathOpFunctionTan(boost::multiprecision::mpfr_float x);
 boost::multiprecision::mpfr_float MathOpFunctionAtan(boost::multiprecision::mpfr_float x);
 boost::multiprecision::mpfr_float MathOpFunctionPow(boost::multiprecision::mpfr_float a, boost::multiprecision::mpfr_float b);
+
+} /* namespace MathOps */
 
 #endif /* MPFRHELPER_H */

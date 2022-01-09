@@ -3,6 +3,9 @@
 
 #include <numbers>
 
+namespace MathOps
+{
+
 template<typename T>
 T MathOpFunctionGetConstantPi() { return std::numbers::pi_v<T>; }
 
@@ -51,5 +54,7 @@ long double MathOpFunctionAcos(long double x);
 long double MathOpFunctionTan(long double x);
 long double MathOpFunctionAtan(long double x);
 long double MathOpFunctionPow(long double a, long double b);
+
+} /* namespace MathOps */
 
 #endif /* STDHELPER_H */

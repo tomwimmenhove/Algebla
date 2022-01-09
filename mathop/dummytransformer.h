@@ -3,6 +3,9 @@
 
 #include "algeblah.h"
 
+namespace MathOps
+{
+
 template <typename T>
 struct MathOpDummyTransformer : public MathOpTransformer<T>
 {
@@ -89,5 +92,7 @@ struct MathOpDummyTransformer : public MathOpTransformer<T>
         return op->get_lhs()->transform(*this) - op->get_rhs()->transform(*this);
     }
 };
+
+} /* namespace MathOps */
 
 #endif /* DUMMYTRANSFORMER_H */

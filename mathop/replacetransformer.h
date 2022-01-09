@@ -3,6 +3,9 @@
 
 #include "dummytransformer.h"
 
+namespace MathOps
+{
+
 template <typename T>
 struct MathOpReplaceTransformer : MathOpDummyTransformer<T>
 {
@@ -199,5 +202,7 @@ private:
     std::shared_ptr<MathOp<T>> subject;
     std::shared_ptr<MathOp<T>> replacement;
 };
+
+} /* namespace MathOps */
 
 #endif /* REPLACETRANSFORMER_H */
