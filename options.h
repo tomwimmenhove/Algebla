@@ -10,6 +10,7 @@ struct options
     int precision = 50;
     bool quiet = false;
     bool answer_only = false;
+    int max_precision = -1;
     std::vector<std::string> filenames;
 
     options(int argc, char** argv);
@@ -17,7 +18,7 @@ struct options
 private:
     void print_help(std::string name, bool error);
     void print_version();
-    int parse_string(const char* s);
+    int parse_int(const char* s);
 };
 
 #endif /* OPTIONS_H */

@@ -161,6 +161,20 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     /* Special variables */
     if (variable == precision->get_symbol())
     {
+        if (opt.max_precision > 0 && (int) result < opt.max_precision)
+        {
+            std::cerr << "Value exceeds maximum precision.\n";
+
+            return precision;
+        }
+
+        if ((int) result < digits->result())
+        {
+            std::cerr << "Value can not be less than the number of visible digits.\n";
+
+            return precision;
+        }
+
         boost::multiprecision::mpfr_float::default_precision((int) result);
         precision->set((int) result);
 
@@ -168,6 +182,13 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     }
     else if (variable == digits->get_symbol())
     {
+        if ((int) result > precision->result())
+        {
+            std::cerr << "Value can not be greater than precision.\n";
+
+            return digits;
+        }
+
         digits->set((int) result);
 
         return digits;
@@ -211,12 +232,6 @@ std::shared_ptr<MathOps::OpVariable<number>> driver::get_var(std::string variabl
 void driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
 {
     int int_digits = (int) digits->result();
-    int int_precision =(int) precision->result();
-    if (int_digits > int_precision)
-    {
-        std::cerr << "WARNING: Number of digits (digits = " << int_digits << ") exceeds internal precision (precision = " << int_precision << ")\n";
-    }
-
     std::cout << std::setprecision(int_digits);
 
     if (opt.answer_only)

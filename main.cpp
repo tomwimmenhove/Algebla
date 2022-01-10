@@ -13,9 +13,11 @@
 #include <getopt.h>
 #include <stdio.h>
 
+static bool in_terminal = isatty(fileno(stdin));
+
 bool get_input(std::string& str)
 {
-    if (!isatty(fileno(stdin)))
+    if (!in_terminal)
     {
 	    if(std::getline(std::cin, str))
         {
@@ -67,15 +69,19 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    /* Read history */
     std::string last_line;
-    const std::string history_path = std::string(getpwuid(getuid())->pw_dir) + "/.algebla_history";//"~/.algebla_history";
-    std::ifstream history_file(history_path);
-    std::string history_line;
-    while (std::getline(history_file, history_line))
+    std::string history_path;
+    if (in_terminal)
     {
-        last_line = history_line;
-        add_history(history_line.c_str());
+        /* Read history */
+        history_path = std::string(getpwuid(getuid())->pw_dir) + "/.algebla_history";
+        std::ifstream history_file(history_path);
+        std::string history_line;
+        while (std::getline(history_file, history_line))
+        {
+            last_line = history_line;
+            add_history(history_line.c_str());
+        }
     }
 
     driver drv(opt);
@@ -83,14 +89,11 @@ int main(int argc, char** argv)
     rl_bind_key('\t', rl_insert);
     while (get_input(line))
     {
-        if (!line.empty())
+        if (in_terminal && !line.empty() && line != last_line)
         {
-            if (line != last_line)
-            {
-                add_history(line.c_str());
-                std::ofstream history_file(history_path, std::ios_base::app | std::ios_base::out);
-                history_file << line << '\n';
-            }
+            add_history(line.c_str());
+            std::ofstream history_file(history_path, std::ios_base::app | std::ios_base::out);
+            history_file << line << '\n';
 
             last_line = line;
         }
