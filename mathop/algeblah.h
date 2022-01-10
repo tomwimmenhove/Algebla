@@ -141,11 +141,6 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
         return Div<T>::create(lhs, rhs);
     }
 
-    friend std::shared_ptr<MathOp<T>> operator^(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
-    {
-        return Pow<T>::create(lhs, rhs);
-    }
-
     virtual ~MathOp() { }
 };
 

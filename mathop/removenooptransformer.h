@@ -87,7 +87,7 @@ struct MathOpRemoveNoOpTransformer : public Transformer<T>
             return lhs;
         }
 
-        return lhs ^ rhs;
+        return Pow<T>::create(lhs, rhs);
     }
 
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Mul<T>> op) override

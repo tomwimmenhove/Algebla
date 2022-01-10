@@ -42,7 +42,7 @@ struct ReverseTransformer : public Transformer<T>
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Log<T>> op)
     {
         if (for_side != op->get_x()) return nullptr;
-        return Factory::CreateSymbolE<T>() ^ from;
+        return Pow<T>::create(Factory::CreateSymbolE<T>(), from);
     }
 
     std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sin<T>> op)
@@ -93,7 +93,7 @@ struct ReverseTransformer : public Transformer<T>
                 return sqrt(from);
             }
             
-            return from ^ (Factory::CreateConstantValue<T>(1.0) / rhs);
+            return Pow<T>::create(from, (Factory::CreateConstantValue<T>(1.0) / rhs));
         }
         else if (for_side == rhs)
         {

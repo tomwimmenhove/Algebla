@@ -69,7 +69,7 @@ struct DummyTransformer : public Transformer<T>
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Pow<T>> op) override
     {
-        return op->get_lhs()->transform(*this) ^ op->get_rhs()->transform(*this);
+        return Pow<T>::create(op->get_lhs()->transform(*this), op->get_rhs()->transform(*this));
     }
 
     virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Mul<T>> op) override
