@@ -13,7 +13,7 @@ struct Fraction
     T numerator;
     T denominator;
 
-    bool is_nan() const { return MathOps::HelperFunctionIsnan(numerator) || MathOps::HelperFunctionIsnan(denominator); }
+    bool is_nan() const { return MathOps::isnan(numerator) || MathOps::isnan(denominator); }
     bool is_integral() const { return denominator == 1; }
     T result() const { return numerator / denominator; }
 
@@ -38,7 +38,7 @@ struct Fraction
         Fraction<T> upper(1, 1);
 
         T integral;
-        T fractional = MathOps::HelperFunctionModf(value, integral);
+        T fractional = MathOps::modf(value, integral);
 
         /* XXX: This is a hack */
         // if (MathOps::HelperFunctionAbs(fractional) < max_error)
@@ -56,7 +56,7 @@ struct Fraction
             Fraction<T> middle(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
             T test = middle.result();
 
-            if (MathOps::HelperFunctionAbs(test - fractional) <= max_error)
+            if (MathOps::abs(test - fractional) <= max_error)
             {
                 return Fraction<T>(middle.numerator + integral * middle.denominator, middle.denominator);
             }

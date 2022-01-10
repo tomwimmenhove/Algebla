@@ -355,10 +355,10 @@ private:
 struct Factory
 {
     template <typename T>
-    static std::shared_ptr<MathOp<T>> CreateSymbolPi() { return ConstantSymbol<T>::create("%pi", HelperFunctionGetConstantPi<T>()); }
+    static std::shared_ptr<MathOp<T>> CreateSymbolPi() { return ConstantSymbol<T>::create("%pi", get_constant_pi<T>()); }
 
     template <typename T>
-    static std::shared_ptr<MathOp<T>> CreateSymbolE() { return ConstantSymbol<T>::create("%e", HelperFunctionGetConstantE<T>()); }
+    static std::shared_ptr<MathOp<T>> CreateSymbolE() { return ConstantSymbol<T>::create("%e", get_constant_e<T>()); }
 
     template <typename T>
     static std::shared_ptr<OpVariable<T>> CreateVariable(std::string symbol, T c = 0)
@@ -451,7 +451,7 @@ struct logarithm : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionLog(x);
+        return log(x);
     }
 };
 
@@ -460,7 +460,7 @@ struct square_root : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionSqrt(x);
+        return sqrt(x);
     }
 };
 
@@ -478,7 +478,7 @@ struct sine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionSin(x);
+        return sin(x);
     }
 };
 
@@ -487,7 +487,7 @@ struct inverse_sine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionAsin(x);
+        return asin(x);
     }
 };
 
@@ -496,7 +496,7 @@ struct cosine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionCos(x);
+        return cos(x);
     }
 };
 
@@ -505,7 +505,7 @@ struct inverse_cosine : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionAcos(x);
+        return acos(x);
     }
 };
 
@@ -514,7 +514,7 @@ struct tangent : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionTan(x);
+        return tan(x);
     }
 };
 
@@ -523,7 +523,7 @@ struct inverse_tangent : public std::unary_function<T, T>
 {
     T operator()(T x) const
     {
-        return HelperFunctionAtan(x);
+        return atan(x);
     }
 };
 
@@ -533,7 +533,7 @@ struct raises : public std::binary_function<T, T, T>
 {
     T operator()(T x, T y) const
     {
-        return HelperFunctionPow(x, y);
+        return pow(x, y);
     }
 };
 

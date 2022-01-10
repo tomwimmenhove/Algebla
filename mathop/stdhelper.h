@@ -7,53 +7,54 @@ namespace MathOps
 {
 
 template<typename T>
-T HelperFunctionGetConstantPi() { return std::numbers::pi_v<T>; }
+T get_constant_pi() { return std::numbers::pi_v<T>; }
 
 template<typename T>
-T HelperFunctionGetConstantE() { return std::numbers::e_v<T>; }
+T get_constant_e() { return std::numbers::e_v<T>; }
+
+float modf(float x, float& integral);
+float isnan(float x);
+float abs(float x);
+
+float log(float x);
+float sqrt(float x);
+float sin(float x);
+float asin(float x);
+float cos(float x);
+float acos(float x);
+float tan(float x);
+float atan(float x);
+float pow(float a, float b);
 
 
-float HelperFunctionModf(float x, float& integral);
-float HelperFunctionIsnan(float x);
-float HelperFunctionAbs(float x);
+double modf(double x, double& integral);
+double isnan(double x);
+double abs(double x);
 
-float HelperFunctionLog(float x);
-float HelperFunctionSqrt(float x);
-float HelperFunctionSin(float x);
-float HelperFunctionAsin(float x);
-float HelperFunctionCos(float x);
-float HelperFunctionAcos(float x);
-float HelperFunctionTan(float x);
-float HelperFunctionAtan(float x);
-float HelperFunctionPow(float a, float b);
+double log(double x);
+double sqrt(double x);
+double sin(double x);
+double asin(double x);
+double cos(double x);
+double acos(double x);
+double tan(double x);
+double atan(double x);
+double pow(double a, double b);
 
-double HelperFunctionModf(double x, double& integral);
-double HelperFunctionIsnan(double x);
-double HelperFunctionAbs(double x);
 
-double HelperFunctionLog(double x);
-double HelperFunctionSqrt(double x);
-double HelperFunctionSin(double x);
-double HelperFunctionAsin(double x);
-double HelperFunctionCos(double x);
-double HelperFunctionAcos(double x);
-double HelperFunctionTan(double x);
-double HelperFunctionAtan(double x);
-double HelperFunctionPow(double a, double b);
+long double modf(long double x, long double& integral);
+long double isnan(long double x);
+long double abs(long double x);
 
-long double HelperFunctionModf(long double x, long double& integral);
-long double HelperFunctionIsnan(long double x);
-long double HelperFunctionAbs(long double x);
-
-long double HelperFunctionLog(long double x);
-long double HelperFunctionSqrt(long double x);
-long double HelperFunctionSin(long double x);
-long double HelperFunctionAsin(long double x);
-long double HelperFunctionCos(long double x);
-long double HelperFunctionAcos(long double x);
-long double HelperFunctionTan(long double x);
-long double HelperFunctionAtan(long double x);
-long double HelperFunctionPow(long double a, long double b);
+long double log(long double x);
+long double sqrt(long double x);
+long double sin(long double x);
+long double asin(long double x);
+long double cos(long double x);
+long double acos(long double x);
+long double tan(long double x);
+long double atan(long double x);
+long double pow(long double a, long double b);
 
 } /* namespace MathOps */
 
