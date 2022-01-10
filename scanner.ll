@@ -45,6 +45,7 @@ blank    [ \t]
 "-"         return yy::parser::make_MINUS     (loc);
 "+"         return yy::parser::make_PLUS      (loc);
 "*"         return yy::parser::make_STAR      (loc);
+"×"         return yy::parser::make_STAR_ALT  (loc);
 "^"         return yy::parser::make_CARET     (loc);
 "/"         return yy::parser::make_SLASH     (loc);
 "("         return yy::parser::make_LPAREN    (loc);

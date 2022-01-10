@@ -37,6 +37,7 @@
                    PLUS          "+"
                    CARET         "^"
                    STAR          "*"
+                   STAR_ALT      "×"
                    SLASH         "/"
                    LPAREN        "("
                    RPAREN        ")"
@@ -72,7 +73,7 @@
 %right "=";
 %right "==";
 %left "-" "+"
-%left "*" "/"
+%left "*" "×" "/"
 %precedence POSNEG
 %right "^"
 
@@ -105,6 +106,7 @@ expression  : "number"                        { $$ = MathOps::Factory::CreateCon
             | expression "+" expression       { $$ = $1 + $3; }
             | expression "-" expression       { $$ = $1 - $3; }
             | expression "*" expression       { $$ = $1 * $3; }
+            | expression "×" expression       { $$ = $1 * $3; }
             | expression "/" expression       { $$ = $1 / $3; }
             | "-" expression %prec POSNEG     { $$ = -$2; }
             | "+" expression %prec POSNEG     { $$ = $2; }
