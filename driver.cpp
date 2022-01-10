@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <stdio.h>
 
 #include "driver.h"
 #include "parser.h"
@@ -98,9 +99,11 @@ void driver::help()
                  "Default variables:\n"
                  "  digits                       : The number of significant digits to display (default: 5)\n"
                  "  precision                    : The number of internal significant digits (default: 50)\n"
-                 "\n"
-                 "Exit                           : Control-D\n"
                  "\n";
+    if (isatty(fileno(stdin)))
+    {
+        std::cout << "Exit                           : Control-D\n\n";
+    }
 }
 
 void driver::warranty()
