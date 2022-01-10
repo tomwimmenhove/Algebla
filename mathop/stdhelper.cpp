@@ -5,48 +5,48 @@
 namespace MathOps
 {
 
-float MathOpFunctionModf(float x, float& integral) { return std::modf(x, &integral); }
-float MathOpFunctionIsnan(float x) { return std::isnan(x); }
-float MathOpFunctionAbs(float x) { return std::abs(x); }
+float HelperFunctionModf(float x, float& integral) { return std::modf(x, &integral); }
+float HelperFunctionIsnan(float x) { return std::isnan(x); }
+float HelperFunctionAbs(float x) { return std::abs(x); }
 
-float MathOpFunctionLog(float x) { return std::log(x); }
-float MathOpFunctionSqrt(float x) { return std::sqrt(x); }
-float MathOpFunctionSin(float x) { return std::sin(x); }
-float MathOpFunctionAsin(float x) { return std::asin(x); }
-float MathOpFunctionCos(float x) { return std::cos(x); }
-float MathOpFunctionAcos(float x) { return std::acos(x); }
-float MathOpFunctionTan(float x) { return std::tan(x); }
-float MathOpFunctionAtan(float x) { return std::atan(x); }
-float MathOpFunctionPow(float a, float b) { return std::pow(a, b); }
-
-
-double MathOpFunctionModf(double x, double& integral) { return std::modf(x, &integral); }
-double MathOpFunctionIsnan(double x) { return std::isnan(x); }
-double MathOpFunctionAbs(double x) { return std::abs(x); }
-
-double MathOpFunctionLog(double x) { return std::log(x); }
-double MathOpFunctionSqrt(double x) { return std::sqrt(x); }
-double MathOpFunctionSin(double x) { return std::sin(x); }
-double MathOpFunctionAsin(double x) { return std::asin(x); }
-double MathOpFunctionCos(double x) { return std::cos(x); }
-double MathOpFunctionAcos(double x) { return std::acos(x); }
-double MathOpFunctionTan(double x) { return std::tan(x); }
-double MathOpFunctionAtan(double x) { return std::atan(x); }
-double MathOpFunctionPow(double a, double b) { return std::pow(a, b); }
+float HelperFunctionLog(float x) { return std::log(x); }
+float HelperFunctionSqrt(float x) { return std::sqrt(x); }
+float HelperFunctionSin(float x) { return std::sin(x); }
+float HelperFunctionAsin(float x) { return std::asin(x); }
+float HelperFunctionCos(float x) { return std::cos(x); }
+float HelperFunctionAcos(float x) { return std::acos(x); }
+float HelperFunctionTan(float x) { return std::tan(x); }
+float HelperFunctionAtan(float x) { return std::atan(x); }
+float HelperFunctionPow(float a, float b) { return std::pow(a, b); }
 
 
-long double MathOpFunctionModf(long double x, long double& integral) { return std::modf(x, &integral); }
-long double MathOpFunctionIsnan(long double x) { return std::isnan(x); }
-long double MathOpFunctionAbs(long double x) { return std::abs(x); }
+double HelperFunctionModf(double x, double& integral) { return std::modf(x, &integral); }
+double HelperFunctionIsnan(double x) { return std::isnan(x); }
+double HelperFunctionAbs(double x) { return std::abs(x); }
 
-long double MathOpFunctionLog(long double x) { return std::log(x); }
-long double MathOpFunctionSqrt(long double x) { return std::sqrt(x); }
-long double MathOpFunctionSin(long double x) { return std::sin(x); }
-long double MathOpFunctionAsin(long double x) { return std::asin(x); }
-long double MathOpFunctionCos(long double x) { return std::cos(x); }
-long double MathOpFunctionAcos(long double x) { return std::acos(x); }
-long double MathOpFunctionTan(long double x) { return std::tan(x); }
-long double MathOpFunctionAtan(long double x) { return std::atan(x); }
-long double MathOpFunctionPow(long double a, long double b) { return std::pow(a, b); }
+double HelperFunctionLog(double x) { return std::log(x); }
+double HelperFunctionSqrt(double x) { return std::sqrt(x); }
+double HelperFunctionSin(double x) { return std::sin(x); }
+double HelperFunctionAsin(double x) { return std::asin(x); }
+double HelperFunctionCos(double x) { return std::cos(x); }
+double HelperFunctionAcos(double x) { return std::acos(x); }
+double HelperFunctionTan(double x) { return std::tan(x); }
+double HelperFunctionAtan(double x) { return std::atan(x); }
+double HelperFunctionPow(double a, double b) { return std::pow(a, b); }
+
+
+long double HelperFunctionModf(long double x, long double& integral) { return std::modf(x, &integral); }
+long double HelperFunctionIsnan(long double x) { return std::isnan(x); }
+long double HelperFunctionAbs(long double x) { return std::abs(x); }
+
+long double HelperFunctionLog(long double x) { return std::log(x); }
+long double HelperFunctionSqrt(long double x) { return std::sqrt(x); }
+long double HelperFunctionSin(long double x) { return std::sin(x); }
+long double HelperFunctionAsin(long double x) { return std::asin(x); }
+long double HelperFunctionCos(long double x) { return std::cos(x); }
+long double HelperFunctionAcos(long double x) { return std::acos(x); }
+long double HelperFunctionTan(long double x) { return std::tan(x); }
+long double HelperFunctionAtan(long double x) { return std::atan(x); }
+long double HelperFunctionPow(long double a, long double b) { return std::pow(a, b); }
 
 } /* namespace MathOps */

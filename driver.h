@@ -43,10 +43,10 @@ public:
 	void print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
     	std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable);
-	std::shared_ptr<MathOps::MathOpVariable<number>> find_var(std::string variable);
-	std::shared_ptr<MathOps::MathOpVariable<number>> get_var(std::string variable);
+	std::shared_ptr<MathOps::OpVariable<number>> find_var(std::string variable);
+	std::shared_ptr<MathOps::OpVariable<number>> get_var(std::string variable);
 	std::shared_ptr<MathOps::MathOp<number>> assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
-	void add_var(std::shared_ptr<MathOps::MathOpVariable<number>> variable);
+	void add_var(std::shared_ptr<MathOps::OpVariable<number>> variable);
 	void make_var(std::string variable);
 
 	void show_variables();
@@ -59,10 +59,10 @@ public:
 private:
 	options opt;
 	bool is_file;
-	std::vector<std::shared_ptr<MathOps::MathOpVariable<number>>> variables;
+	std::vector<std::shared_ptr<MathOps::OpVariable<number>>> variables;
 	int var_id = 0;
 
-	std::shared_ptr<MathOps::MathOpVariable<number>> precision;
-	std::shared_ptr<MathOps::MathOpVariable<number>> digits;
+	std::shared_ptr<MathOps::OpVariable<number>> precision;
+	std::shared_ptr<MathOps::OpVariable<number>> digits;
 };
 #endif // ! DRIVER_HH

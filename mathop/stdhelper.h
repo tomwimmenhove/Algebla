@@ -7,53 +7,53 @@ namespace MathOps
 {
 
 template<typename T>
-T MathOpFunctionGetConstantPi() { return std::numbers::pi_v<T>; }
+T HelperFunctionGetConstantPi() { return std::numbers::pi_v<T>; }
 
 template<typename T>
-T MathOpFunctionGetConstantE() { return std::numbers::e_v<T>; }
+T HelperFunctionGetConstantE() { return std::numbers::e_v<T>; }
 
 
-float MathOpFunctionModf(float x, float& integral);
-float MathOpFunctionIsnan(float x);
-float MathOpFunctionAbs(float x);
+float HelperFunctionModf(float x, float& integral);
+float HelperFunctionIsnan(float x);
+float HelperFunctionAbs(float x);
 
-float MathOpFunctionLog(float x);
-float MathOpFunctionSqrt(float x);
-float MathOpFunctionSin(float x);
-float MathOpFunctionAsin(float x);
-float MathOpFunctionCos(float x);
-float MathOpFunctionAcos(float x);
-float MathOpFunctionTan(float x);
-float MathOpFunctionAtan(float x);
-float MathOpFunctionPow(float a, float b);
+float HelperFunctionLog(float x);
+float HelperFunctionSqrt(float x);
+float HelperFunctionSin(float x);
+float HelperFunctionAsin(float x);
+float HelperFunctionCos(float x);
+float HelperFunctionAcos(float x);
+float HelperFunctionTan(float x);
+float HelperFunctionAtan(float x);
+float HelperFunctionPow(float a, float b);
 
-double MathOpFunctionModf(double x, double& integral);
-double MathOpFunctionIsnan(double x);
-double MathOpFunctionAbs(double x);
+double HelperFunctionModf(double x, double& integral);
+double HelperFunctionIsnan(double x);
+double HelperFunctionAbs(double x);
 
-double MathOpFunctionLog(double x);
-double MathOpFunctionSqrt(double x);
-double MathOpFunctionSin(double x);
-double MathOpFunctionAsin(double x);
-double MathOpFunctionCos(double x);
-double MathOpFunctionAcos(double x);
-double MathOpFunctionTan(double x);
-double MathOpFunctionAtan(double x);
-double MathOpFunctionPow(double a, double b);
+double HelperFunctionLog(double x);
+double HelperFunctionSqrt(double x);
+double HelperFunctionSin(double x);
+double HelperFunctionAsin(double x);
+double HelperFunctionCos(double x);
+double HelperFunctionAcos(double x);
+double HelperFunctionTan(double x);
+double HelperFunctionAtan(double x);
+double HelperFunctionPow(double a, double b);
 
-long double MathOpFunctionModf(long double x, long double& integral);
-long double MathOpFunctionIsnan(long double x);
-long double MathOpFunctionAbs(long double x);
+long double HelperFunctionModf(long double x, long double& integral);
+long double HelperFunctionIsnan(long double x);
+long double HelperFunctionAbs(long double x);
 
-long double MathOpFunctionLog(long double x);
-long double MathOpFunctionSqrt(long double x);
-long double MathOpFunctionSin(long double x);
-long double MathOpFunctionAsin(long double x);
-long double MathOpFunctionCos(long double x);
-long double MathOpFunctionAcos(long double x);
-long double MathOpFunctionTan(long double x);
-long double MathOpFunctionAtan(long double x);
-long double MathOpFunctionPow(long double a, long double b);
+long double HelperFunctionLog(long double x);
+long double HelperFunctionSqrt(long double x);
+long double HelperFunctionSin(long double x);
+long double HelperFunctionAsin(long double x);
+long double HelperFunctionCos(long double x);
+long double HelperFunctionAcos(long double x);
+long double HelperFunctionTan(long double x);
+long double HelperFunctionAtan(long double x);
+long double HelperFunctionPow(long double a, long double b);
 
 } /* namespace MathOps */
 

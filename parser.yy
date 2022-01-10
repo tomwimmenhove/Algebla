@@ -96,9 +96,9 @@ statement   : expression                      { drv.print_result($1); }
 assignment  : "identifier" "=" expression     { $$ = drv.assign($1, $3); }
             ;
 
-expression  : "number"                        { $$ = MathOps::MathFactory::ConstantValue<number>($1); }
-            | "%pi"                           { $$ = MathOps::MathFactory::SymbolPi<number>(); }
-            | "%e"                            { $$ = MathOps::MathFactory::SymbolE<number>(); }
+expression  : "number"                        { $$ = MathOps::Factory::CreateConstantValue<number>($1); }
+            | "%pi"                           { $$ = MathOps::Factory::CreateSymbolPi<number>(); }
+            | "%e"                            { $$ = MathOps::Factory::CreateSymbolE<number>(); }
             | "identifier"                    { $$ = drv.find_var($1); }
             | "solve" "identifier"            { drv.make_var($2); } 
               ":" expression "=" expression   { $$ = drv.solve($5, $7, $2); }

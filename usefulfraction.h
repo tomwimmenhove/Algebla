@@ -13,7 +13,7 @@ struct Fraction
     T numerator;
     T denominator;
 
-    bool is_nan() const { return MathOps::MathOpFunctionIsnan(numerator) || MathOps::MathOpFunctionIsnan(denominator); }
+    bool is_nan() const { return MathOps::HelperFunctionIsnan(numerator) || MathOps::HelperFunctionIsnan(denominator); }
     bool is_integral() const { return denominator == 1; }
     T result() const { return numerator / denominator; }
 
@@ -24,7 +24,7 @@ struct Fraction
 
     std::shared_ptr<MathOps::MathOp<T>> to_math_op() const
     {
-        return MathOps::MathFactory::ConstantValue(numerator) / MathOps::MathFactory::ConstantValue(denominator);
+        return MathOps::Factory::CreateConstantValue(numerator) / MathOps::Factory::CreateConstantValue(denominator);
     }
 
     static Fraction<T> quiet_NaN()
@@ -38,10 +38,10 @@ struct Fraction
         Fraction<T> upper(1, 1);
 
         T integral;
-        T fractional = MathOps::MathOpFunctionModf(value, integral);
+        T fractional = MathOps::HelperFunctionModf(value, integral);
 
         /* XXX: This is a hack */
-        // if (MathOps::MathOpFunctionAbs(fractional) < max_error)
+        // if (MathOps::HelperFunctionAbs(fractional) < max_error)
         // {
         //     fractional = 0;
         // }
@@ -56,7 +56,7 @@ struct Fraction
             Fraction<T> middle(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
             T test = middle.result();
 
-            if (MathOps::MathOpFunctionAbs(test - fractional) <= max_error)
+            if (MathOps::HelperFunctionAbs(test - fractional) <= max_error)
             {
                 return Fraction<T>(middle.numerator + integral * middle.denominator, middle.denominator);
             }
@@ -78,7 +78,7 @@ struct Fraction
 template <typename T>
 Fraction<T> solver(std::shared_ptr<MathOps::MathOp<T>> y, std::shared_ptr<MathOps::MathOp<T>> numerator, T value, T max_error, int iters)
 {
-    auto result = MathOps::MathFactory::ConstantValue(value);
+    auto result = MathOps::Factory::CreateConstantValue(value);
 
     auto solved = y->transform(MathOps::MathOpRearrangeTransformer<T>(numerator, result));
     auto fraction = Fraction<T>::find(solved->result(), max_error, iters);
@@ -95,7 +95,7 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
 
     for (auto y : equations)
     {
-        auto numerator = y->transform(MathOps::MathOpFindVariableTransformer<T>("numerator"));
+        auto numerator = y->transform(MathOps::FindVariableTransformer<T>("numerator"));
 
         auto fraction = solver<T>(y, numerator, value, max_error, iters);
 
@@ -103,7 +103,7 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
         {
             best_fraction = fraction;
             best_numerator = numerator;
-            best_denominator = y->transform(MathOps::MathOpFindVariableTransformer<T>("denominator"));
+            best_denominator = y->transform(MathOps::FindVariableTransformer<T>("denominator"));
             best_y = y;
         }
     }
@@ -113,8 +113,8 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
         return nullptr;
     }
 
-    return best_y->transform(MathOps::MathOpReplaceTransformer<T>(best_numerator, MathOps::MathFactory::ConstantValue(best_fraction.numerator)))
-        ->transform(MathOps::MathOpReplaceTransformer<T>(best_denominator, MathOps::MathFactory::ConstantValue(best_fraction.denominator)))
+    return best_y->transform(MathOps::ReplaceTransformer<T>(best_numerator, MathOps::Factory::CreateConstantValue(best_fraction.numerator)))
+        ->transform(MathOps::ReplaceTransformer<T>(best_denominator, MathOps::Factory::CreateConstantValue(best_fraction.denominator)))
         ->transform(MathOps::MathOpRemoveNoOpTransformer<T>());
 }
 
@@ -128,11 +128,11 @@ std::string useful_fraction(T x)
         return { };
     }
 
-    const auto numerator = MathOps::MathFactory::NamedConstant<T>("numerator", 1.0);
-    const auto denominator = MathOps::MathFactory::NamedConstant<T>("denominator", 1.0);
-    const auto pi = MathOps::MathFactory::SymbolPi<T>();
-    const auto e = MathOps::MathFactory::SymbolE<T>();
-    const auto sq2 = sqrt<T>(MathOps::MathFactory::ConstantValue<T>(2));
+    const auto numerator = MathOps::Factory::CreateNamedConstant<T>("numerator", 1.0);
+    const auto denominator = MathOps::Factory::CreateNamedConstant<T>("denominator", 1.0);
+    const auto pi = MathOps::Factory::CreateSymbolPi<T>();
+    const auto e = MathOps::Factory::CreateSymbolE<T>();
+    const auto sq2 = sqrt<T>(MathOps::Factory::CreateConstantValue<T>(2));
     std::vector<std::shared_ptr<MathOps::MathOp<T>>> equations{
         numerator * pi / denominator,
         numerator / (pi * denominator),
@@ -149,7 +149,7 @@ std::string useful_fraction(T x)
         return { };
     }
 
-    return y->format(MathOps::MathOpDefaultFormatter<T>());
+    return y->format(MathOps::DefaultFormatter<T>());
 }
 
 #endif /* USEFULFRACTION_H */

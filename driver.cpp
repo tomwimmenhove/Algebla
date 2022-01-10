@@ -13,8 +13,8 @@ using namespace std;
 driver::driver(options opt)
     : opt(opt),
       trace_parsing(false), trace_scanning(false),
-      precision(MathOps::MathFactory::Variable<number>("precision", opt.precision)),
-      digits(MathOps::MathFactory::Variable<number>("digits", opt.digits))
+      precision(MathOps::Factory::CreateVariable<number>("precision", opt.precision)),
+      digits(MathOps::Factory::CreateVariable<number>("digits", opt.digits))
 {
     variables.push_back(precision);
     variables.push_back(digits);
@@ -54,7 +54,7 @@ int driver::parse_string(const std::string &line)
     return parser.parse();
 }
 
-void driver::add_var(std::shared_ptr<MathOps::MathOpVariable<number>> variable)
+void driver::add_var(std::shared_ptr<MathOps::OpVariable<number>> variable)
 {
     variables.push_back(variable);
 }
@@ -63,7 +63,7 @@ void driver::make_var(std::string variable)
 {
     if (!get_var(variable))
     {
-        variables.push_back(MathOps::MathFactory::Variable<number>(variable));
+        variables.push_back(MathOps::Factory::CreateVariable<number>(variable));
     }
 }
 
@@ -127,8 +127,8 @@ void driver::warranty()
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
                                               std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable)
 {
-    auto solve_for = std::static_pointer_cast<MathOps::MathOpVariableBase<number>>(
-        lhs->transform(MathOps::MathOpFindVariableTransformer<number>(variable)));
+    auto solve_for = std::static_pointer_cast<MathOps::VariableBase<number>>(
+        lhs->transform(MathOps::FindVariableTransformer<number>(variable)));
 
     if (solve_for)
     {
@@ -139,8 +139,8 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
         return solved;
     }
 
-    solve_for = std::static_pointer_cast<MathOps::MathOpVariableBase<number>>(
-        rhs->transform(MathOps::MathOpFindVariableTransformer<number>(variable)));
+    solve_for = std::static_pointer_cast<MathOps::VariableBase<number>>(
+        rhs->transform(MathOps::FindVariableTransformer<number>(variable)));
 
     if (!solve_for)
     {
@@ -176,7 +176,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     auto v = get_var(variable);
     if (!v)
     {
-        auto new_variable = MathOps::MathFactory::Variable(variable, result);
+        auto new_variable = MathOps::Factory::CreateVariable(variable, result);
         variables.push_back(new_variable);
 
         return new_variable;
@@ -187,7 +187,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     return v;
 }
 
-std::shared_ptr<MathOps::MathOpVariable<number>> driver::find_var(std::string variable)
+std::shared_ptr<MathOps::OpVariable<number>> driver::find_var(std::string variable)
 {
     auto v = get_var(variable);
     if (!v)
@@ -198,10 +198,10 @@ std::shared_ptr<MathOps::MathOpVariable<number>> driver::find_var(std::string va
     return v;
 }
 
-std::shared_ptr<MathOps::MathOpVariable<number>> driver::get_var(std::string variable)
+std::shared_ptr<MathOps::OpVariable<number>> driver::get_var(std::string variable)
 {
     auto it = std::find_if(variables.begin(), variables.end(),
-        [&variable](std::shared_ptr<MathOps::MathOpVariable<number>> v) { return v->get_symbol() == variable; });
+        [&variable](std::shared_ptr<MathOps::OpVariable<number>> v) { return v->get_symbol() == variable; });
 
     return it == variables.end()
         ? nullptr
@@ -225,7 +225,7 @@ void driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
         return;
     }
 
-    MathOps::MathOpDefaultFormatter<number> formatter(int_digits);
+    MathOps::DefaultFormatter<number> formatter(int_digits);
 
     std::cout << "  " << op->format(formatter) << " = ";
 
