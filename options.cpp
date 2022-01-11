@@ -126,11 +126,10 @@ void options::print_version()
 int options::parse_int(const char *s)
 {
     char *endptr = nullptr;
-    long number = 0;
 
     errno = 0;
 
-    int i = strtol(s, &endptr, 10);
+    long i = strtol(s, &endptr, 10);
 
     int error = errno;
     if (error)
@@ -145,5 +144,5 @@ int options::parse_int(const char *s)
         exit(1);
     }
 
-    return i;
+    return (int) i;
 }

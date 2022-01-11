@@ -172,7 +172,7 @@ struct Symbol : public Value<T>
 
 protected:
     Symbol(std::string symbol, T value, bool is_constant)
-        : symbol(symbol), Value<T>(value, is_constant)
+        : Value<T>(value, is_constant), symbol(symbol)
     { }
 
     std::string symbol;
@@ -231,7 +231,7 @@ struct VariableBase : public Value<T>
 
 protected:
     VariableBase(std::string symbol, T x)
-        : symbol(symbol), Value<T>(x, false)
+        : Value<T>(x, false), symbol(symbol)
     { }
 
 private:
