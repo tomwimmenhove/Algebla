@@ -1,16 +1,19 @@
 #ifndef STDHELPER_H
 #define STDHELPER_H
 
-#include <numbers>
+//#include <numbers>
+#include <cmath>
 
 namespace MathOps
 {
 
 template<typename T>
-T get_constant_pi() { return std::numbers::pi_v<T>; }
+//T get_constant_pi() { return std::numbers::pi_v<T>; }
+T get_constant_pi() { return (T) (M_PIl); }
 
 template<typename T>
-T get_constant_e() { return std::numbers::e_v<T>; }
+//T get_constant_e() { return std::numbers::e_v<T>; }
+T get_constant_e() { return (T) (M_El); }
 
 float modf(float x, float& integral);
 float isnan(float x);

@@ -4,7 +4,7 @@ project(algeblah VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
-add_compile_options(-std=c++20)
+add_compile_options(-std=c++17)
 
 find_package(BISON)
 find_package(FLEX)
