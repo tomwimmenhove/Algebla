@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "mathop/findvariabetransformer.h"
 #include "mathop/rearrangetransformer.h"
+#include "mathop/countvariabletransformer.h"
 #include "mathop/defaultformatter.h"
 #include "usefulfraction.h"
 
@@ -130,29 +131,32 @@ void driver::warranty()
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
                                               std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable)
 {
-    auto solve_for = std::static_pointer_cast<MathOps::VariableBase<number>>(
-        lhs->transform(MathOps::FindVariableTransformer<number>(variable)));
+    MathOps::CountVariableTransformer<number> left_counter(variable);
+    MathOps::CountVariableTransformer<number> right_counter(variable);
+    lhs->transform(left_counter);
+    rhs->transform(right_counter);
+    int left_count = left_counter.get_count();
+    int total_count = left_count + right_counter.get_count();
 
-    if (solve_for)
-    {
-        auto solved = lhs->transform(MathOps::MathOpRearrangeTransformer<number>(solve_for, rhs));
-
-        solve_for->set(solved->result());
-
-        return solved;
-    }
-
-    solve_for = std::static_pointer_cast<MathOps::VariableBase<number>>(
-        rhs->transform(MathOps::FindVariableTransformer<number>(variable)));
-
-    if (!solve_for)
+    if (total_count == 0)
     {
         throw yy::parser::syntax_error(location, "variable " + variable + " appears on neither left or right side");        
     }
 
-    auto solved = rhs->transform(MathOps::MathOpRearrangeTransformer<number>(solve_for, lhs));
+    if (total_count > 1)
+    {
+        throw yy::parser::syntax_error(location, "variable " + variable + " appears more than once");        
+    }
 
-    solve_for->set(solved->result());
+    auto solve_side  = left_count ? lhs : rhs;
+    auto result_side = left_count ? rhs : lhs;
+
+    auto solve_variable = std::static_pointer_cast<MathOps::VariableBase<number>>(
+        solve_side->transform(MathOps::FindVariableTransformer<number>(variable)));
+
+    auto solved = solve_side->transform(MathOps::MathOpRearrangeTransformer<number>(solve_variable, result_side));
+
+    solve_variable->set(solved->result());
 
     return solved;
 }
