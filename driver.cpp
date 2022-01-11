@@ -164,7 +164,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     /* Special variables */
     if (variable == precision->get_symbol())
     {
-        if (opt.max_precision > 0 && (int) result < opt.max_precision)
+        if (opt.max_precision > 0 && (int) result > opt.max_precision)
         {
             std::cerr << "Value exceeds maximum precision.\n";
 

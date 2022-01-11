@@ -84,7 +84,7 @@ options::options(int argc, char **argv)
 
     if (max_precision > 0 && precision > max_precision)
     {
-        std::cerr << "Precision can not be set to a value greater than the maximum precision.\n";
+        std::cerr << "Precision can not be greater than the maximum precision.\n";
         exit(1);
     }
 
