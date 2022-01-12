@@ -7,81 +7,81 @@ namespace MathOps
 {
 
 template <typename T>
-struct ReverseTransformer : public Transformer<T>
+struct ReverseTransformer : public Visitor<T>
 {
     ReverseTransformer(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from)
         : for_side(for_side), from(from)
     { }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MutableSymbol<T>> op) override { return nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<OpVariable<T>> op) override { return nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ValueVariable<T>> op) override { return nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<NamedConstant<T>> op) override { return nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MutableValue<T>> op) override { return nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ConstantValue<T>> op) override { return nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
  
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Negate<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Negate<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return -from;
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sqrt<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return square(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Square<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Square<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return sqrt(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Log<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Log<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return Pow<T>::create(Factory::CreateSymbolE<T>(), from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sin<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Sin<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return asin(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ASin<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<ASin<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return sin(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Cos<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Cos<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return acos(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ACos<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<ACos<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return cos(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Tan<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Tan<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return atan(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ATan<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<ATan<T>> op)
     {
-        if (for_side != op->get_x()) return nullptr;
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return tan(from);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Pow<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Pow<T>> op)
     {
         auto lhs = op->get_lhs();
         auto rhs = op->get_rhs();
@@ -101,36 +101,36 @@ struct ReverseTransformer : public Transformer<T>
         }
         else
         {
-            return nullptr;
+            return std::shared_ptr<MathOp<T>>(nullptr);
         }
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Mul<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Mul<T>> op)
     {
         if      (for_side == op->get_lhs()) return from / op->get_rhs();
         else if (for_side == op->get_rhs()) return from / op->get_lhs();
-        else                                return nullptr;
+        else                                return std::shared_ptr<MathOp<T>>(nullptr);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Div<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Div<T>> op)
     {
         if      (for_side == op->get_lhs()) return from * op->get_rhs();
         else if (for_side == op->get_rhs()) return op->get_lhs() / from;
-        else                                return nullptr;
+        else                                return std::shared_ptr<MathOp<T>>(nullptr);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Add<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Add<T>> op)
     {
         if      (for_side == op->get_lhs()) return from - op->get_rhs();
         else if (for_side == op->get_rhs()) return from - op->get_lhs();
-        else                                return nullptr;
+        else                                return std::shared_ptr<MathOp<T>>(nullptr);
     }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sub<T>> op)
+    VisitorResult<T> visit(std::shared_ptr<Sub<T>> op)
     {
         if      (for_side == op->get_lhs()) return from + op->get_rhs();
         else if (for_side == op->get_rhs()) return op->get_lhs() - from;
-        else                                return nullptr;
+        else                                return std::shared_ptr<MathOp<T>>(nullptr);
     }
 
 private:

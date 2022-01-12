@@ -7,6 +7,7 @@
 #include <sstream>
 #include <memory>
 #include <vector>
+#include <variant>
 
 namespace MathOps
 {
@@ -36,60 +37,35 @@ template<typename T> struct Div;
 template<typename T> struct Add;
 template<typename T> struct Sub;
 
-template<typename T>
-struct Transformer
-{
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MutableSymbol<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ConstantSymbol<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<OpVariable<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ValueVariable<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<NamedConstant<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MutableValue<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ConstantValue<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Negate<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sqrt<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Square<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Log<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sin<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ASin<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Cos<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ACos<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Tan<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ATan<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Pow<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Mul<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Div<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Add<T>> op) = 0;
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sub<T>> op) = 0;
-    virtual ~Transformer() {}
-};
+template <typename T>
+using VisitorResult = std::variant<int, std::string, std::shared_ptr<MathOp<T>>>;
 
 template<typename T>
-struct Formatter
+struct Visitor
 {
-    virtual std::string visit(std::shared_ptr<MutableSymbol<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<ConstantSymbol<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<OpVariable<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<ValueVariable<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<NamedConstant<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<MutableValue<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<ConstantValue<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Negate<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Sqrt<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Square<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Log<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Sin<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<ASin<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Cos<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<ACos<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Tan<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<ATan<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Pow<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Mul<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Div<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Add<T>> op) = 0;
-    virtual std::string visit(std::shared_ptr<Sub<T>> op) = 0;
-    virtual ~Formatter() {}
+    virtual VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Square<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Log<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Cos<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<ACos<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Tan<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Pow<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Mul<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Div<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Add<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Sub<T>> op) = 0;
+    virtual ~Visitor() {}
 };
 
 /* BODMAS */
@@ -110,11 +86,15 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     virtual bool is_commutative() const = 0;
     virtual bool is_constant() const = 0;
     virtual bool right_associative() const { return false; }
-    virtual std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) = 0;
-    virtual std::string format(Formatter<T>& visitor) = 0;
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>&& visitor) { return transform(visitor); }
-    std::string format(Formatter<T>&& visitor) { return format(visitor); }
+    std::shared_ptr<MathOp<T>> transform(Visitor<T>& visitor) { return std::get<std::shared_ptr<MathOp<T>>>(accept(visitor)); }
+    std::shared_ptr<MathOp<T>> transform(Visitor<T>&& visitor) { return transform(visitor); }
+
+    std::string format(Visitor<T>& visitor) { return std::get<std::string>(accept(visitor)); }
+    std::string format(Visitor<T>&& visitor) { return format(visitor); }
+
+    int count(Visitor<T>& visitor) { return std::get<int>(accept(visitor)); }
+    int count(Visitor<T>&& visitor) { return format(visitor); }
 
     friend std::shared_ptr<MathOp<T>> operator+(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
@@ -142,6 +122,9 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     }
 
     virtual ~MathOp() { }
+
+protected:
+    virtual VisitorResult<T> accept(Visitor<T>& visitor) = 0;
 };
 
 /* Primitive math values */
@@ -186,17 +169,12 @@ struct MutableSymbol : public Symbol<T>
         return std::shared_ptr<MutableSymbol<T>>(new MutableSymbol<T>>(symbol, value));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<MutableSymbol<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<MutableSymbol<T>>(this->shared_from_this()));
-    }
-
 protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<MutableSymbol<T>>(this->shared_from_this()));
+    }
+
     MutableSymbol(std::string symbol, T value) : Symbol<T>(symbol, value, false) { }
 };
 
@@ -208,17 +186,13 @@ struct ConstantSymbol : public Symbol<T>
         return std::shared_ptr<ConstantSymbol<T>>(new ConstantSymbol<T>(symbol, value));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ConstantSymbol<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ConstantSymbol<T>>(this->shared_from_this()));
-    }
-
     void set(T x) = delete;
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<ConstantSymbol<T>>(this->shared_from_this()));
+    }
 
 private:
     ConstantSymbol(std::string symbol, T value) : Symbol<T>(symbol, value, true) { }
@@ -246,12 +220,8 @@ struct OpVariable : public VariableBase<T>
         return std::shared_ptr<OpVariable<T>>(new OpVariable<T>(symbol, x));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<OpVariable<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<OpVariable<T>>(this->shared_from_this()));
     }
@@ -268,17 +238,12 @@ struct ValueVariable : public VariableBase<T>
         return std::shared_ptr<ValueVariable<T>>(new ValueVariable<T>(symbol, x));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ValueVariable<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ValueVariable<T>>(this->shared_from_this()));
-    }
-
 protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<ValueVariable<T>>(this->shared_from_this()));
+    }
+
     ValueVariable(std::string symbol, T x) : VariableBase<T>(symbol, x) { }
 };
 
@@ -290,17 +255,13 @@ struct NamedConstant : public ValueVariable<T>
         return std::shared_ptr<NamedConstant<T>>(new NamedConstant<T>(symbol, x));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<NamedConstant<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<NamedConstant<T>>(this->shared_from_this()));
-    }
-
     void set(T x) = delete;
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<NamedConstant<T>>(this->shared_from_this()));
+    }
 
 private:
     NamedConstant(std::string symbol, T x) : ValueVariable<T>(symbol, x) { }
@@ -314,12 +275,8 @@ struct MutableValue : public Value<T>
         return std::make_shared<MutableValue<T>>(value);
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<MutableValue<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<MutableValue<T>>(this->shared_from_this()));
     }
@@ -336,17 +293,13 @@ struct ConstantValue : public Value<T>
         return std::shared_ptr<ConstantValue<T>>(new ConstantValue(value));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ConstantValue<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ConstantValue<T>>(this->shared_from_this()));
-    }
-
     void set(T x) = delete;
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<ConstantValue<T>>(this->shared_from_this()));
+    }
 
 private:
     ConstantValue(T value) : Value<T>(value, true) { }
@@ -592,12 +545,8 @@ struct Negate : public MathUnaryOp<T, negate<T>>
         return std::shared_ptr<Negate<T>>(new Negate<T>(x));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Negate<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<Negate<T>>(this->shared_from_this()));
     }
@@ -616,12 +565,8 @@ struct Sqrt : public MathUnaryOp<T, square_root<T>>
         return std::shared_ptr<Sqrt<T>>(new Sqrt<T>(x));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sqrt<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<Sqrt<T>>(this->shared_from_this()));
     }
@@ -640,12 +585,8 @@ struct Square : public MathUnaryOp<T, squares<T>>
         return std::shared_ptr<Square<T>>(new Square<T>(x));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Square<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<Square<T>>(this->shared_from_this()));
     }
@@ -661,12 +602,8 @@ struct Log : public MathUnaryOp<T, logarithm<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Log<T>>(new Log<T>(x)); }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Log<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<Log<T>>(this->shared_from_this()));
     }
@@ -682,12 +619,8 @@ struct Sin : public MathUnaryOp<T, sine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Sin<T>>(new Sin<T>(x)); }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sin<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<Sin<T>>(this->shared_from_this()));
     }
@@ -703,12 +636,8 @@ struct ASin : public MathUnaryOp<T, inverse_sine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ASin<T>>(new ASin<T>(x)); }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ASin<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<ASin<T>>(this->shared_from_this()));
     }
@@ -724,12 +653,8 @@ struct Cos : public MathUnaryOp<T, cosine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Cos<T>>(new Cos<T>(x)); }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Cos<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<Cos<T>>(this->shared_from_this()));
     }
@@ -745,12 +670,8 @@ struct ACos : public MathUnaryOp<T, inverse_cosine<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ACos<T>>(new ACos<T>(x)); }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ACos<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<ACos<T>>(this->shared_from_this()));
     }
@@ -766,12 +687,8 @@ struct Tan : public MathUnaryOp<T, tangent<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Tan<T>>(new Tan<T>(x)); }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Tan<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<Tan<T>>(this->shared_from_this()));
     }
@@ -787,12 +704,8 @@ struct ATan : public MathUnaryOp<T, inverse_tangent<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ATan<T>>(new ATan<T>(x)); }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ATan<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
     {
         return visitor.visit(std::static_pointer_cast<ATan<T>>(this->shared_from_this()));
     }
@@ -822,18 +735,14 @@ struct Pow : public MathBinaryOp<T, raises<T>>
         return std::shared_ptr<Pow<T>>(new Pow<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Pow<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Pow<T>>(this->shared_from_this()));
-    }
-
     bool is_commutative() const override { return false; }
     bool right_associative() const override { return true; }
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<Pow<T>>(this->shared_from_this()));
+    }
 
 private:
     Pow(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
@@ -849,17 +758,13 @@ struct Mul : public MathBinaryOp<T, multiplies<T>>
         return std::shared_ptr<Mul<T>>(new Mul<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Mul<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Mul<T>>(this->shared_from_this()));
-    }
-
     bool is_commutative() const override { return true; }
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<Mul<T>>(this->shared_from_this()));
+    }
 
 private:
     Mul(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
@@ -875,17 +780,13 @@ struct Div : public MathBinaryOp<T, divides<T>>
         return std::shared_ptr<Div<T>>(new Div<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Div<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Div<T>>(this->shared_from_this()));
-    }
-
     bool is_commutative() const override { return false; }
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<Div<T>>(this->shared_from_this()));
+    }
 
 private:
     Div(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
@@ -901,17 +802,13 @@ struct Add : public MathBinaryOp<T, plus<T>>
         return std::shared_ptr<Add<T>>(new Add<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Add<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Add<T>>(this->shared_from_this()));
-    }
-
     bool is_commutative() const override { return true; }
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<Add<T>>(this->shared_from_this()));
+    }
 
 private:
     Add(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
@@ -927,17 +824,13 @@ struct Sub : public MathBinaryOp<T, minus<T>>
         return std::shared_ptr<Sub<T>>(new Sub<T>(lhs, rhs));
     }
 
-    std::shared_ptr<MathOp<T>> transform(Transformer<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sub<T>>(this->shared_from_this()));
-    }
-
-    std::string format(Formatter<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sub<T>>(this->shared_from_this()));
-    }
-
     bool is_commutative() const override { return false; }
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<Sub<T>>(this->shared_from_this()));
+    }
 
 private:
     Sub(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)

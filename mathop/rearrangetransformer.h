@@ -8,36 +8,36 @@ namespace MathOps
 {
 
 template <typename T>
-struct MathOpRearrangeTransformer : public Transformer<T>
+struct MathOpRearrangeTransformer : public Visitor<T>
 {
     MathOpRearrangeTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from)
         : solve_for(solve_for), from(from)
     { }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MutableSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<OpVariable<T>> op) override { return op == solve_for ? from : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ValueVariable<T>> op) override { return op == solve_for ? from : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<NamedConstant<T>> op) override { return op == solve_for ? from : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<MutableValue<T>> op) override { return op == solve_for ? from : nullptr; }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ConstantValue<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return op == solve_for ? from : nullptr; }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Negate<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Square<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Log<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sin<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ASin<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Cos<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ACos<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Tan<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<ATan<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Square<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Cos<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<ACos<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Tan<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) override { return solve_for_unary(op, op->get_x()); }
 
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Pow<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Mul<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Div<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Add<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
-    std::shared_ptr<MathOp<T>> visit(std::shared_ptr<Sub<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    VisitorResult<T> visit(std::shared_ptr<Pow<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    VisitorResult<T> visit(std::shared_ptr<Mul<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    VisitorResult<T> visit(std::shared_ptr<Div<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    VisitorResult<T> visit(std::shared_ptr<Add<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
+    VisitorResult<T> visit(std::shared_ptr<Sub<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
 
 private:
     const std::shared_ptr<MathOp<T>> solve_for;

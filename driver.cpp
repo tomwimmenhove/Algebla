@@ -131,12 +131,10 @@ void driver::warranty()
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
                                               std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable)
 {
-    MathOps::CountVariableTransformer<number> left_counter(variable);
-    MathOps::CountVariableTransformer<number> right_counter(variable);
-    lhs->transform(left_counter);
-    rhs->transform(right_counter);
-    int left_count = left_counter.get_count();
-    int total_count = left_count + right_counter.get_count();
+    MathOps::VariableCounter<number> counter(variable);
+    int left_count = lhs->count(counter);
+    int right_count = rhs->count(counter);
+    int total_count = left_count + right_count;
 
     if (total_count == 0)
     {

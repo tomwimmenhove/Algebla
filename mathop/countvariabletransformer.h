@@ -1,35 +1,27 @@
-#ifndef COUNTVARIABLETRANSFORMER_H
-#define COUNTVARIABLETRANSFORMER_H
+#ifndef VARIABLECOUNTER_H
+#define VARIABLECOUNTER_H
 
-#include "dummytransformer.h"
+#include "dummycounter.h"
 
 namespace MathOps
 {
 
 template <typename T>
-struct CountVariableTransformer : public DummyTransformer<T>
+struct VariableCounter : public DummyCounter<T>
 {
-    CountVariableTransformer(std::string symbol)
-        : n(0), symbol(symbol)
+    VariableCounter(std::string symbol)
+        : symbol(symbol)
     { }
 
-    int get_count() const { return n; }
-
-    virtual std::shared_ptr<MathOp<T>> visit(std::shared_ptr<OpVariable<T>> op) override
+    VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) override
     {
-        if (op->get_symbol() == symbol)
-        {
-            n++;
-        }
-
-        return op;
+        return op->get_symbol() == symbol ? 1 : 0;
     }
 
 private:
-    int n;
     std::string symbol;
 };
 
 } /* namespace MathOps */
 
-#endif /* COUNTVARIABLETRANSFORMER_H */
+#endif /* VARIABLECOUNTER_H */
