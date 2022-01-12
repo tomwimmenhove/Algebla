@@ -4,7 +4,7 @@
 
 #include "driver.h"
 #include "parser.h"
-#include "mathop/findvariabetransformer.h"
+#include "mathop/findvariablecounter.h"
 #include "mathop/rearrangetransformer.h"
 #include "mathop/countvariabletransformer.h"
 #include "mathop/defaultformatter.h"
@@ -150,7 +150,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     auto result_side = left_count ? rhs : lhs;
 
     auto solve_variable = std::static_pointer_cast<MathOps::VariableBase<number>>(
-        solve_side->transform(MathOps::FindVariableTransformer<number>(variable)));
+        solve_side->transform(MathOps::FindVariableCounter<number>(variable)));
 
     auto solved = solve_side->transform(MathOps::MathOpRearrangeTransformer<number>(solve_variable, result_side));
 

@@ -1,5 +1,5 @@
-#ifndef FINDVARIABLETRANSFORMER_H
-#define FINDVARIABLETRANSFORMER_H
+#ifndef FINDVARIABLECOUNTER_H
+#define FINDVARIABLECOUNTER_H
 
 #include "algeblah.h"
 
@@ -7,9 +7,9 @@ namespace MathOps
 {
 
 template <typename T>
-struct FindVariableTransformer : public Visitor<T>
+struct FindVariableCounter : public Visitor<T>
 {
-    FindVariableTransformer(std::string symbol)
+    FindVariableCounter(std::string symbol)
         : symbol(symbol)
     { }
 
@@ -119,4 +119,4 @@ private:
 
 } /* namespace MathOps */
 
-#endif /* FINDVARIABLETRANSFORMER_H */
+#endif /* FINDVARIABLECOUNTER_H */
