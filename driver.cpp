@@ -10,17 +10,13 @@
 #include "mathop/defaultformatter.h"
 #include "usefulfraction.h"
 
-using namespace std;
-
 driver::driver(options opt)
     : trace_parsing(false), trace_scanning(false),
       opt(opt),
       precision(MathOps::Factory::CreateVariable<number>("precision", opt.precision)),
-      digits(MathOps::Factory::CreateVariable<number>("digits", opt.digits))
+      digits(MathOps::Factory::CreateVariable<number>("digits", opt.digits)),
+      variables({precision, digits})
 {
-    variables.push_back(precision);
-    variables.push_back(digits);
-
     boost::multiprecision::mpfr_float::default_precision((int) precision->result());
 }
 

@@ -59,10 +59,11 @@ public:
 private:
 	options opt;
 	bool is_file;
-	std::vector<std::shared_ptr<MathOps::OpVariable<number>>> variables;
 	int var_id = 0;
 
 	std::shared_ptr<MathOps::OpVariable<number>> precision;
 	std::shared_ptr<MathOps::OpVariable<number>> digits;
+
+	std::vector<std::shared_ptr<MathOps::OpVariable<number>>> variables;
 };
 #endif // ! DRIVER_HH
