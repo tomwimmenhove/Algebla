@@ -1,6 +1,10 @@
 #ifndef ALGEBLAH_H
 #define ALGEBLAH_H
 
+#include "mathfunctional.h"
+#include "factory.h"
+#include "visitor.h"
+
 #include <cmath>
 #include <limits>
 #include <string>
@@ -11,62 +15,6 @@
 
 namespace MathOps
 {
-
-/* Forward declarations */
-template<typename T> struct MathOp;
-template<typename T> struct MutableSymbol;
-template<typename T> struct ConstantSymbol;
-template<typename T> struct OpVariable;
-template<typename T> struct ValueVariable;
-template<typename T> struct NamedConstant;
-template<typename T> struct MutableValue;
-template<typename T> struct ConstantValue;
-template<typename T> struct Negate;
-template<typename T> struct Sqrt;
-template<typename T> struct Square;
-template<typename T> struct Log;
-template<typename T> struct Sin;
-template<typename T> struct ASin;
-template<typename T> struct Cos;
-template<typename T> struct ACos;
-template<typename T> struct Tan;
-template<typename T> struct ATan;
-template<typename T> struct Pow;
-template<typename T> struct Mul;
-template<typename T> struct Div;
-template<typename T> struct Add;
-template<typename T> struct Sub;
-
-template <typename T>
-using VisitorResult = std::variant<int, std::string, std::shared_ptr<MathOp<T>>>;
-
-template<typename T>
-struct Visitor
-{
-    virtual VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Square<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Log<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Cos<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<ACos<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Tan<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Pow<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Mul<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Div<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Add<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Sub<T>> op) = 0;
-    virtual ~Visitor() {}
-};
 
 /* BODMAS */
 enum class Bodmas
@@ -305,48 +253,6 @@ private:
     ConstantValue(T value) : Value<T>(value, true) { }
 };
 
-struct Factory
-{
-    template <typename T>
-    static std::shared_ptr<MathOp<T>> CreateSymbolPi() { return ConstantSymbol<T>::create("%pi", get_constant_pi<T>()); }
-
-    template <typename T>
-    static std::shared_ptr<MathOp<T>> CreateSymbolE() { return ConstantSymbol<T>::create("%e", get_constant_e<T>()); }
-
-    template <typename T>
-    static std::shared_ptr<OpVariable<T>> CreateVariable(std::string symbol, T c = 0)
-    {
-        return OpVariable<T>::create(symbol, c);
-    }
-
-    template <typename T>
-    static std::shared_ptr<ValueVariable<T>> CreateValueVariable(std::string symbol, T c = 0)
-    {
-        return ValueVariable<T>::create(symbol, c);
-    }
-
-    template <typename T>
-    static std::shared_ptr<NamedConstant<T>> CreateNamedConstant(std::string symbol, T c = 0)
-    {
-        return NamedConstant<T>::create(symbol, c);
-    }
-    
-    template <typename T>
-    static std::shared_ptr<ConstantValue<T>> CreateConstantValue(T c)
-    {
-        return ConstantValue<T>::create(c);
-    }
-
-    template <typename T>
-    static std::shared_ptr<MutableValue<T>> CreateMutableValue(T x)
-    {
-        return MutableValue<T>::create(x);
-    }
-
-private:
-    Factory() = delete;
-};
-
 /* Unary math operation base class */
 template<typename T, typename U>
 struct MathUnaryOp : public MathOp<T>
@@ -389,154 +295,7 @@ protected:
     U f;
 };
 
-/* Unary operation helpers */
-template <typename T>
-struct negate : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return -x;
-    }
-};
-
-template <typename T>
-struct logarithm : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return log(x);
-    }
-};
-
-template <typename T>
-struct square_root : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return sqrt(x);
-    }
-};
-
-template <typename T>
-struct squares : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return x * x;
-    }
-};
-
-template <typename T>
-struct sine : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return sin(x);
-    }
-};
-
-template <typename T>
-struct inverse_sine : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return asin(x);
-    }
-};
-
-template <typename T>
-struct cosine : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return cos(x);
-    }
-};
-
-template <typename T>
-struct inverse_cosine : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return acos(x);
-    }
-};
-
-template <typename T>
-struct tangent : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return tan(x);
-    }
-};
-
-template <typename T>
-struct inverse_tangent : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return atan(x);
-    }
-};
-
-/* Binary operation helpers */
-template <typename T>
-struct raises : public std::binary_function<T, T, T>
-{
-    T operator()(T x, T y) const
-    {
-        return pow(x, y);
-    }
-};
-
-template <typename T>
-struct multiplies : public std::binary_function<T, T, T>
-{
-    T operator()(T x, T y) const
-    {
-        return x * y;
-    }
-};
-
-template <typename T>
-struct divides : public std::binary_function<T, T, T>
-{
-    T operator()(T x, T y) const
-    {
-        return x / y;
-    }
-};
-
-template <typename T>
-struct plus : public std::binary_function<T, T, T>
-{
-    T operator()(T x, T y) const
-    {
-        return x + y;
-    }
-};
-
-template <typename T>
-struct minus : public std::binary_function<T, T, T>
-{
-    T operator()(T x, T y) const
-    {
-        return x - y;
-    }
-};
-
 /* Unary math operations */
-template<typename T> std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> square(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> sin(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> asin(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> cos(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> acos(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> tan(std::shared_ptr<MathOp<T>> x);
-template<typename T> std::shared_ptr<MathOp<T>> atan(std::shared_ptr<MathOp<T>> x);
-
 template<typename T>
 struct Negate : public MathUnaryOp<T, negate<T>>
 {
