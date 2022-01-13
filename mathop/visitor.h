@@ -12,7 +12,7 @@ namespace MathOps
 template<typename T> struct MathOp;
 template<typename T> struct MutableSymbol;
 template<typename T> struct ConstantSymbol;
-template<typename T> struct OpVariable;
+template<typename T> struct Variable;
 template<typename T> struct ValueVariable;
 template<typename T> struct NamedConstant;
 template<typename T> struct MutableValue;
@@ -40,7 +40,7 @@ struct Visitor
 {
     virtual VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) = 0;

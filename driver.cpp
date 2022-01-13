@@ -52,7 +52,7 @@ int driver::parse_string(const std::string &line)
     return parser.parse();
 }
 
-void driver::add_var(std::shared_ptr<MathOps::OpVariable<number>> variable)
+void driver::add_var(std::shared_ptr<MathOps::Variable<number>> variable)
 {
     variables.push_back(variable);
 }
@@ -207,7 +207,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     return v;
 }
 
-std::shared_ptr<MathOps::OpVariable<number>> driver::find_var(std::string variable)
+std::shared_ptr<MathOps::Variable<number>> driver::find_var(std::string variable)
 {
     auto v = get_var(variable);
     if (!v)
@@ -218,10 +218,10 @@ std::shared_ptr<MathOps::OpVariable<number>> driver::find_var(std::string variab
     return v;
 }
 
-std::shared_ptr<MathOps::OpVariable<number>> driver::get_var(std::string variable)
+std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
 {
     auto it = std::find_if(variables.begin(), variables.end(),
-        [&variable](std::shared_ptr<MathOps::OpVariable<number>> v) { return v->get_symbol() == variable; });
+        [&variable](std::shared_ptr<MathOps::Variable<number>> v) { return v->get_symbol() == variable; });
 
     return it == variables.end()
         ? nullptr

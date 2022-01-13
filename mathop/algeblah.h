@@ -161,21 +161,21 @@ private:
 };
 
 template<typename T>
-struct OpVariable : public VariableBase<T>
+struct Variable : public VariableBase<T>
 {
-    static std::shared_ptr<OpVariable<T>> create(std::string symbol, T x = 0)
+    static std::shared_ptr<Variable<T>> create(std::string symbol, T x = 0)
     {
-        return std::shared_ptr<OpVariable<T>>(new OpVariable<T>(symbol, x));
+        return std::shared_ptr<Variable<T>>(new Variable<T>(symbol, x));
     }
 
 protected:
     VisitorResult<T> accept(Visitor<T>& visitor) override
     {
-        return visitor.visit(std::static_pointer_cast<OpVariable<T>>(this->shared_from_this()));
+        return visitor.visit(std::static_pointer_cast<Variable<T>>(this->shared_from_this()));
     }
     
 private:
-    OpVariable(std::string symbol, T x) : VariableBase<T>(symbol, x) { }
+    Variable(std::string symbol, T x) : VariableBase<T>(symbol, x) { }
 };
 
 template<typename T>

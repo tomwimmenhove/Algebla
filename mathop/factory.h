@@ -11,7 +11,7 @@ namespace MathOps
 template<typename T> struct MathOp;
 template<typename T> struct MutableSymbol;
 template<typename T> struct ConstantSymbol;
-template<typename T> struct OpVariable;
+template<typename T> struct Variable;
 template<typename T> struct ValueVariable;
 template<typename T> struct NamedConstant;
 template<typename T> struct MutableValue;
@@ -26,9 +26,9 @@ struct Factory
     static std::shared_ptr<MathOp<T>> CreateSymbolE() { return ConstantSymbol<T>::create("%e", get_constant_e<T>()); }
 
     template <typename T>
-    static std::shared_ptr<OpVariable<T>> CreateVariable(std::string symbol, T c = 0)
+    static std::shared_ptr<Variable<T>> CreateVariable(std::string symbol, T c = 0)
     {
-        return OpVariable<T>::create(symbol, c);
+        return Variable<T>::create(symbol, c);
     }
 
     template <typename T>

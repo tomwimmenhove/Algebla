@@ -15,7 +15,7 @@ struct VariableCounter : public DummyCounter<T>
         : symbol(symbol)
     { }
 
-    VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) override
+    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override
     {
         if (op->get_symbol() != symbol)
         {
@@ -27,11 +27,11 @@ struct VariableCounter : public DummyCounter<T>
         return 1;
     }
 
-    const std::vector<std::shared_ptr<OpVariable<T>>>& get_variables() const { return variables; }
+    const std::vector<std::shared_ptr<Variable<T>>>& get_variables() const { return variables; }
 
 private:
     std::string symbol;
-    std::vector<std::shared_ptr<OpVariable<T>>> variables;
+    std::vector<std::shared_ptr<Variable<T>>> variables;
 };
 
 } /* namespace MathOps */

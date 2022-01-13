@@ -23,7 +23,7 @@ struct ReplaceTransformer : DummyTransformer<T>
         return op == subject ? replacement : op;
     }
 
-    VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) override
+    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override
     {
         return op == subject ? replacement : op;
     }

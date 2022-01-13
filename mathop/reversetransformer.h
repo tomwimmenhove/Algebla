@@ -15,7 +15,7 @@ struct ReverseTransformer : public Visitor<T>
 
     VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
-    VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
