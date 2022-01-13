@@ -9,7 +9,6 @@ namespace MathOps
 template <typename T>
 struct DummyTransformer : public Visitor<T>
 {
-    virtual VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return op; }
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op; }
     virtual VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return op; }
     virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return op; }

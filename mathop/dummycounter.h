@@ -10,7 +10,6 @@ template <typename T>
 struct DummyCounter : public Visitor<T>
 {
     virtual VisitorResult<T> visit(std::shared_ptr<Variable<T>> op)  override { return 0; }
-    virtual VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return 0; }
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return 0; }
     virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return 0; }
     virtual VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return 0; }

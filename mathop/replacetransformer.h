@@ -13,11 +13,6 @@ struct ReplaceTransformer : DummyTransformer<T>
         : subject(subject), replacement(replacement)
     { }
 
-    VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override
-    {
-        return op == subject ? replacement : op;
-    }
-
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override
     {
         return op == subject ? replacement : op;

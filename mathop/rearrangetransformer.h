@@ -14,7 +14,6 @@ struct MathOpRearrangeTransformer : public Visitor<T>
         : solve_for(solve_for), from(from)
     { }
 
-    VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
     VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return op == solve_for ? from : nullptr; }
     VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return op == solve_for ? from : nullptr; }

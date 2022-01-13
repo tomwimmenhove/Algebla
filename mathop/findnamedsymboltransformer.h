@@ -13,7 +13,6 @@ struct FindNamedSymbolTransformer : public Visitor<T>
         : symbol(symbol)
     { }
 
-    VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }

@@ -110,23 +110,6 @@ protected:
 };
 
 template<typename T>
-struct MutableSymbol : public Symbol<T>
-{
-    static std::shared_ptr<MutableSymbol<T>> create(std::string symbol, T value)
-    {
-        return std::shared_ptr<MutableSymbol<T>>(new MutableSymbol<T>>(symbol, value));
-    }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<MutableSymbol<T>>(this->shared_from_this()));
-    }
-
-    MutableSymbol(std::string symbol, T value) : Symbol<T>(symbol, value, false) { }
-};
-
-template<typename T>
 struct ConstantSymbol : public Symbol<T>
 {
     static std::shared_ptr<ConstantSymbol<T>> create(std::string symbol, T value)

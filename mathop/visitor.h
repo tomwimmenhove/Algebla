@@ -10,7 +10,6 @@ namespace MathOps
 
 /* Forward declarations */
 template<typename T> struct MathOp;
-template<typename T> struct MutableSymbol;
 template<typename T> struct ConstantSymbol;
 template<typename T> struct Variable;
 template<typename T> struct ValueVariable;
@@ -38,7 +37,6 @@ using VisitorResult = std::variant<int, std::string, std::shared_ptr<MathOp<T>>>
 template<typename T>
 struct Visitor
 {
-    virtual VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) = 0;

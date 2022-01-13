@@ -16,7 +16,6 @@ struct DefaultFormatter : Visitor<T>
      : precision(precision)
     { }    
 
-    VisitorResult<T> visit(std::shared_ptr<MutableSymbol<T>> op) override { return op->get_symbol(); }
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op->get_symbol(); }
     VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return op->get_symbol(); }
     VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return value_to_string(op->result()); }
