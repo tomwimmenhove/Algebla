@@ -337,26 +337,6 @@ private:
 };
 
 template<typename T>
-struct Square : public MathUnaryOp<T, squares<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x)
-    {
-        return std::shared_ptr<Square<T>>(new Square<T>(x));
-    }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Square<T>>(this->shared_from_this()));
-    }
-
-private:
-    Square(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, squares<T>>(x)
-    { }
-};
-
-template<typename T>
 struct Log : public MathUnaryOp<T, logarithm<T>>
 {
     static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Log<T>>(new Log<T>(x)); }
@@ -476,7 +456,6 @@ private:
 };
 
 template<typename T> std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x)   { return Sqrt<T>::create(x); }
-template<typename T> std::shared_ptr<MathOp<T>> square(std::shared_ptr<MathOp<T>> x) { return Square<T>::create(x); }
 template<typename T> std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x)    { return Log<T>::create(x); }
 template<typename T> std::shared_ptr<MathOp<T>> sin(std::shared_ptr<MathOp<T>> x)    { return Sin<T>::create(x); }
 template<typename T> std::shared_ptr<MathOp<T>> asin(std::shared_ptr<MathOp<T>> x)   { return ASin<T>::create(x); }

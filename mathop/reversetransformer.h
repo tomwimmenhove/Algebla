@@ -30,13 +30,7 @@ struct ReverseTransformer : public Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op)
     {
         if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
-        return square(from);
-    }
-
-    VisitorResult<T> visit(std::shared_ptr<Square<T>> op)
-    {
-        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
-        return sqrt(from);
+        return Pow<T>::create(from, Factory::CreateConstantValue<T>(2.0));
     }
 
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op)

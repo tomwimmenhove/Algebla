@@ -68,16 +68,6 @@ struct ReplaceTransformer : DummyTransformer<T>
         return DummyTransformer<T>::visit(op);
     }
 
-    VisitorResult<T> visit(std::shared_ptr<Square<T>> op) override
-    {
-        if (op == subject)
-        {
-            return replacement;
-        }
-        
-        return DummyTransformer<T>::visit(op);
-    }
-
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override
     {
         if (op == subject)

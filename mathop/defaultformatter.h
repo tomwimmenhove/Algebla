@@ -26,7 +26,6 @@ struct DefaultFormatter : Visitor<T>
 
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary(op->get_x(), "-"); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }
-    VisitorResult<T> visit(std::shared_ptr<Square<T>> op) override { return str_unary_postfix(op->get_x(), " ^ 2"); }
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return str_unary(op->get_x(), "log"); }
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override { return str_unary(op->get_x(), "sin"); }
     VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) override { return str_unary(op->get_x(), "asin"); }
@@ -90,15 +89,6 @@ private:
         std::stringstream ss;
 
         ss << symbol << '(' << x->format(*this) << ')';
-        
-        return ss.str();
-    }
-
-    std::string str_unary_postfix(std::shared_ptr<MathOp<T>> x, std::string postfix)
-    {
-        std::stringstream ss;
-
-        ss << '(' << x->format(*this) << ')' << postfix;
         
         return ss.str();
     }

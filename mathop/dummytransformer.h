@@ -27,11 +27,6 @@ struct DummyTransformer : public Visitor<T>
         return sqrt(op->get_x()->transform(*this));
     }
 
-    virtual VisitorResult<T> visit(std::shared_ptr<Square<T>> op) override
-    {
-        return square(op->get_x()->transform(*this));
-    }
-
     virtual VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override
     {
         return log(op->get_x()->transform(*this));

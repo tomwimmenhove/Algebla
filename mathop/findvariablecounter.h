@@ -43,11 +43,6 @@ struct FindVariableCounter : public Visitor<T>
         return op->get_x()->transform(*this);
     }
 
-    VisitorResult<T> visit(std::shared_ptr<Square<T>> op) override
-    {
-        return op->get_x()->transform(*this);
-    }
-
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override
     {
         return op->get_x()->transform(*this);

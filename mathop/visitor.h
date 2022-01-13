@@ -19,7 +19,6 @@ template<typename T> struct MutableValue;
 template<typename T> struct ConstantValue;
 template<typename T> struct Negate;
 template<typename T> struct Sqrt;
-template<typename T> struct Square;
 template<typename T> struct Log;
 template<typename T> struct Sin;
 template<typename T> struct ASin;
@@ -48,7 +47,6 @@ struct Visitor
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) = 0;
-    virtual VisitorResult<T> visit(std::shared_ptr<Square<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<Log<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) = 0;

@@ -35,15 +35,6 @@ struct square_root : public std::unary_function<T, T>
 };
 
 template <typename T>
-struct squares : public std::unary_function<T, T>
-{
-    T operator()(T x) const
-    {
-        return x * x;
-    }
-};
-
-template <typename T>
 struct sine : public std::unary_function<T, T>
 {
     T operator()(T x) const

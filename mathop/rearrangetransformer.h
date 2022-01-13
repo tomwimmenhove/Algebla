@@ -24,7 +24,6 @@ struct MathOpRearrangeTransformer : public Visitor<T>
 
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
-    VisitorResult<T> visit(std::shared_ptr<Square<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) override { return solve_for_unary(op, op->get_x()); }
