@@ -95,7 +95,7 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
 
     for (auto y : equations)
     {
-        auto numerator = y->transform(MathOps::FindNamedSymbolTransformer<T>("numerator"));
+        auto numerator = y->transform(MathOps::FindNamedValueTransformer<T>("numerator"));
 
         auto fraction = solver<T>(y, numerator, value, max_error, iters);
 
@@ -103,7 +103,7 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
         {
             best_fraction = fraction;
             best_numerator = numerator;
-            best_denominator = y->transform(MathOps::FindNamedSymbolTransformer<T>("denominator"));
+            best_denominator = y->transform(MathOps::FindNamedValueTransformer<T>("denominator"));
             best_y = y;
         }
     }

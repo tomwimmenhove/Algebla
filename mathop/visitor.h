@@ -10,6 +10,7 @@ namespace MathOps
 
 /* Forward declarations */
 template<typename T> struct MathOp;
+template<typename T> struct Value;
 template<typename T> struct ConstantSymbol;
 template<typename T> struct Variable;
 template<typename T> struct ValueVariable;

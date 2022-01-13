@@ -4,9 +4,9 @@
 
 #include "driver.h"
 #include "parser.h"
-#include "mathop/findnamedsymboltransformer.h"
+#include "mathop/findnamedvaluetransformer.h"
 #include "mathop/rearrangetransformer.h"
-#include "mathop/variablecounter.h"
+#include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
 #include "usefulfraction.h"
 
@@ -127,7 +127,7 @@ void driver::warranty()
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
                                               std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable)
 {
-    MathOps::VariableCounter<number> counter(variable);
+    MathOps::NamedValueCounter<number> counter(variable);
     int left_count = lhs->count(counter);
     auto& variables = counter.get_variables();
 
