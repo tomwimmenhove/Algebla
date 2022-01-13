@@ -3,6 +3,8 @@
 
 #include "dummycounter.h"
 
+#include <vector>
+
 namespace MathOps
 {
 
@@ -15,11 +17,21 @@ struct VariableCounter : public DummyCounter<T>
 
     VisitorResult<T> visit(std::shared_ptr<OpVariable<T>> op) override
     {
-        return op->get_symbol() == symbol ? 1 : 0;
+        if (op->get_symbol() != symbol)
+        {
+            return 0;
+        }
+
+        variables.push_back(op);
+
+        return 1;
     }
+
+    const std::vector<std::shared_ptr<OpVariable<T>>>& get_variables() const { return variables; }
 
 private:
     std::string symbol;
+    std::vector<std::shared_ptr<OpVariable<T>>> variables;
 };
 
 } /* namespace MathOps */

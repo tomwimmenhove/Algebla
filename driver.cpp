@@ -4,9 +4,9 @@
 
 #include "driver.h"
 #include "parser.h"
-#include "mathop/findvariablecounter.h"
+#include "mathop/findnamedsymboltransformer.h"
 #include "mathop/rearrangetransformer.h"
-#include "mathop/countvariabletransformer.h"
+#include "mathop/variablecounter.h"
 #include "mathop/defaultformatter.h"
 #include "usefulfraction.h"
 
@@ -129,15 +129,14 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
 {
     MathOps::VariableCounter<number> counter(variable);
     int left_count = lhs->count(counter);
-    int right_count = rhs->count(counter);
-    int total_count = left_count + right_count;
+    auto& variables = counter.get_variables();
 
-    if (total_count == 0)
+    if (variables.size() == 0)
     {
         throw yy::parser::syntax_error(location, "variable " + variable + " appears on neither left or right side");        
     }
 
-    if (total_count > 1)
+    if (variables.size() > 1)
     {
         throw yy::parser::syntax_error(location, "variable " + variable + " appears more than once");        
     }
@@ -145,8 +144,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     auto solve_side  = left_count ? lhs : rhs;
     auto result_side = left_count ? rhs : lhs;
 
-    auto solve_variable = std::static_pointer_cast<MathOps::VariableBase<number>>(
-        solve_side->transform(MathOps::FindVariableCounter<number>(variable)));
+    auto solve_variable = variables[0];
 
     auto solved = solve_side->transform(MathOps::MathOpRearrangeTransformer<number>(solve_variable, result_side));
 

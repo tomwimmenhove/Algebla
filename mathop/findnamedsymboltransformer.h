@@ -7,9 +7,9 @@ namespace MathOps
 {
 
 template <typename T>
-struct FindVariableCounter : public Visitor<T>
+struct FindNamedSymbolTransformer : public Visitor<T>
 {
-    FindVariableCounter(std::string symbol)
+    FindNamedSymbolTransformer(std::string symbol)
         : symbol(symbol)
     { }
 
