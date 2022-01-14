@@ -14,7 +14,7 @@ FLEX_TARGET(scanner scanner.ll ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(algeblah options.cpp mathop/stdhelper.cpp mathop/mpfrhelper.cpp main.cpp driver.cpp ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS})
+add_executable(algeblah options.cpp main.cpp driver.cpp ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS})
 
 target_link_libraries(algeblah readline mpfr)
 
