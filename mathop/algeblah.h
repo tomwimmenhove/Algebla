@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <variant>
+#include <cassert>
 
 namespace MathOps
 {
@@ -76,27 +77,12 @@ protected:
 };
 
 /* Primitive math values */
-struct ValueException: public std::exception
-{
-    ValueException(std::string message)
-        : message(message)
-    { }
-    
-    virtual const char *what() const throw()
-    {
-        return message.c_str();
-    }
-
-private:
-    std::string message;
-};
-
 template<typename T>
 struct Value : public MathOp<T>
 {
     T result() const override { return value; }
-    virtual void set(T x) { throw ValueException("Attempt to set a read-only value"); }
-    virtual std::string get_symbol() const { throw ValueException("Attempt to get symbol name from an unnamed value"); }
+    virtual void set(T x) { std::cerr << "Attempt to set a read-only value\n"; abort(); }
+    virtual std::string get_symbol() const { std::cerr << "Attempt to get symbol name from an unnamed value\n"; abort(); }
     Bodmas precedence() const override { return Bodmas::Parentheses; }
     bool is_commutative() const override { return true; }
 
