@@ -24,12 +24,19 @@ struct MathOpRearrangeTransformer : public Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Cos<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<ACos<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Tan<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Sinh<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<ASinh<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Cosh<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<ACosh<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<Tanh<T>> op) override { return solve_for_unary(op, op->get_x()); }
+    VisitorResult<T> visit(std::shared_ptr<ATanh<T>> op) override { return solve_for_unary(op, op->get_x()); }
 
     VisitorResult<T> visit(std::shared_ptr<Pow<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }
     VisitorResult<T> visit(std::shared_ptr<Mul<T>> op) override { return solve_for_binary(op, op->get_lhs(), op->get_rhs()); }

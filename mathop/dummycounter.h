@@ -19,12 +19,19 @@ struct DummyCounter : public Visitor<T>
     virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return op->get_x()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<Cos<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<ACos<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<Tan<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) override { return op->get_x()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<Sinh<T>> op) override { return op->get_x()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<ASinh<T>> op) override { return op->get_x()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<Cosh<T>> op) override { return op->get_x()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<ACosh<T>> op) override { return op->get_x()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<Tanh<T>> op) override { return op->get_x()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<ATanh<T>> op) override { return op->get_x()->count(*this); }
 
     virtual VisitorResult<T> visit(std::shared_ptr<Pow<T>> op) override
     {

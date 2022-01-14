@@ -31,6 +31,11 @@ struct DummyTransformer : public Visitor<T>
         return log(op->get_x()->transform(*this));
     }
 
+    virtual VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override
+    {
+        return log10(op->get_x()->transform(*this));
+    }
+
     virtual VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override
     {
         return sin(op->get_x()->transform(*this));
@@ -59,6 +64,36 @@ struct DummyTransformer : public Visitor<T>
     virtual VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) override
     {
         return atan(op->get_x()->transform(*this));
+    }
+
+    virtual VisitorResult<T> visit(std::shared_ptr<Sinh<T>> op) override
+    {
+        return sinh(op->get_x()->transform(*this));
+    }
+
+    virtual VisitorResult<T> visit(std::shared_ptr<ASinh<T>> op) override
+    {
+        return asinh(op->get_x()->transform(*this));
+    }
+
+    virtual VisitorResult<T> visit(std::shared_ptr<Cosh<T>> op) override
+    {
+        return cosh(op->get_x()->transform(*this));
+    }
+
+    virtual VisitorResult<T> visit(std::shared_ptr<ACosh<T>> op) override
+    {
+        return acosh(op->get_x()->transform(*this));
+    }
+
+    virtual VisitorResult<T> visit(std::shared_ptr<Tanh<T>> op) override
+    {
+        return tanh(op->get_x()->transform(*this));
+    }
+
+    virtual VisitorResult<T> visit(std::shared_ptr<ATanh<T>> op) override
+    {
+        return atanh(op->get_x()->transform(*this));
     }
 
     virtual VisitorResult<T> visit(std::shared_ptr<Pow<T>> op) override

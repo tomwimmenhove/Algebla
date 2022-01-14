@@ -47,6 +47,11 @@ struct FindNamedValueTransformer : public Visitor<T>
         return op->get_x()->transform(*this);
     }
 
+    VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override
     {
         return op->get_x()->transform(*this);
@@ -73,6 +78,36 @@ struct FindNamedValueTransformer : public Visitor<T>
     }
 
     VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Sinh<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ASinh<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Cosh<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ACosh<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Tanh<T>> op) override
+    {
+        return op->get_x()->transform(*this);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ATanh<T>> op) override
     {
         return op->get_x()->transform(*this);
     }

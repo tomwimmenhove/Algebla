@@ -48,12 +48,19 @@
                    PI            "%pi"
                    SQRT          "sqrt"
                    LOG           "log"
+                   LOG10         "log10"
                    SIN           "sin"
                    ASIN          "asin"
                    COS           "cos"
                    ACOS          "acos"
                    TAN           "tan"
                    ATAN          "atan"
+                   SINH          "sinh"
+                   ASINH         "asinh"
+                   COSH          "cosh"
+                   ACOSH         "acosh"
+                   TANH          "tanh"
+                   ATANH         "atanh"
                    SOLVE         "solve"
                    SHOW          "show"
                    CLEAR         "clear"
@@ -114,12 +121,19 @@ expression  : "number"                        { $$ = MathOps::Factory::CreateCon
             | "(" expression ")"              { $$ = $2; }
             | "sqrt" "(" expression ")"       { $$ = sqrt<number>($3); }
             | "log"  "(" expression ")"       { $$ = log<number>($3); }
+            | "log10"  "(" expression ")"     { $$ = log10<number>($3); }
             | "sin"  "(" expression ")"       { $$ = sin<number>($3); }
             | "asin" "(" expression ")"       { $$ = asin<number>($3); }
             | "cos"  "(" expression ")"       { $$ = cos<number>($3); }
             | "acos" "(" expression ")"       { $$ = acos<number>($3); }
             | "tan"  "(" expression ")"       { $$ = tan<number>($3); }
             | "atan" "(" expression ")"       { $$ = atan<number>($3); }
+            | "sinh"  "(" expression ")"      { $$ = sinh<number>($3); }
+            | "asinh" "(" expression ")"      { $$ = asinh<number>($3); }
+            | "cosh"  "(" expression ")"      { $$ = cosh<number>($3); }
+            | "acosh" "(" expression ")"      { $$ = acosh<number>($3); }
+            | "tanh"  "(" expression ")"      { $$ = tanh<number>($3); }
+            | "atanh" "(" expression ")"      { $$ = atanh<number>($3); }
             ;
 %%
 

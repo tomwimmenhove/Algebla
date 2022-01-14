@@ -26,6 +26,15 @@ struct logarithm : public std::unary_function<T, T>
 };
 
 template <typename T>
+struct common_logarithm : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return log10(x);
+    }
+};
+
+template <typename T>
 struct square_root : public std::unary_function<T, T>
 {
     T operator()(T x) const
@@ -85,6 +94,60 @@ struct inverse_tangent : public std::unary_function<T, T>
     T operator()(T x) const
     {
         return atan(x);
+    }
+};
+
+template <typename T>
+struct hyperbolic_sine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return sinh(x);
+    }
+};
+
+template <typename T>
+struct inverse_hyperbolic_sine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return asinh(x);
+    }
+};
+
+template <typename T>
+struct hyperbolic_cosine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return cosh(x);
+    }
+};
+
+template <typename T>
+struct inverse_hyperbolic_cosine : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return acosh(x);
+    }
+};
+
+template <typename T>
+struct hyperbolic_tangent : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return tanh(x);
+    }
+};
+
+template <typename T>
+struct inverse_hyperbolic_tangent : public std::unary_function<T, T>
+{
+    T operator()(T x) const
+    {
+        return atanh(x);
     }
 };
 

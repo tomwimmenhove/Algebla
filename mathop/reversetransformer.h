@@ -38,6 +38,12 @@ struct ReverseTransformer : public Visitor<T>
         return Pow<T>::create(Factory::CreateSymbolE<T>(), from);
     }
 
+    VisitorResult<T> visit(std::shared_ptr<Log10<T>> op)
+    {
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
+        return Pow<T>::create(Factory::CreateConstantValue<T>(10.0), from);
+    }
+
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op)
     {
         if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
@@ -72,6 +78,42 @@ struct ReverseTransformer : public Visitor<T>
     {
         if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
         return tan(from);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Sinh<T>> op)
+    {
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
+        return asinh(from);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ASinh<T>> op)
+    {
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
+        return sinh(from);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Cosh<T>> op)
+    {
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
+        return acosh(from);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ACosh<T>> op)
+    {
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
+        return cosh(from);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Tanh<T>> op)
+    {
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
+        return atanh(from);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ATanh<T>> op)
+    {
+        if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
+        return tanh(from);
     }
 
     VisitorResult<T> visit(std::shared_ptr<Pow<T>> op)

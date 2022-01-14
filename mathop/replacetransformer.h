@@ -73,6 +73,16 @@ struct ReplaceTransformer : DummyTransformer<T>
         return DummyTransformer<T>::visit(op);
     }
 
+    VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+        
+        return DummyTransformer<T>::visit(op);
+    }
+
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override
     {
         if (op == subject)
@@ -124,6 +134,66 @@ struct ReplaceTransformer : DummyTransformer<T>
     }
 
     VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+        
+        return DummyTransformer<T>::visit(op);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Sinh<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+        
+        return DummyTransformer<T>::visit(op);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ASinh<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+        
+        return DummyTransformer<T>::visit(op);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Cosh<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+        
+        return DummyTransformer<T>::visit(op);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ACosh<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+        
+        return DummyTransformer<T>::visit(op);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<Tanh<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+        
+        return DummyTransformer<T>::visit(op);
+    }
+
+    VisitorResult<T> visit(std::shared_ptr<ATanh<T>> op) override
     {
         if (op == subject)
         {

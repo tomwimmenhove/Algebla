@@ -26,12 +26,19 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary(op->get_x(), "-"); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return str_unary(op->get_x(), "log"); }
+    VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override { return str_unary(op->get_x(), "log10"); }
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op) override { return str_unary(op->get_x(), "sin"); }
     VisitorResult<T> visit(std::shared_ptr<ASin<T>> op) override { return str_unary(op->get_x(), "asin"); }
     VisitorResult<T> visit(std::shared_ptr<Cos<T>> op) override { return str_unary(op->get_x(), "cos"); }
     VisitorResult<T> visit(std::shared_ptr<ACos<T>> op) override { return str_unary(op->get_x(), "acos"); }
     VisitorResult<T> visit(std::shared_ptr<Tan<T>> op) override { return str_unary(op->get_x(), "tan"); }
     VisitorResult<T> visit(std::shared_ptr<ATan<T>> op) override { return str_unary(op->get_x(), "atan"); }
+    VisitorResult<T> visit(std::shared_ptr<Sinh<T>> op) override { return str_unary(op->get_x(), "sinh"); }
+    VisitorResult<T> visit(std::shared_ptr<ASinh<T>> op) override { return str_unary(op->get_x(), "asinh"); }
+    VisitorResult<T> visit(std::shared_ptr<Cosh<T>> op) override { return str_unary(op->get_x(), "cosh"); }
+    VisitorResult<T> visit(std::shared_ptr<ACosh<T>> op) override { return str_unary(op->get_x(), "acosh"); }
+    VisitorResult<T> visit(std::shared_ptr<Tanh<T>> op) override { return str_unary(op->get_x(), "tanh"); }
+    VisitorResult<T> visit(std::shared_ptr<ATanh<T>> op) override { return str_unary(op->get_x(), "atanh"); }
 
     VisitorResult<T> visit(std::shared_ptr<Pow<T>> op) override { return str_binary(op, op->get_lhs(), op->get_rhs(), " ^ "); }
     VisitorResult<T> visit(std::shared_ptr<Mul<T>> op) override { return str_binary(op, op->get_lhs(), op->get_rhs(), " * "); }
