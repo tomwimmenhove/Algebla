@@ -50,7 +50,7 @@ int main(int argc, char** argv)
                      "Copyright (C) 2022 Tom Wimmenhove\n"
                      "\n"
                      "This is free software with ABSOLUTELY NO WARRANTY.\n"
-                     "For details type `warranty'. \n"
+                     "For details, type `:warranty'. For help, type ':help' \n"
                      "\n";
     }
 

@@ -90,11 +90,10 @@
 entries     : %empty
             | statement
             | entries ";" statement
-            | "show"                          { drv.show_variables(); }
-            | "clear"                         { drv.clear_variables(); }
-            | "help"                          { drv.help(); }
-            | "?"                             { drv.help(); }
-            | "warranty"                      { drv.warranty(); }
+            | ":""show"                       { drv.show_variables(); }
+            | ":""clear"                      { drv.clear_variables(); }
+            | ":""help"                       { drv.help(); }
+            | ":""warranty"                   { drv.warranty(); }
             ;
 
 statement   : expression                      { drv.result($1); }
