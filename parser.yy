@@ -97,8 +97,8 @@ entries     : %empty
             | "warranty"                      { drv.warranty(); }
             ;
 
-statement   : expression                      { drv.print_result($1); }
-            | assignment                      { drv.print_result($1); }
+statement   : expression                      { drv.result($1); }
+            | assignment                      { drv.result($1); }
             ;
 
 assignment  : "identifier" "=" expression     { $$ = drv.assign($1, $3); }

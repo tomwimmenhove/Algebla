@@ -40,7 +40,8 @@ public:
 	// The token's location used by the scanner.
 	yy::location location;
 
-	void print_result(std::shared_ptr<MathOps::MathOp<number>> op);
+	void result(std::shared_ptr<MathOps::MathOp<number>> op);
+	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
     	std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable);
 	std::shared_ptr<MathOps::Variable<number>> find_var(std::string variable);
@@ -63,6 +64,7 @@ private:
 
 	std::shared_ptr<MathOps::Variable<number>> precision;
 	std::shared_ptr<MathOps::Variable<number>> digits;
+	std::shared_ptr<MathOps::Variable<number>> ans;
 
 	std::vector<std::shared_ptr<MathOps::Variable<number>>> variables;
 };

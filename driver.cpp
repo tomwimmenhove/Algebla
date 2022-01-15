@@ -15,7 +15,8 @@ driver::driver(options opt)
       opt(opt),
       precision(MathOps::Factory::CreateVariable<number>("precision", opt.precision)),
       digits(MathOps::Factory::CreateVariable<number>("digits", opt.digits)),
-      variables({precision, digits})
+      ans(MathOps::Factory::CreateVariable<number>("ans", 0)),
+      variables({precision, digits, ans})
 {
     boost::multiprecision::mpfr_float::default_precision((int) precision->result());
 }
@@ -76,8 +77,7 @@ void driver::show_variables()
 void driver::clear_variables()
 {
     variables.clear();
-    variables.push_back(precision);
-    variables.push_back(digits);
+    variables.insert(variables.end(), { precision, digits, ans });
 }
 
 void driver::help()
@@ -228,22 +228,31 @@ std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
         : *it;
 }
 
-void driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
+void driver::result(std::shared_ptr<MathOps::MathOp<number>> op)
 {
+    number result = print_result(op);
+    
+    ans->set(result);
+}
+
+number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
+{
+    number result = op->result();
+
     int int_digits = (int) digits->result();
     std::cout << std::setprecision(int_digits);
 
     if (opt.answer_only)
     {
         std::cout << op->result() << '\n';
-        return;
+        return result;
     }
 
     MathOps::DefaultFormatter<number> formatter(int_digits);
 
     std::cout << "  " << op->format(formatter) << " = ";
 
-    std::string uf = useful_fraction<number>(op->result());
+    std::string uf = useful_fraction<number>(result);
     if (uf.empty())
     {
         std::cout << op->result() << '\n';
@@ -252,4 +261,6 @@ void driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
     {
         std::cout << op->result() << " (~" << uf << ")\n";
     }
+
+    return result;
 }
