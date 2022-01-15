@@ -25,7 +25,7 @@
 %option noyywrap nounput batch debug noinput
 
 id       [a-zA-Z][a-zA-Z_0-9]*
-number   ([0-9]+[.]?|\.)[0-9]*([eE][-+]?[0-9]+)?
+number   ([0-9]+[.]?[0-9]*|\.[0-9]+)([eE][-+]?[0-9]+)?
 blank    [ \t]
 
 %{
