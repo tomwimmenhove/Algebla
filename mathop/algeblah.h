@@ -1,7 +1,6 @@
 #ifndef ALGEBLAH_H
 #define ALGEBLAH_H
 
-#include "mathfunctional.h"
 #include "factory.h"
 #include "visitor.h"
 
@@ -13,6 +12,7 @@
 #include <vector>
 #include <variant>
 #include <cassert>
+#include <functional>
 
 namespace MathOps
 {
@@ -232,10 +232,9 @@ private:
 };
 
 /* Unary math operation base class */
-template<typename T, typename U>
+template<typename T>
 struct MathUnaryOp : public MathOp<T>
 {
-    T result() const override { return f(x->result()); }
     Bodmas precedence() const override { return Bodmas::Parentheses; }
     bool is_single() const override { return true; }
     bool is_commutative() const override { return true; }
@@ -249,14 +248,12 @@ protected:
     { }
 
     std::shared_ptr<MathOp<T>>x;
-    U f;
 };
 
 /* Binary math operation base class */
-template<typename T, typename U>
+template<typename T>
 struct MathBinaryOp : public MathOp<T>
 {
-    T result() const override { return f(lhs->result(), rhs->result()); }
     Bodmas precedence() const override { return prec; }
     bool is_constant() const override { return false; }
     bool is_single() const override { return false; }
@@ -272,287 +269,50 @@ protected:
     std::shared_ptr<MathOp<T>>lhs;
     std::shared_ptr<MathOp<T>>rhs;
     Bodmas prec;
-    U f;
 };
 
 /* Unary math operations */
-template<typename T>
-struct Negate : public MathUnaryOp<T, negate<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x)
-    {
-        return std::shared_ptr<Negate<T>>(new Negate<T>(x));
-    }
+#define DEFINE_UNARY_OP(op_name, operation)                                                     \
+template<typename T>                                                                            \
+struct op_name : public MathUnaryOp<T>                                                          \
+{                                                                                               \
+    T result() const override { return (operation); }                                           \
+                                                                                                \
+    static auto create(std::shared_ptr<MathOp<T>> x)                                            \
+    {                                                                                           \
+        return std::shared_ptr<op_name<T>>(new op_name<T>(x));                                  \
+    }                                                                                           \
+                                                                                                \
+protected:                                                                                      \
+    VisitorResult<T> accept(Visitor<T>& visitor) override                                       \
+    {                                                                                           \
+        return visitor.visit(std::static_pointer_cast<op_name<T>>(this->shared_from_this()));   \
+    }                                                                                           \
+                                                                                                \
+private:                                                                                        \
+    op_name(std::shared_ptr<MathOp<T>> x)                                                       \
+        : MathUnaryOp<T>(x)                                                                     \
+    { }                                                                                         \
+}
 
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Negate<T>>(this->shared_from_this()));
-    }
+DEFINE_UNARY_OP(Negate,     -this->x->result());
+DEFINE_UNARY_OP(Sqrt,  sqrt (this->x->result()));
+DEFINE_UNARY_OP(Log,   log  (this->x->result()));
+DEFINE_UNARY_OP(Log10, log10(this->x->result()));
+DEFINE_UNARY_OP(Sin,   sin  (this->x->result()));
+DEFINE_UNARY_OP(Cos,   cos  (this->x->result()));
+DEFINE_UNARY_OP(Tan,   tan  (this->x->result()));
+DEFINE_UNARY_OP(ASin,  asin (this->x->result()));
+DEFINE_UNARY_OP(ACos,  acos (this->x->result()));
+DEFINE_UNARY_OP(ATan,  atan (this->x->result()));
+DEFINE_UNARY_OP(Sinh,  sinh (this->x->result()));
+DEFINE_UNARY_OP(Cosh,  cosh (this->x->result()));
+DEFINE_UNARY_OP(Tanh,  tanh (this->x->result()));
+DEFINE_UNARY_OP(ASinh, asinh(this->x->result()));
+DEFINE_UNARY_OP(ACosh, acosh(this->x->result()));
+DEFINE_UNARY_OP(ATanh, atanh(this->x->result()));
 
-private:
-    Negate(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, negate<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Sqrt : public MathUnaryOp<T, square_root<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x)
-    {
-        return std::shared_ptr<Sqrt<T>>(new Sqrt<T>(x));
-    }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sqrt<T>>(this->shared_from_this()));
-    }
-
-private:
-    Sqrt(std::shared_ptr<MathOp<T>> x)
-        : MathUnaryOp<T, square_root<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Log : public MathUnaryOp<T, logarithm<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Log<T>>(new Log<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Log<T>>(this->shared_from_this()));
-    }
-
-private:
-    Log(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, logarithm<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Log10 : public MathUnaryOp<T, common_logarithm<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Log10<T>>(new Log10<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Log10<T>>(this->shared_from_this()));
-    }
-
-private:
-    Log10(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, common_logarithm<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Sin : public MathUnaryOp<T, sine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Sin<T>>(new Sin<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sin<T>>(this->shared_from_this()));
-    }
-
-private:
-    Sin(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, sine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct ASin : public MathUnaryOp<T, inverse_sine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ASin<T>>(new ASin<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ASin<T>>(this->shared_from_this()));
-    }
-
-private:
-    ASin(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_sine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Cos : public MathUnaryOp<T, cosine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Cos<T>>(new Cos<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Cos<T>>(this->shared_from_this()));
-    }
-
-private:
-    Cos(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, cosine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct ACos : public MathUnaryOp<T, inverse_cosine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ACos<T>>(new ACos<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ACos<T>>(this->shared_from_this()));
-    }
-
-private:
-    ACos(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_cosine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Tan : public MathUnaryOp<T, tangent<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Tan<T>>(new Tan<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Tan<T>>(this->shared_from_this()));
-    }
-
-private:
-    Tan(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, tangent<T>>(x)
-    { }
-};
-
-template<typename T>
-struct ATan : public MathUnaryOp<T, inverse_tangent<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ATan<T>>(new ATan<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ATan<T>>(this->shared_from_this()));
-    }
-
-private:
-    ATan(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_tangent<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Sinh : public MathUnaryOp<T, hyperbolic_sine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Sinh<T>>(new Sinh<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sinh<T>>(this->shared_from_this()));
-    }
-
-private:
-    Sinh(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, hyperbolic_sine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct ASinh : public MathUnaryOp<T, inverse_hyperbolic_sine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ASinh<T>>(new ASinh<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ASinh<T>>(this->shared_from_this()));
-    }
-
-private:
-    ASinh(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_hyperbolic_sine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Cosh : public MathUnaryOp<T, hyperbolic_cosine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Cosh<T>>(new Cosh<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Cosh<T>>(this->shared_from_this()));
-    }
-
-private:
-    Cosh(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, hyperbolic_cosine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct ACosh : public MathUnaryOp<T, inverse_hyperbolic_cosine<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ACosh<T>>(new ACosh<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ACosh<T>>(this->shared_from_this()));
-    }
-
-private:
-    ACosh(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_hyperbolic_cosine<T>>(x)
-    { }
-};
-
-template<typename T>
-struct Tanh : public MathUnaryOp<T, hyperbolic_tangent<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<Tanh<T>>(new Tanh<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Tanh<T>>(this->shared_from_this()));
-    }
-
-private:
-    Tanh(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, hyperbolic_tangent<T>>(x)
-    { }
-};
-
-template<typename T>
-struct ATanh : public MathUnaryOp<T, inverse_hyperbolic_tangent<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>> x) { return std::shared_ptr<ATanh<T>>(new ATanh<T>(x)); }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ATanh<T>>(this->shared_from_this()));
-    }
-
-private:
-    ATanh(std::shared_ptr<MathOp<T>>x)
-        : MathUnaryOp<T, inverse_hyperbolic_tangent<T>>(x)
-    { }
-};
+#undef DEFINE_UNARY_OP
 
 template<typename T> std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x)   { return Sqrt<T>::create(x); }
 template<typename T> std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x)    { return Log<T>::create(x); }
@@ -571,116 +331,39 @@ template<typename T> std::shared_ptr<MathOp<T>> tanh(std::shared_ptr<MathOp<T>> 
 template<typename T> std::shared_ptr<MathOp<T>> atanh(std::shared_ptr<MathOp<T>> x)  { return ATanh<T>::create(x); }
 
 /* Binary math operations */
-template<typename T>
-struct Pow : public MathBinaryOp<T, raises<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-    {
-        return std::shared_ptr<Pow<T>>(new Pow<T>(lhs, rhs));
-    }
-
-    bool is_commutative() const override { return false; }
-    bool right_associative() const override { return true; }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Pow<T>>(this->shared_from_this()));
-    }
-
-private:
-    Pow(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, raises<T>>(lhs, rhs, Bodmas::Exponents)
-    { }
+#define DEFINE_BINARY_OP(op_name, operation, bodmas)                                            \
+template<typename T>                                                                            \
+struct op_name : public MathBinaryOp<T>                                                         \
+{                                                                                               \
+    T result() const override { return (operation); }                                           \
+                                                                                                \
+    static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)            \
+    {                                                                                           \
+        return std::shared_ptr<op_name<T>>(new op_name<T>(lhs, rhs));                           \
+    }                                                                                           \
+                                                                                                \
+    bool is_commutative() const override { return false; }                                      \
+    bool right_associative() const override { return true; }                                    \
+                                                                                                \
+protected:                                                                                      \
+    VisitorResult<T> accept(Visitor<T>& visitor) override                                       \
+    {                                                                                           \
+        return visitor.visit(std::static_pointer_cast<op_name<T>>(this->shared_from_this()));   \
+    }                                                                                           \
+                                                                                                \
+private:                                                                                        \
+    op_name(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)                       \
+        : MathBinaryOp<T>(lhs, rhs, bodmas)                                                     \
+    { }                                                                                         \
 };
 
-template<typename T>
-struct Mul : public MathBinaryOp<T, multiplies<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>> rhs)
-    {
-        return std::shared_ptr<Mul<T>>(new Mul<T>(lhs, rhs));
-    }
+DEFINE_BINARY_OP(Pow, pow(this->lhs->result(),  this->rhs->result()), Bodmas::Exponents);
+DEFINE_BINARY_OP(Mul,    (this->lhs->result() * this->rhs->result()), Bodmas::MultiplicationDivision);
+DEFINE_BINARY_OP(Div,    (this->lhs->result() / this->rhs->result()), Bodmas::MultiplicationDivision);
+DEFINE_BINARY_OP(Add,    (this->lhs->result() + this->rhs->result()), Bodmas::AdditionSubtraction);
+DEFINE_BINARY_OP(Sub,    (this->lhs->result() - this->rhs->result()), Bodmas::AdditionSubtraction);
 
-    bool is_commutative() const override { return true; }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Mul<T>>(this->shared_from_this()));
-    }
-
-private:
-    Mul(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, multiplies<T>>(lhs, rhs, Bodmas::MultiplicationDivision)
-    { }
-};
-
-template<typename T>
-struct Div : public MathBinaryOp<T, divides<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>> rhs)
-    {
-        return std::shared_ptr<Div<T>>(new Div<T>(lhs, rhs));
-    }
-
-    bool is_commutative() const override { return false; }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Div<T>>(this->shared_from_this()));
-    }
-
-private:
-    Div(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, divides<T>>(lhs, rhs, Bodmas::MultiplicationDivision)
-    { }
-};
-
-template<typename T>
-struct Add : public MathBinaryOp<T, plus<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-    {
-        return std::shared_ptr<Add<T>>(new Add<T>(lhs, rhs));
-    }
-
-    bool is_commutative() const override { return true; }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Add<T>>(this->shared_from_this()));
-    }
-
-private:
-    Add(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, plus<T>>(lhs, rhs, Bodmas::AdditionSubtraction)
-    { }
-};
-
-template<typename T>
-struct Sub : public MathBinaryOp<T, minus<T>>
-{
-    static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-    {
-        return std::shared_ptr<Sub<T>>(new Sub<T>(lhs, rhs));
-    }
-
-    bool is_commutative() const override { return false; }
-
-protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Sub<T>>(this->shared_from_this()));
-    }
-
-private:
-    Sub(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)
-        : MathBinaryOp<T, minus<T>>(lhs, rhs, Bodmas::AdditionSubtraction)
-    { }
-};
+#undef DEFINE_BINARY_OP
 
 } /* namespace MathOps */
 
