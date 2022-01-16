@@ -34,6 +34,7 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     virtual Bodmas precedence() const = 0;
     virtual bool is_commutative() const = 0;
     virtual bool is_constant() const = 0;
+    virtual bool is_single() const = 0;
     virtual bool right_associative() const { return false; }
 
     std::shared_ptr<MathOp<T>> transform(Visitor<T>& visitor) { return std::get<std::shared_ptr<MathOp<T>>>(accept(visitor)); }
@@ -81,6 +82,7 @@ template<typename T>
 struct Value : public MathOp<T>
 {
     T result() const override { return value; }
+    bool is_single() const override { return true; }
     virtual void set(T x) { std::cerr << "Attempt to set a read-only value\n"; abort(); }
     virtual std::string get_symbol() const { std::cerr << "Attempt to get symbol name from an unnamed value\n"; abort(); }
     Bodmas precedence() const override { return Bodmas::Parentheses; }
@@ -235,6 +237,7 @@ struct MathUnaryOp : public MathOp<T>
 {
     T result() const override { return f(x->result()); }
     Bodmas precedence() const override { return Bodmas::Parentheses; }
+    bool is_single() const override { return true; }
     bool is_commutative() const override { return true; }
     bool is_constant() const override { return false; }
 
@@ -256,6 +259,7 @@ struct MathBinaryOp : public MathOp<T>
     T result() const override { return f(lhs->result(), rhs->result()); }
     Bodmas precedence() const override { return prec; }
     bool is_constant() const override { return false; }
+    bool is_single() const override { return false; }
 
     std::shared_ptr<MathOp<T>> get_lhs() const { return lhs; }
     std::shared_ptr<MathOp<T>> get_rhs() const { return rhs; }

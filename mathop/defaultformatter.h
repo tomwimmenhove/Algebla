@@ -94,7 +94,14 @@ private:
     {
         std::stringstream ss;
 
-        ss << symbol << '(' << x->format(*this) << ')';
+        if (x->is_single())
+        {
+            ss << symbol << x->format(*this);
+        }
+        else
+        {
+            ss << symbol << '(' << x->format(*this) << ')';            
+        }
         
         return ss.str();
     }
