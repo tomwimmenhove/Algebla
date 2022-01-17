@@ -331,7 +331,7 @@ template<typename T> std::shared_ptr<MathOp<T>> tanh(std::shared_ptr<MathOp<T>> 
 template<typename T> std::shared_ptr<MathOp<T>> atanh(std::shared_ptr<MathOp<T>> x)  { return ATanh<T>::create(x); }
 
 /* Binary math operations */
-#define DEFINE_BINARY_OP(op_name, operation, bodmas)                                            \
+#define DEFINE_BINARY_OP(op_name, operation, commutative, right_assoc, bodmas)                  \
 template<typename T>                                                                            \
 struct op_name : public MathBinaryOp<T>                                                         \
 {                                                                                               \
@@ -342,8 +342,8 @@ struct op_name : public MathBinaryOp<T>                                         
         return std::shared_ptr<op_name<T>>(new op_name<T>(lhs, rhs));                           \
     }                                                                                           \
                                                                                                 \
-    bool is_commutative() const override { return false; }                                      \
-    bool right_associative() const override { return true; }                                    \
+    bool is_commutative() const override { return commutative; }                                \
+    bool right_associative() const override { return right_assoc; }                             \
                                                                                                 \
 protected:                                                                                      \
     VisitorResult<T> accept(Visitor<T>& visitor) override                                       \
@@ -357,11 +357,11 @@ private:                                                                        
     { }                                                                                         \
 };
 
-DEFINE_BINARY_OP(Pow, pow(this->lhs->result(),  this->rhs->result()), Bodmas::Exponents);
-DEFINE_BINARY_OP(Mul,    (this->lhs->result() * this->rhs->result()), Bodmas::MultiplicationDivision);
-DEFINE_BINARY_OP(Div,    (this->lhs->result() / this->rhs->result()), Bodmas::MultiplicationDivision);
-DEFINE_BINARY_OP(Add,    (this->lhs->result() + this->rhs->result()), Bodmas::AdditionSubtraction);
-DEFINE_BINARY_OP(Sub,    (this->lhs->result() - this->rhs->result()), Bodmas::AdditionSubtraction);
+DEFINE_BINARY_OP(Pow, pow(this->lhs->result(),  this->rhs->result()), false,  true, Bodmas::Exponents);
+DEFINE_BINARY_OP(Mul,    (this->lhs->result() * this->rhs->result()), true,  false, Bodmas::MultiplicationDivision);
+DEFINE_BINARY_OP(Div,    (this->lhs->result() / this->rhs->result()), false, false, Bodmas::MultiplicationDivision);
+DEFINE_BINARY_OP(Add,    (this->lhs->result() + this->rhs->result()), true,  false, Bodmas::AdditionSubtraction);
+DEFINE_BINARY_OP(Sub,    (this->lhs->result() - this->rhs->result()), false, false, Bodmas::AdditionSubtraction);
 
 #undef DEFINE_BINARY_OP
 
