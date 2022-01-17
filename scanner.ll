@@ -53,6 +53,7 @@ blank    [ \t]
 ";"         return yy::parser::make_SEMICOLON (loc);
 ":"         return yy::parser::make_COLON     (loc);
 "="         return yy::parser::make_EQUALS    (loc);
+"=>"        return yy::parser::make_LAMBDA    (loc);
 "%pi"       return yy::parser::make_PI        (loc);
 "%e"        return yy::parser::make_E         (loc);
 "sqrt"      return yy::parser::make_SQRT      (loc);

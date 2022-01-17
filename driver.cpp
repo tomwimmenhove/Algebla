@@ -70,7 +70,15 @@ void driver::show_variables()
 {
     for (auto variable: variables)
     {
+        std::cout << "  ";
+
         print_result(variable);
+    }
+
+    for (auto& i: lambdas)
+    {
+        std::cout << "  " << i.first << " => ";
+        print_result(i.second);
     }
 }
 
@@ -156,6 +164,8 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
 
 std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
+    lambdas.erase(variable);
+
     auto result = op->result();
 
     /* Special variables */
@@ -208,15 +218,42 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     return v;
 }
 
-std::shared_ptr<MathOps::Variable<number>> driver::find_var(std::string variable)
+std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    auto v = get_var(variable);
+    auto it = std::find_if(variables.begin(), variables.end(),
+        [&variable](std::shared_ptr<MathOps::Variable<number>> v) { return v->get_symbol() == variable; });
+
+    if (it != variables.end())
+    {
+        variables.erase(it);
+    }
+
+    return lambdas[variable] = op;
+}
+
+std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string variable)
+{
+    std::shared_ptr<MathOps::MathOp<number>> v = get_var(variable);
+    if (v)
+    {
+        return v;
+    }
+
+    v = get_lambda(variable);
     if (!v)
     {
-        throw yy::parser::syntax_error(location, "variable " + variable + " has not been declared");
+        throw yy::parser::syntax_error(location, variable + " has not been declared");
     }
 
     return v;
+}
+
+std::shared_ptr<MathOps::MathOp<number>> driver::get_lambda(std::string variable)
+{
+    auto it = lambdas.find(variable);
+    return it == lambdas.end()
+        ? nullptr
+        : it->second;
 }
 
 std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
@@ -231,6 +268,8 @@ std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
 
 void driver::result(std::shared_ptr<MathOps::MathOp<number>> op)
 {
+    std::cout << "  ";
+
     number result = print_result(op);
     
     ans->set(result);
@@ -249,9 +288,7 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
         return result;
     }
 
-    MathOps::DefaultFormatter<number> formatter(int_digits);
-
-    std::cout << "  " << op->format(formatter) << " = ";
+    std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
 
     std::string uf = useful_fraction<number>(result);
     if (uf.empty())

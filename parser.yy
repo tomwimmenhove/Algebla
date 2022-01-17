@@ -44,6 +44,7 @@
                    SEMICOLON     ";"
                    COLON         ":"
                    EQUALS        "="
+                   LAMBDA        "=>"
                    E             "%e"
                    PI            "%pi"
                    SQRT          "sqrt"
@@ -76,6 +77,7 @@
 %type  <std::shared_ptr<MathOps::MathOp<number>>> expression
 %type  <std::shared_ptr<MathOps::MathOp<number>>> statement
 %type  <std::shared_ptr<MathOps::MathOp<number>>> assignment
+%type  <std::shared_ptr<MathOps::MathOp<number>>> lambda
 
 %right "=";
 %right "==";
@@ -98,15 +100,19 @@ entries     : %empty
 
 statement   : expression                      { drv.result($1); }
             | assignment                      { drv.result($1); }
+            | lambda                          { drv.result($1); }
             ;
 
 assignment  : "identifier" "=" expression     { $$ = drv.assign($1, $3); }
             ;
 
+lambda      : "identifier" "=>" expression    { $$ = drv.assign_lambda($1, $3); }
+            ;
+
 expression  : "number"                        { $$ = MathOps::Factory::CreateConstantValue<number>($1); }
             | "%pi"                           { $$ = MathOps::Factory::CreateSymbolPi<number>(); }
             | "%e"                            { $$ = MathOps::Factory::CreateSymbolE<number>(); }
-            | "identifier"                    { $$ = drv.find_var($1); }
+            | "identifier"                    { $$ = drv.find_identifier($1); }
             | "solve" "identifier"            { drv.make_var($2); } 
               ":" expression "=" expression   { $$ = drv.solve($5, $7, $2); }
             | expression "+" expression       { $$ = $1 + $3; }
