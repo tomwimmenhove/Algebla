@@ -23,7 +23,7 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return value_to_string(op->result()); }
     VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return value_to_string(op->result()); }
 
-    VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary(op->get_x(), "-"); }
+    VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary_sign(op->get_x(), "-"); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return str_unary(op->get_x(), "log"); }
     VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override { return str_unary(op->get_x(), "log10"); }
@@ -90,7 +90,7 @@ private:
         }
     }
 
-    std::string str_unary(std::shared_ptr<MathOp<T>> x, std::string symbol)
+    std::string str_unary_sign(std::shared_ptr<MathOp<T>> x, std::string symbol)
     {
         std::stringstream ss;
 
@@ -102,6 +102,15 @@ private:
         {
             ss << symbol << '(' << x->format(*this) << ')';            
         }
+        
+        return ss.str();
+    }
+
+    std::string str_unary(std::shared_ptr<MathOp<T>> x, std::string symbol)
+    {
+        std::stringstream ss;
+
+        ss << symbol << '(' << x->format(*this) << ')';            
         
         return ss.str();
     }
