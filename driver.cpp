@@ -252,6 +252,15 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
 
 void driver::remove(std::string variable)
 {
+    /* Check if variable is in use */
+    for(auto i: lambdas)
+    {
+        if (i.second->transform(MathOps::FindNamedValueTransformer<number>(variable)))
+        {
+            throw yy::parser::syntax_error(location, "Variable " + variable + " is in use by lambda " + i.first + "\n");
+        }
+    }
+
     variables.erase(std::remove_if(variables.begin(), variables.end(),
             [&variable](auto v) { return v->get_symbol() == variable; }),
         variables.end());
