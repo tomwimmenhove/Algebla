@@ -85,6 +85,7 @@ void driver::show_variables()
 void driver::clear_variables()
 {
     variables.clear();
+    lambdas.clear();
     variables.insert(variables.end(), { precision, digits, ans });
 }
 
@@ -93,13 +94,19 @@ void driver::help()
     std::cout << "Syntax:\n"
                  "  Assignments                  : <variable name> = <expression>\n"
                  "                                  Example: c = sqrt(a^2 + b^2)\n"
+                 "  Lambda assignments           : <variable name> => <expression>\n"
+                 "                                  Example: c => a + b\n"
                  "  Solve for a variable         : solve <variable name>: <expression> = <expession>\n"
                  "                                  Example: solve a: a^2 + b^2 = c^2\n"
+                 "  Delete a vairable or lambda  : <variable name> =\n"
+                 "                                  Example: a =\n"
                  "  Show all assigned variables  : :show\n"
                  "  Clear all assigned variables : :clear\n"
                  "  Help                         : :help\n"
                  "  Constants                    : %pi, %e\n"
-                 "  Math functions               : pow(), log(), sqrt(), sin(), asin(), cos(), acos(), tan(), atan()\n"
+                 "  Math functions               : pow(), log(), log10(), sqrt(),\n"
+                 "                               : sin(), asin(), cos(), acos(), tan(), atan()\n"
+                 "                               : sinh(), asinh(), cosh(), acosh(), tanh(), atanh()\n"
                  "\n"
                  "Default variables:\n"
                  "  digits                       : The number of significant digits to display (default: 5)\n"
@@ -220,6 +227,18 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
 
 std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
+    if (variable == ans->get_symbol() ||
+        variable == digits->get_symbol() ||
+        variable == precision->get_symbol())
+    {
+        throw yy::parser::syntax_error(location, variable + " is reserved");
+    }
+
+    if (op->transform(MathOps::FindNamedValueTransformer<number>(variable)))
+    {
+        throw yy::parser::syntax_error(location, "Lambda may not reference a variable with the same name");
+    }
+
     auto it = std::find_if(variables.begin(), variables.end(),
         [&variable](std::shared_ptr<MathOps::Variable<number>> v) { return v->get_symbol() == variable; });
 
@@ -229,6 +248,15 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
     }
 
     return lambdas[variable] = op;
+}
+
+void driver::remove(std::string variable)
+{
+    variables.erase(std::remove_if(variables.begin(), variables.end(),
+            [&variable](auto v) { return v->get_symbol() == variable; }),
+        variables.end());
+
+    lambdas.erase(variable);
 }
 
 std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string variable)

@@ -91,6 +91,7 @@
 
 entries     : %empty
             | statement
+            | delete
             | entries ";" statement
             | ":""show"                       { drv.show_variables(); }
             | ":""clear"                      { drv.clear_variables(); }
@@ -107,6 +108,9 @@ assignment  : "identifier" "=" expression     { $$ = drv.assign($1, $3); }
             ;
 
 lambda      : "identifier" "=>" expression    { $$ = drv.assign_lambda($1, $3); }
+            ;
+
+delete      : "identifier" "="                { drv.remove($1); }
             ;
 
 expression  : "number"                        { $$ = MathOps::Factory::CreateConstantValue<number>($1); }
