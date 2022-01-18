@@ -78,9 +78,9 @@ void driver::show_variables()
 
     for (auto& i: lambdas)
     {
-        std::cout << "  ";// << i.first << " => ";
-        //print_result(i.second);
-        print_result(find_identifier(i.first));
+        std::cout << "  ";
+
+        print_result(MathOps::Factory::CreateExternal<number>([&i]() { return i.second; }, i.first));
     }
 }
 
