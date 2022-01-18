@@ -14,7 +14,7 @@ struct DefaultFormatter : Visitor<T>
 {
     DefaultFormatter(int precision = 5)
      : precision(precision)
-    { }    
+    { }
 
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op->get_symbol(); }
     VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return op->get_symbol(); }
@@ -22,6 +22,9 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return op->get_symbol(); }
     VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return value_to_string(op->result()); }
     VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return value_to_string(op->result()); }
+
+    //VisitorResult<T> visit(std::shared_ptr<External<T>> op) override { return op->get_external()->format(*this); }
+    VisitorResult<T> visit(std::shared_ptr<External<T>> op) override { return str_unary(op->get_external(), op->get_name() + " => "); }
 
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary_sign(op->get_x(), "-"); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }

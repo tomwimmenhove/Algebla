@@ -77,6 +77,40 @@ protected:
     virtual VisitorResult<T> accept(Visitor<T>& visitor) = 0;
 };
 
+/* External call */
+template<typename T>
+struct External : public MathOp<T>
+{
+    static std::shared_ptr<External<T>> create(std::function<std::shared_ptr<MathOp<T>>()> fn, std::string name)
+    {
+        return std::shared_ptr<External<T>>(new External<T>(fn, name));
+    }
+
+    T result() const override { return fn()->result(); };
+    Bodmas precedence() const override { return fn()->precedence(); };
+    bool is_commutative() const override { return fn()->is_commutative(); };
+    bool is_constant() const override { return fn()->is_constant(); };
+    bool is_single() const override { return fn()->is_single(); };
+    bool right_associative() const override { return fn()->right_associative(); };
+
+    std::string get_name() const { return name; }
+    std::shared_ptr<MathOp<T>> get_external() const { return fn(); }
+
+protected:
+    VisitorResult<T> accept(Visitor<T>& visitor) override
+    {
+        return visitor.visit(std::static_pointer_cast<External<T>>(this->shared_from_this()));
+    }
+
+protected:
+    External(std::function<std::shared_ptr<MathOp<T>>()> fn, std::string name)
+        : fn(fn), name(name)
+    { }
+
+    std::function<std::shared_ptr<MathOp<T>>()> fn;
+    std::string name;
+};
+
 /* Primitive math values */
 template<typename T>
 struct Value : public MathOp<T>

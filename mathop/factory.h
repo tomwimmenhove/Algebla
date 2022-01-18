@@ -9,6 +9,7 @@ namespace MathOps
 
 /* Forward declarations */
 template<typename T> struct MathOp;
+template<typename T> struct External;
 template<typename T> struct ConstantSymbol;
 template<typename T> struct Variable;
 template<typename T> struct ValueVariable;
@@ -23,6 +24,12 @@ struct Factory
 
     template <typename T>
     static std::shared_ptr<MathOp<T>> CreateSymbolE() { return ConstantSymbol<T>::create("%e", get_constant_e<T>()); }
+
+    template <typename T>
+    static std::shared_ptr<External<T>> CreateExternal(std::function<std::shared_ptr<MathOp<T>>()> fn, std::string name)
+    {
+        return External<T>::create(fn, name);
+    }
 
     template <typename T>
     static std::shared_ptr<Variable<T>> CreateVariable(std::string symbol, T c = 0)

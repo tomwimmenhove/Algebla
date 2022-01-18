@@ -1,5 +1,5 @@
-#ifndef FINDNAMEDVALUETRANSFORMER_H
-#define FINDNAMEDVALUETRANSFORMER_H
+#ifndef FINDEXTERNALTRANSFORMER_H
+#define FINDEXTERNALTRANSFORMER_H
 
 #include "algeblah.h"
 
@@ -7,34 +7,22 @@ namespace MathOps
 {
 
 template <typename T>
-struct FindNamedValueTransformer : public Visitor<T>
+struct FindExternalTransformer : public Visitor<T>
 {
-    FindNamedValueTransformer(std::string symbol)
-        : symbol(symbol)
+    FindExternalTransformer(std::string name)
+        : name(name)
     { }
 
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
-
-    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override
-    {
-        return op->get_symbol() == symbol ? op : nullptr;
-    }
-
-    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override
-    {
-        return op->get_symbol() == symbol ? op : nullptr;
-    }
-
-    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override
-    {
-        return op->get_symbol() == symbol ? op : nullptr;
-    }
+    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
 
     VisitorResult<T> visit(std::shared_ptr<External<T>> op) override
     {
-        return op->get_external()->transform(*this);
+        return op->get_name() == name ? op : op->get_external()->transform(*this);
     }
 
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override
@@ -148,9 +136,9 @@ struct FindNamedValueTransformer : public Visitor<T>
     }
 
 private:
-    std::string symbol;
+    std::string name;
 };
 
 } /* namespace MathOps */
 
-#endif /* FINDNAMEDVALUETRANSFORMER_H */
+#endif /* FINDEXTERNALTRANSFORMER_H */

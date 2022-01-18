@@ -49,7 +49,7 @@ public:
 	std::shared_ptr<MathOps::MathOp<number>> get_lambda(std::string variable);
 	std::shared_ptr<MathOps::MathOp<number>> assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
-	void remove(std::string variable);
+	void remove(std::string name);
 	void add_var(std::shared_ptr<MathOps::Variable<number>> variable);
 	void make_var(std::string variable);
 

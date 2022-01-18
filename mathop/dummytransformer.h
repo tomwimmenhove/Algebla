@@ -16,7 +16,12 @@ struct DummyTransformer : public Visitor<T>
     virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return op; }
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return op; }
 
-    VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override
+    virtual VisitorResult<T> visit(std::shared_ptr<External<T>> op) override
+    {
+        return op->get_external()->transform(*this);
+    }
+
+    virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override
     {
         return -(op->get_x()->transform(*this));
     }

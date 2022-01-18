@@ -5,6 +5,7 @@
 #include "driver.h"
 #include "parser.h"
 #include "mathop/findnamedvaluetransformer.h"
+#include "mathop/findexternaltransformer.h"
 #include "mathop/rearrangetransformer.h"
 #include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
@@ -77,8 +78,9 @@ void driver::show_variables()
 
     for (auto& i: lambdas)
     {
-        std::cout << "  " << i.first << " => ";
-        print_result(i.second);
+        std::cout << "  ";// << i.first << " => ";
+        //print_result(i.second);
+        print_result(find_identifier(i.first));
     }
 }
 
@@ -171,6 +173,14 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
 
 std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
+    for(auto i: lambdas)
+    {
+        if (i.second->transform(MathOps::FindExternalTransformer<number>(variable)))
+        {
+            throw yy::parser::syntax_error(location, variable + " is in use by lambda " + i.first + " as a lambda\n");
+        }
+    }
+
     lambdas.erase(variable);
 
     auto result = op->result();
@@ -239,6 +249,19 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         throw yy::parser::syntax_error(location, "Lambda may not reference a variable with the same name");
     }
 
+    if (op->transform(MathOps::FindExternalTransformer<number>(variable)))
+    {
+        throw yy::parser::syntax_error(location, "Infinite recursion detected");
+    }
+
+    for(auto i: lambdas)
+    {
+        if (i.second->transform(MathOps::FindNamedValueTransformer<number>(variable)))
+        {
+            throw yy::parser::syntax_error(location, variable + " is in use by lambda " + i.first + " as a variale\n");
+        }
+    }
+
     auto it = std::find_if(variables.begin(), variables.end(),
         [&variable](std::shared_ptr<MathOps::Variable<number>> v) { return v->get_symbol() == variable; });
 
@@ -250,22 +273,27 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
     return lambdas[variable] = op;
 }
 
-void driver::remove(std::string variable)
+void driver::remove(std::string name)
 {
     /* Check if variable is in use */
     for(auto i: lambdas)
     {
-        if (i.second->transform(MathOps::FindNamedValueTransformer<number>(variable)))
+        if (i.second->transform(MathOps::FindNamedValueTransformer<number>(name)))
         {
-            throw yy::parser::syntax_error(location, "Variable " + variable + " is in use by lambda " + i.first + "\n");
+            throw yy::parser::syntax_error(location, "Variable " + name + " is in use by lambda " + i.first + "\n");
+        }
+
+        if (i.second->transform(MathOps::FindExternalTransformer<number>(name)))
+        {
+            throw yy::parser::syntax_error(location, "Lambda " + name + " is in use by lambda " + i.first + "\n");
         }
     }
 
     variables.erase(std::remove_if(variables.begin(), variables.end(),
-            [&variable](auto v) { return v->get_symbol() == variable; }),
+            [&name](auto v) { return v->get_symbol() == name; }),
         variables.end());
 
-    lambdas.erase(variable);
+    lambdas.erase(name);
 }
 
 std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string variable)
@@ -282,7 +310,9 @@ std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string var
         throw yy::parser::syntax_error(location, variable + " has not been declared");
     }
 
-    return v;
+    return MathOps::Factory::CreateExternal<number>(
+        std::function<std::shared_ptr<MathOps::MathOp<number>>()>(std::bind(&driver::get_lambda, this,  variable)),
+        variable);
 }
 
 std::shared_ptr<MathOps::MathOp<number>> driver::get_lambda(std::string variable)
@@ -321,7 +351,7 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
 
     if (opt.answer_only)
     {
-        std::cout << op->result() << '\n';
+        std::cout << result << '\n';
         return result;
     }
 
@@ -330,11 +360,11 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
     std::string uf = useful_fraction<number>(result);
     if (uf.empty())
     {
-        std::cout << op->result() << '\n';
+        std::cout << result << '\n';
     }
     else
     {
-        std::cout << op->result() << " (~" << uf << ")\n";
+        std::cout << result << " (~" << uf << ")\n";
     }
 
     return result;

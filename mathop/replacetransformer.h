@@ -43,6 +43,16 @@ struct ReplaceTransformer : DummyTransformer<T>
         return op == subject ? replacement : op;
     }
 
+    VisitorResult<T> visit(std::shared_ptr<External<T>> op) override
+    {
+        if (op == subject)
+        {
+            return replacement;
+        }
+
+        return DummyTransformer<T>::visit(op);
+    }
+
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override
     {
         if (op == subject)
