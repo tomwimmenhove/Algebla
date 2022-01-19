@@ -4,8 +4,7 @@
 
 #include "driver.h"
 #include "parser.h"
-#include "mathop/findnamedvaluetransformer.h"
-#include "mathop/findexternaltransformer.h"
+#include "mathop/containercounter.h"
 #include "mathop/rearrangetransformer.h"
 #include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
@@ -175,7 +174,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
 {
     for(auto lambda: lambdas)
     {
-        if (lambda->get_external()->transform(MathOps::FindExternalTransformer<number>(variable)))
+        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_container(), variable))
         {
             throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
         }
@@ -250,19 +249,19 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         throw yy::parser::syntax_error(location, variable + " is reserved");
     }
 
-    if (op->transform(MathOps::FindNamedValueTransformer<number>(variable)))
+    if (MathOps::NamedValueCounter<number>::FindFirst(op, variable))
     {
         throw yy::parser::syntax_error(location, "Lambda may not reference a variable with the same name");
     }
 
-    if (op->transform(MathOps::FindExternalTransformer<number>(variable)))
+    if (MathOps::ContainerCounter<number>::FindFirst(op, variable))
     {
         throw yy::parser::syntax_error(location, "Infinite recursion detected");
     }
 
     for(auto lambda: lambdas)
     {
-        if (lambda->transform(MathOps::FindNamedValueTransformer<number>(variable)))
+        if (MathOps::NamedValueCounter<number>::FindFirst(lambda, variable))
         {
             throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a variale\n");
         }
@@ -286,7 +285,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         return l;
     }
 
-    l->set_external(op);
+    l->set_container(op);
 
     return l;
 }
@@ -296,12 +295,12 @@ void driver::remove(std::string name)
     /* Check if variable is in use */
     for(auto lambda: lambdas)
     {
-        if (lambda->transform(MathOps::FindNamedValueTransformer<number>(name)))
+        if (MathOps::NamedValueCounter<number>::FindFirst(lambda, name))
         {
             throw yy::parser::syntax_error(location, "Variable " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
 
-        if (lambda->transform(MathOps::FindExternalTransformer<number>(name)))
+        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_container(), name))
         {
             throw yy::parser::syntax_error(location, "Lambda " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
