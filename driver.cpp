@@ -76,11 +76,11 @@ void driver::show_variables()
         print_result(variable);
     }
 
-    for (auto& i: lambdas)
+    for (auto lambda: lambdas)
     {
         std::cout << "  ";
 
-        print_result(MathOps::Factory::CreateExternal<number>([&i]() { return i.second; }, i.first));
+        print_result(lambda);
     }
 }
 
@@ -173,15 +173,21 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
 
 std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    for(auto i: lambdas)
+    for(auto lambda: lambdas)
     {
-        if (i.second->transform(MathOps::FindExternalTransformer<number>(variable)))
+        if (lambda->get_external()->transform(MathOps::FindExternalTransformer<number>(variable)))
         {
-            throw yy::parser::syntax_error(location, variable + " is in use by lambda " + i.first + " as a lambda\n");
+            throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
         }
     }
 
-    lambdas.erase(variable);
+    auto it = std::find_if(lambdas.begin(), lambdas.end(),
+        [&variable](std::shared_ptr<MathOps::Container<number>> l) { return l->get_name() == variable; });
+
+    if (it != lambdas.end())
+    {
+        lambdas.erase(it);
+    }
 
     auto result = op->result();
 
@@ -224,10 +230,10 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     auto v = get_var(variable);
     if (!v)
     {
-        auto new_variable = MathOps::Factory::CreateVariable(variable, result);
-        variables.push_back(new_variable);
+        v = MathOps::Factory::CreateVariable(variable, result);
+        variables.push_back(v);
 
-        return new_variable;
+        return v;
     }
 
     v->set(result);
@@ -254,11 +260,11 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         throw yy::parser::syntax_error(location, "Infinite recursion detected");
     }
 
-    for(auto i: lambdas)
+    for(auto lambda: lambdas)
     {
-        if (i.second->transform(MathOps::FindNamedValueTransformer<number>(variable)))
+        if (lambda->transform(MathOps::FindNamedValueTransformer<number>(variable)))
         {
-            throw yy::parser::syntax_error(location, variable + " is in use by lambda " + i.first + " as a variale\n");
+            throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a variale\n");
         }
     }
 
@@ -270,22 +276,34 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         variables.erase(it);
     }
 
-    return lambdas[variable] = op;
+    auto l = get_lambda(variable);
+    if (!l)
+    {
+        l = MathOps::Factory::CreateExternal<number>(op, variable);
+
+        lambdas.push_back(l);
+
+        return l;
+    }
+
+    l->set_external(op);
+
+    return l;
 }
 
 void driver::remove(std::string name)
 {
     /* Check if variable is in use */
-    for(auto i: lambdas)
+    for(auto lambda: lambdas)
     {
-        if (i.second->transform(MathOps::FindNamedValueTransformer<number>(name)))
+        if (lambda->transform(MathOps::FindNamedValueTransformer<number>(name)))
         {
-            throw yy::parser::syntax_error(location, "Variable " + name + " is in use by lambda " + i.first + "\n");
+            throw yy::parser::syntax_error(location, "Variable " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
 
-        if (i.second->transform(MathOps::FindExternalTransformer<number>(name)))
+        if (lambda->transform(MathOps::FindExternalTransformer<number>(name)))
         {
-            throw yy::parser::syntax_error(location, "Lambda " + name + " is in use by lambda " + i.first + "\n");
+            throw yy::parser::syntax_error(location, "Lambda " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
     }
 
@@ -293,7 +311,9 @@ void driver::remove(std::string name)
             [&name](auto v) { return v->get_symbol() == name; }),
         variables.end());
 
-    lambdas.erase(name);
+    lambdas.erase(std::remove_if(lambdas.begin(), lambdas.end(),
+            [&name](auto l) { return l->get_name() == name; }),
+        lambdas.end());
 }
 
 std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string variable)
@@ -310,17 +330,21 @@ std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string var
         throw yy::parser::syntax_error(location, variable + " has not been declared");
     }
 
-    return MathOps::Factory::CreateExternal<number>(
-        std::function<std::shared_ptr<MathOps::MathOp<number>>()>(std::bind(&driver::get_lambda, this,  variable)),
-        variable);
+    return v;
+
+    // return MathOps::Factory::CreateExternal<number>(
+    //     std::function<std::shared_ptr<MathOps::MathOp<number>>()>(std::bind(&driver::get_lambda, this,  variable)),
+    //     variable);
 }
 
-std::shared_ptr<MathOps::MathOp<number>> driver::get_lambda(std::string variable)
+std::shared_ptr<MathOps::Container<number>> driver::get_lambda(std::string variable)
 {
-    auto it = lambdas.find(variable);
+    auto it = std::find_if(lambdas.begin(), lambdas.end(),
+        [&variable](std::shared_ptr<MathOps::Container<number>> v) { return v->get_name() == variable; });
+
     return it == lambdas.end()
         ? nullptr
-        : it->second;
+        : *it;
 }
 
 std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)

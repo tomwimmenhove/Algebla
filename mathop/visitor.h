@@ -17,7 +17,7 @@ template<typename T> struct ValueVariable;
 template<typename T> struct NamedConstant;
 template<typename T> struct MutableValue;
 template<typename T> struct ConstantValue;
-template<typename T> struct External;
+template<typename T> struct Container;
 template<typename T> struct Negate;
 template<typename T> struct Sqrt;
 template<typename T> struct Log;
@@ -53,7 +53,7 @@ struct Visitor
     virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) = 0;
 
-    virtual VisitorResult<T> visit(std::shared_ptr<External<T>> op) = 0;
+    virtual VisitorResult<T> visit(std::shared_ptr<Container<T>> op) = 0;
 
     virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) = 0;
     virtual VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) = 0;

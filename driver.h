@@ -46,7 +46,7 @@ public:
     	std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable);
 	std::shared_ptr<MathOps::MathOp<number>> find_identifier(std::string variable);
 	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
-	std::shared_ptr<MathOps::MathOp<number>> get_lambda(std::string variable);
+	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);
 	std::shared_ptr<MathOps::MathOp<number>> assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
 	void remove(std::string name);
@@ -70,6 +70,6 @@ private:
 	std::shared_ptr<MathOps::Variable<number>> ans;
 
 	std::vector<std::shared_ptr<MathOps::Variable<number>>> variables;
-	std::map<std::string, std::shared_ptr<MathOps::MathOp<number>>> lambdas;
+	std::vector<std::shared_ptr<MathOps::Container<number>>> lambdas;
 };
 #endif // ! DRIVER_HH

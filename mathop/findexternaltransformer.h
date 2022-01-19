@@ -20,7 +20,7 @@ struct FindExternalTransformer : public Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
     VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
 
-    VisitorResult<T> visit(std::shared_ptr<External<T>> op) override
+    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override
     {
         return op->get_name() == name ? op : op->get_external()->transform(*this);
     }

@@ -79,35 +79,36 @@ protected:
 
 /* External call */
 template<typename T>
-struct External : public MathOp<T>
+struct Container : public MathOp<T>
 {
-    static std::shared_ptr<External<T>> create(std::function<std::shared_ptr<MathOp<T>>()> fn, std::string name)
+    static std::shared_ptr<Container<T>> create(std::shared_ptr<MathOp<T>> op, std::string name)
     {
-        return std::shared_ptr<External<T>>(new External<T>(fn, name));
+        return std::shared_ptr<Container<T>>(new Container<T>(op, name));
     }
 
-    T result() const override { return fn()->result(); };
-    Bodmas precedence() const override { return fn()->precedence(); };
-    bool is_commutative() const override { return fn()->is_commutative(); };
-    bool is_constant() const override { return fn()->is_constant(); };
-    bool is_single() const override { return fn()->is_single(); };
-    bool right_associative() const override { return fn()->right_associative(); };
+    T result() const override { return op->result(); };
+    Bodmas precedence() const override { return op->precedence(); };
+    bool is_commutative() const override { return op->is_commutative(); };
+    bool is_constant() const override { return op->is_constant(); };
+    bool is_single() const override { return op->is_single(); };
+    bool right_associative() const override { return op->right_associative(); };
 
     std::string get_name() const { return name; }
-    std::shared_ptr<MathOp<T>> get_external() const { return fn(); }
+    std::shared_ptr<MathOp<T>> get_external() const { return op; }
+    void set_external(std::shared_ptr<MathOp<T>> op) { this->op = op; }
 
 protected:
     VisitorResult<T> accept(Visitor<T>& visitor) override
     {
-        return visitor.visit(std::static_pointer_cast<External<T>>(this->shared_from_this()));
+        return visitor.visit(std::static_pointer_cast<Container<T>>(this->shared_from_this()));
     }
 
 protected:
-    External(std::function<std::shared_ptr<MathOp<T>>()> fn, std::string name)
-        : fn(fn), name(name)
+    Container(std::shared_ptr<MathOp<T>> op, std::string name)
+        : op(op), name(name)
     { }
 
-    std::function<std::shared_ptr<MathOp<T>>()> fn;
+    std::shared_ptr<MathOp<T>> op;
     std::string name;
 };
 

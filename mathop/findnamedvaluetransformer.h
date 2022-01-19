@@ -32,7 +32,7 @@ struct FindNamedValueTransformer : public Visitor<T>
         return op->get_symbol() == symbol ? op : nullptr;
     }
 
-    VisitorResult<T> visit(std::shared_ptr<External<T>> op) override
+    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override
     {
         return op->get_external()->transform(*this);
     }

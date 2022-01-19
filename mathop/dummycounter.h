@@ -16,7 +16,7 @@ struct DummyCounter : public Visitor<T>
     virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return 0; }
     virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return 0; }
 
-    virtual VisitorResult<T> visit(std::shared_ptr<External<T>> op) override { return op->get_external()->count(*this); }
+    virtual VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override { return op->get_external()->count(*this); }
 
     virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return op->get_x()->count(*this); }
     virtual VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return op->get_x()->count(*this); }
