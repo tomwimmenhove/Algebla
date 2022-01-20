@@ -94,8 +94,8 @@ struct Container : public MathOp<T>
     bool right_associative() const override { return op->right_associative(); };
 
     std::string get_name() const { return name; }
-    std::shared_ptr<MathOp<T>> get_container() const { return op; }
-    void set_container(std::shared_ptr<MathOp<T>> op) { this->op = op; }
+    std::shared_ptr<MathOp<T>> get_inner() const { return op; }
+    void set_inner(std::shared_ptr<MathOp<T>> op) { this->op = op; }
 
 protected:
     VisitorResult<T> accept(Visitor<T>& visitor) override

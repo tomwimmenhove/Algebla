@@ -174,7 +174,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
 {
     for(auto lambda: lambdas)
     {
-        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_container(), variable))
+        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_inner(), variable))
         {
             throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
         }
@@ -285,7 +285,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         return l;
     }
 
-    l->set_container(op);
+    l->set_inner(op);
 
     return l;
 }
@@ -300,7 +300,7 @@ void driver::remove(std::string name)
             throw yy::parser::syntax_error(location, "Variable " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
 
-        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_container(), name))
+        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_inner(), name))
         {
             throw yy::parser::syntax_error(location, "Lambda " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
@@ -374,7 +374,22 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
         return result;
     }
 
-    std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
+    /* Expand containers? */
+    auto container = MathOps::ContainerCounter<number>::FindFirst(op, "");
+    if (container == op)
+    {
+        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits, false)) << " => ";
+        if (MathOps::ContainerCounter<number>::FindFirst(container->get_inner(), ""))
+        {
+            std::cout << container->get_inner()->format(MathOps::DefaultFormatter<number>(int_digits, false)) << " = ";
+        }
+    }
+    else if (container)
+    {
+        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits, false)) << " = ";
+    }
+
+    std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits, true)) << " = ";
 
     std::string uf = useful_fraction<number>(result, int_digits);
     if (uf.empty())

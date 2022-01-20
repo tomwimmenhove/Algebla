@@ -18,7 +18,7 @@ struct DummyTransformer : public Visitor<T>
 
     virtual VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override
     {
-        return op->get_container()->transform(*this);
+        return op->get_inner()->transform(*this);
     }
 
     virtual VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override

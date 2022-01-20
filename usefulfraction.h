@@ -149,7 +149,7 @@ std::string useful_fraction(T x, int precision)
         return { };
     }
 
-    return y->format(MathOps::DefaultFormatter<T>(precision));
+    return y->format(MathOps::DefaultFormatter<T>(precision, false));
 }
 
 #endif /* USEFULFRACTION_H */

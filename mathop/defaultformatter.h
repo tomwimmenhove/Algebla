@@ -12,8 +12,8 @@ namespace MathOps
 template<typename T>
 struct DefaultFormatter : Visitor<T>
 {
-    DefaultFormatter(int precision )
-     : precision(precision)
+    DefaultFormatter(int precision, bool expand_containers)
+     : precision(precision), expand_containers(expand_containers)
     { }
 
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op->get_symbol(); }
@@ -23,8 +23,15 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return value_to_string(op->result()); }
     VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return value_to_string(op->result()); }
 
-    //VisitorResult<T> visit(std::shared_ptr<External<T>> op) override { return op->get_external()->format(*this); }
-    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override { return str_unary(op->get_container(), op->get_name() + " => "); }
+    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override
+    {
+        if (expand_containers)
+        {
+            return op->get_inner()->format(*this);
+        }
+
+        return op->get_name();
+    }
 
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary_sign(op->get_x(), "-"); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }
@@ -51,6 +58,7 @@ struct DefaultFormatter : Visitor<T>
 
 private:
     int precision;
+    bool expand_containers;
 
     std::string value_to_string(T x) const
     {
@@ -79,6 +87,9 @@ private:
         bool use_parens = !use_commutation || op->is_commutative()
             ? parent_precedence < side->precedence()
             : parent_precedence <= side->precedence();
+
+        /* We don't need to parenthesize containers if they're not expanded */
+        use_parens &= typeid(*side) != typeid(Container<T>) || expand_containers;
 
         if (use_parens)
         {
