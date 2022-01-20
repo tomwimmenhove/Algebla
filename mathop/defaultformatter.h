@@ -12,7 +12,7 @@ namespace MathOps
 template<typename T>
 struct DefaultFormatter : Visitor<T>
 {
-    DefaultFormatter(int precision = 5)
+    DefaultFormatter(int precision )
      : precision(precision)
     { }
 

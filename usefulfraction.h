@@ -119,7 +119,7 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
 }
 
 template<typename T>
-std::string useful_fraction(T x)
+std::string useful_fraction(T x, int precision)
 {
     std::stringstream ss;
 
@@ -149,7 +149,7 @@ std::string useful_fraction(T x)
         return { };
     }
 
-    return y->format(MathOps::DefaultFormatter<T>());
+    return y->format(MathOps::DefaultFormatter<T>(precision));
 }
 
 #endif /* USEFULFRACTION_H */

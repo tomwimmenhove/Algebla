@@ -330,10 +330,6 @@ std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string var
     }
 
     return v;
-
-    // return MathOps::Factory::CreateExternal<number>(
-    //     std::function<std::shared_ptr<MathOps::MathOp<number>>()>(std::bind(&driver::get_lambda, this,  variable)),
-    //     variable);
 }
 
 std::shared_ptr<MathOps::Container<number>> driver::get_lambda(std::string variable)
@@ -380,7 +376,7 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
 
     std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
 
-    std::string uf = useful_fraction<number>(result);
+    std::string uf = useful_fraction<number>(result, int_digits);
     if (uf.empty())
     {
         std::cout << result << '\n';
