@@ -53,11 +53,6 @@ int driver::parse_string(const std::string &line)
     return parser.parse();
 }
 
-void driver::add_var(std::shared_ptr<MathOps::Variable<number>> variable)
-{
-    variables.push_back(variable);
-}
-
 void driver::make_var(std::string variable)
 {
     if (!get_var(variable))
@@ -70,15 +65,11 @@ void driver::show_variables()
 {
     for (auto variable: variables)
     {
-        std::cout << "  ";
-
         print_result(variable);
     }
 
     for (auto lambda: lambdas)
     {
-        std::cout << "  ";
-
         print_result(lambda);
     }
 }
@@ -242,12 +233,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
 
 std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    if (variable == ans->get_symbol() ||
-        variable == digits->get_symbol() ||
-        variable == precision->get_symbol())
-    {
-        throw yy::parser::syntax_error(location, variable + " is reserved");
-    }
+    check_reserved(variable);
 
     if (MathOps::NamedValueCounter<number>::FindFirst(op, variable))
     {
@@ -292,6 +278,8 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
 
 void driver::remove(std::string name)
 {
+    check_reserved(name);
+
     /* Check if variable is in use */
     for(auto lambda: lambdas)
     {
@@ -352,10 +340,18 @@ std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
         : *it;
 }
 
+void driver::check_reserved(std::string variable)
+{
+    if (variable == ans->get_symbol() ||
+        variable == digits->get_symbol() ||
+        variable == precision->get_symbol())
+    {
+        throw yy::parser::syntax_error(location, variable + " is reserved");
+    }
+}
+
 void driver::result(std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    std::cout << "  ";
-
     number result = print_result(op);
     
     ans->set(result);
@@ -367,6 +363,7 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
 
     int int_digits = (int) digits->result();
     std::cout << std::setprecision(int_digits);
+    std::cout << "  ";
 
     if (opt.answer_only)
     {

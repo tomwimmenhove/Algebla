@@ -41,16 +41,12 @@ public:
 	yy::location location;
 
 	void result(std::shared_ptr<MathOps::MathOp<number>> op);
-	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
     	std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable);
 	std::shared_ptr<MathOps::MathOp<number>> find_identifier(std::string variable);
-	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
-	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);
 	std::shared_ptr<MathOps::MathOp<number>> assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
 	void remove(std::string name);
-	void add_var(std::shared_ptr<MathOps::Variable<number>> variable);
 	void make_var(std::string variable);
 
 	void show_variables();
@@ -61,6 +57,11 @@ public:
 	bool input_is_file() const { return is_file; }
 
 private:
+	void check_reserved(std::string variable);
+	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
+	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
+	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);
+
 	options opt;
 	bool is_file;
 	int var_id = 0;
