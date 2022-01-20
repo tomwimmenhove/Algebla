@@ -13,7 +13,7 @@ template<typename T>
 struct DefaultFormatter : Visitor<T>
 {
     DefaultFormatter(int precision, bool expand_containers)
-     : precision(precision), expand_containers(expand_containers)
+     : DefaultFormatter(precision, expand_containers, false)
     { }
 
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op->get_symbol(); }
@@ -57,8 +57,13 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<Sub<T>> op) override { return str_binary(op, op->get_lhs(), op->get_rhs(), " - "); }
 
 private:
+    DefaultFormatter(int precision, bool expand_containers, bool may_parenthesize)
+     : precision(precision), expand_containers(expand_containers), may_parenthesize(may_parenthesize)
+    { }
+
     int precision;
     bool expand_containers;
+    bool may_parenthesize;
 
     std::string value_to_string(T x) const
     {
@@ -73,10 +78,20 @@ private:
         bool right_associative = op->right_associative();
         std::stringstream ss;
 
+        if (may_parenthesize)
+        {
+            ss << '(';
+        }
+
         side_to_stream(ss, op, lhs, right_associative);
         ss << symbol;
         side_to_stream(ss, op, rhs, !right_associative);
-        
+
+        if (may_parenthesize)
+        {
+            ss << ')';
+        }
+
         return ss.str();
     }
 
@@ -88,20 +103,7 @@ private:
             ? parent_precedence < side->precedence()
             : parent_precedence <= side->precedence();
 
-        /* We don't need to parenthesize containers if they're not expanded */
-        use_parens &= typeid(*side) != typeid(Container<T>) || expand_containers;
-
-        if (use_parens)
-        {
-            ss << '(';
-        }
-
-        ss << side->format(*this);
-
-        if (use_parens)
-        {
-            ss << ')';
-        }
+        ss << side->format(DefaultFormatter(precision, expand_containers, use_parens));
     }
 
     std::string str_unary_sign(std::shared_ptr<MathOp<T>> x, std::string symbol)
