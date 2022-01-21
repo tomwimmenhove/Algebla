@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(algeblah VERSION 0.1.0)
 
 set(arbit_prec ON)
+set(debug ON)
 
 include(CTest)
 enable_testing()
@@ -9,8 +10,15 @@ enable_testing()
 if(arbit_prec)
     add_compile_definitions(ARBIT_PREC)
 endif()
-add_compile_definitions(DEBUG)
-add_compile_options(-std=c++17 -Wall -Werror -ggdb)
+
+if(debug)
+    add_compile_definitions(DEBUG)
+    add_compile_options(-ggdb)
+else()
+    add_compile_definitions(NDEBUG)
+endif()
+
+add_compile_options(-std=c++17 -Wall -Werror)
 
 find_package(BISON)
 find_package(FLEX)
