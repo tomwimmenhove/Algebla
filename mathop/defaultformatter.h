@@ -12,8 +12,8 @@ namespace MathOps
 template<typename T>
 struct DefaultFormatter : Visitor<T>
 {
-    DefaultFormatter(int precision, bool expand_containers)
-     : DefaultFormatter(precision, expand_containers, false)
+    DefaultFormatter(int precision)
+     : DefaultFormatter(precision, false)
     { }
 
     VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op->get_symbol(); }
@@ -23,15 +23,7 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return value_to_string(op->result()); }
     VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return value_to_string(op->result()); }
 
-    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override
-    {
-        if (expand_containers)
-        {
-            return op->get_inner()->format(*this);
-        }
-
-        return op->get_name();
-    }
+    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override { return op->get_name(); }
 
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary_sign(op->get_x(), "-"); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }
@@ -57,12 +49,11 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<Sub<T>> op) override { return str_binary(op, op->get_lhs(), op->get_rhs(), " - "); }
 
 private:
-    DefaultFormatter(int precision, bool expand_containers, bool parenthesize)
-     : precision(precision), expand_containers(expand_containers), parenthesize(parenthesize)
+    DefaultFormatter(int precision, bool parenthesize)
+     : precision(precision), parenthesize(parenthesize)
     { }
 
     int precision;
-    bool expand_containers;
     bool parenthesize;
 
     std::string value_to_string(T x) const
@@ -103,7 +94,7 @@ private:
             ? parent_precedence < side->precedence()
             : parent_precedence <= side->precedence();
 
-        ss << side->format(DefaultFormatter(precision, expand_containers, use_parens));
+        ss << side->format(DefaultFormatter(precision, use_parens));
     }
 
     std::string str_unary_sign(std::shared_ptr<MathOp<T>> x, std::string symbol)

@@ -440,20 +440,24 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
 
     /* Expand containers? */
     auto container = MathOps::ContainerCounter<number>::FindFirst(op, "");
-    if (container == op)
+    if (container)
     {
-        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits, false)) << " => ";
+        /* Print the lambda name, followed by it's expression */
+        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits)) << " => "
+                  << container->get_inner()->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
+
+        /* If the lambda contains more lambdas, print the lambda expression */
         if (MathOps::ContainerCounter<number>::FindFirst(container->get_inner(), ""))
         {
-            std::cout << container->get_inner()->format(MathOps::DefaultFormatter<number>(int_digits, false)) << " = ";
+            std::cout << op->transform(MathOps::ExpandTransformer<number>())
+                           ->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
         }
     }
-    else if (container)
+    else
     {
-        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits, false)) << " = ";
+        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
     }
 
-    std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits, true)) << " = ";
 
     std::string uf = useful_fraction<number>(result, int_digits);
     if (uf.empty())
