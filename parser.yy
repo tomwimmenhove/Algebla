@@ -88,7 +88,7 @@ lambda      : "identifier" "=>" expression    { $$ = drv.assign_lambda($1, $3); 
 delete      : "identifier" "="                { drv.remove($1); }
             ;
 
-expression  : "number"                        { $$ = MathOps::Factory::CreateConstantValue<number>($1); }
+expression  : "number"                        { $$ = MathOps::ConstantValue<number>::create($1); }
             | "%""identifier"                 { $$ = drv.get_constant($2); }
             | "identifier"                    { $$ = drv.find_identifier($1); }
             | "solve" "identifier"            { drv.make_var($2); } 

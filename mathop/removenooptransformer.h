@@ -16,12 +16,12 @@ struct MathOpRemoveNoOpTransformer : public DummyTransformer<T>
 
         if (lhs->is_constant() && lhs->result() == 0)
         {
-            return Factory::CreateConstantValue<T>(0.0);
+            return ConstantValue<T>::create(0.0);
         }
 
         if (rhs->is_constant() && rhs->result() == 0)
         {
-            return Factory::CreateConstantValue<T>(1.0);
+            return ConstantValue<T>::create(1.0);
         }
 
         if (rhs->is_constant() && rhs->result() == 1)
@@ -50,7 +50,7 @@ struct MathOpRemoveNoOpTransformer : public DummyTransformer<T>
         if ((lhs->is_constant() && lhs->result() == 0) ||
             (rhs->is_constant() && rhs->result() == 0))
         {
-            return Factory::CreateConstantValue<T>(0.0);
+            return ConstantValue<T>::create(0.0);
         }
 
         return lhs  * rhs;
@@ -63,7 +63,7 @@ struct MathOpRemoveNoOpTransformer : public DummyTransformer<T>
 
         if (lhs->is_constant() && rhs->is_constant() && lhs->result() == rhs->result())
         {
-            return Factory::CreateConstantValue<T>(1.0);
+            return ConstantValue<T>::create(1.0);
         }
 
         if (rhs->is_constant() && rhs->result() == 1)
@@ -73,7 +73,7 @@ struct MathOpRemoveNoOpTransformer : public DummyTransformer<T>
 
         if (lhs->is_constant() && lhs->result() == 0)
         {
-            return Factory::CreateConstantValue<T>(0.0);
+            return ConstantValue<T>::create(0.0);
         }
 
         return lhs / rhs;

@@ -2,6 +2,7 @@
 #define REVERSETRANSFORMER_H
 
 #include "algeblah.h"
+#include "constants.h"
 
 namespace MathOps
 {
@@ -31,19 +32,19 @@ struct ReverseTransformer : public Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op)
     {
         if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
-        return Pow<T>::create(from, Factory::CreateConstantValue<T>(2.0));
+        return Pow<T>::create(from, ConstantValue<T>::create(2.0));
     }
 
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op)
     {
         if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
-        return Pow<T>::create(Factory::CreateSymbolE<T>(), from);
+        return Pow<T>::create(Constants::e<T>(), from);
     }
 
     VisitorResult<T> visit(std::shared_ptr<Log10<T>> op)
     {
         if (for_side != op->get_x()) return std::shared_ptr<MathOp<T>>(nullptr);
-        return Pow<T>::create(Factory::CreateConstantValue<T>(10.0), from);
+        return Pow<T>::create(ConstantValue<T>::create(10.0), from);
     }
 
     VisitorResult<T> visit(std::shared_ptr<Sin<T>> op)
@@ -130,7 +131,7 @@ struct ReverseTransformer : public Visitor<T>
                 return sqrt(from);
             }
             
-            return Pow<T>::create(from, (Factory::CreateConstantValue<T>(1.0) / rhs));
+            return Pow<T>::create(from, (ConstantValue<T>::create(1.0) / rhs));
         }
         else if (for_side == rhs)
         {

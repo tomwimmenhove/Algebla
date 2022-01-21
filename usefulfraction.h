@@ -24,7 +24,7 @@ struct Fraction
 
     std::shared_ptr<MathOps::MathOp<T>> to_math_op() const
     {
-        return MathOps::Factory::CreateConstantValue(numerator) / MathOps::Factory::CreateConstantValue(denominator);
+        return MathOps::ConstantValue<T>::create(numerator) / MathOps::ConstantValue<T>::create(denominator);
     }
 
     static Fraction<T> quiet_NaN()
@@ -78,7 +78,7 @@ struct Fraction
 template <typename T>
 Fraction<T> solver(std::shared_ptr<MathOps::MathOp<T>> y, std::shared_ptr<MathOps::MathOp<T>> numerator, T value, T max_error, int iters)
 {
-    auto result = MathOps::Factory::CreateConstantValue(value);
+    auto result = MathOps::ConstantValue<T>::create(value);
 
     auto solved = y->transform(MathOps::MathOpRearrangeTransformer<T>(numerator, result));
     auto fraction = Fraction<T>::find(solved->result(), max_error, iters);
@@ -113,8 +113,8 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
         return nullptr;
     }
 
-    return best_y->transform(MathOps::ReplaceTransformer<T>(best_numerator, MathOps::Factory::CreateConstantValue(best_fraction.numerator)))
-        ->transform(MathOps::ReplaceTransformer<T>(best_denominator, MathOps::Factory::CreateConstantValue(best_fraction.denominator)))
+    return best_y->transform(MathOps::ReplaceTransformer<T>(best_numerator, MathOps::ConstantValue<T>::create(best_fraction.numerator)))
+        ->transform(MathOps::ReplaceTransformer<T>(best_denominator, MathOps::ConstantValue<T>::create(best_fraction.denominator)))
         ->transform(MathOps::MathOpRemoveNoOpTransformer<T>());
 }
 
@@ -128,11 +128,11 @@ std::string useful_fraction(T x, int precision)
         return { };
     }
 
-    const auto numerator = MathOps::Factory::CreateNamedConstant<T>("numerator", 1.0);
-    const auto denominator = MathOps::Factory::CreateNamedConstant<T>("denominator", 1.0);
-    const auto pi = MathOps::Factory::CreateSymbolPi<T>();
-    const auto e = MathOps::Factory::CreateSymbolE<T>();
-    const auto sq2 = sqrt<T>(MathOps::Factory::CreateConstantValue<T>(2));
+    const auto numerator = MathOps::NamedConstant<T>::create("numerator", 1.0);
+    const auto denominator = MathOps::NamedConstant<T>::create("denominator", 1.0);
+    const auto pi = MathOps::Constants::pi<T>();
+    const auto e = MathOps::Constants::e<T>();
+    const auto sq2 = sqrt<T>(MathOps::ConstantValue<T>::create(2));
     std::vector<std::shared_ptr<MathOps::MathOp<T>>> equations{
         numerator * pi / denominator,
         numerator / (pi * denominator),

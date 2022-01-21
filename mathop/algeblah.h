@@ -1,7 +1,6 @@
 #ifndef ALGEBLAH_H
 #define ALGEBLAH_H
 
-#include "factory.h"
 #include "visitor.h"
 
 #include <cmath>

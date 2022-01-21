@@ -8,14 +8,15 @@
 #include "mathop/rearrangetransformer.h"
 #include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
+#include "mathop/constants.h"
 #include "usefulfraction.h"
 
 driver::driver(options opt)
     : trace_parsing(false), trace_scanning(false),
       opt(opt),
-      precision(MathOps::Factory::CreateVariable<number>("precision", opt.precision)),
-      digits(MathOps::Factory::CreateVariable<number>("digits", opt.digits)),
-      ans(MathOps::Factory::CreateVariable<number>("ans", 0)),
+      precision(MathOps::Variable<number>::create("precision", opt.precision)),
+      digits(MathOps::Variable<number>::create("digits", opt.digits)),
+      ans(MathOps::Variable<number>::create("ans", 0)),
       variables({precision, digits, ans})
 {
     boost::multiprecision::mpfr_float::default_precision((int) precision->result());
@@ -57,7 +58,7 @@ void driver::make_var(std::string variable)
 {
     if (!get_var(variable))
     {
-        variables.push_back(MathOps::Factory::CreateVariable<number>(variable));
+        variables.push_back(MathOps::Variable<number>::create(variable));
     }
 }
 
@@ -220,7 +221,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     auto v = get_var(variable);
     if (!v)
     {
-        v = MathOps::Factory::CreateVariable(variable, result);
+        v = MathOps::Variable<number>::create(variable, result);
         variables.push_back(v);
 
         return v;
@@ -264,7 +265,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
     auto l = get_lambda(variable);
     if (!l)
     {
-        l = MathOps::Factory::CreateExternal<number>(op, variable);
+        l = MathOps::Container<number>::create(op, variable);
 
         lambdas.push_back(l);
 
@@ -373,8 +374,8 @@ std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func, std:
 
 std::shared_ptr<MathOps::MathOp<number>> driver::get_constant(std::string id)
 {
-    if (id == "e")  return MathOps::Factory::CreateSymbolE<number>();
-    if (id == "pi") return MathOps::Factory::CreateSymbolPi<number>();
+    if (id == "e")  return MathOps::Constants::e<number>();
+    if (id == "pi") return MathOps::Constants::pi<number>();
     else throw yy::parser::syntax_error(location, "Uknown constant: " + id);
 }
 
