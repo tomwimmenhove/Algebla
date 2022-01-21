@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "driver.h"
 #include "parser.h"
@@ -14,12 +15,20 @@
 driver::driver(options opt)
     : trace_parsing(false), trace_scanning(false),
       opt(opt),
+#ifdef ARBIT_PREC
       precision(MathOps::Variable<number>::create("precision", opt.precision)),
+#endif
       digits(MathOps::Variable<number>::create("digits", opt.digits)),
       ans(MathOps::Variable<number>::create("ans", 0)),
+#ifdef ARBIT_PREC
       variables({precision, digits, ans})
+#else
+      variables({digits, ans})
+#endif
 {
+#ifdef ARBIT_PREC
     boost::multiprecision::mpfr_float::default_precision((int) precision->result());
+#endif
 }
 
 int driver::parse_file(const std::string &f)
@@ -79,7 +88,11 @@ void driver::clear_variables()
 {
     variables.clear();
     lambdas.clear();
+#ifdef ARBIT_PREC
     variables.insert(variables.end(), { precision, digits, ans });
+#else
+    variables.insert(variables.end(), { digits, ans });
+#endif
 }
 
 void driver::help()
@@ -102,8 +115,11 @@ void driver::help()
                  "                               : sinh(), asinh(), cosh(), acosh(), tanh(), atanh()\n"
                  "\n"
                  "Default variables:\n"
+                 "  ans                          : The result of the last calculation\n"
                  "  digits                       : The number of significant digits to display (default: 5)\n"
+#ifdef ARBIT_PREC
                  "  precision                    : The number of internal significant digits (default: 50)\n"
+#endif
                  "\n";
     if (isatty(fileno(stdin)))
     {
@@ -183,7 +199,23 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     auto result = op->result();
 
     /* Special variables */
-    if (variable == precision->get_symbol())
+    if (variable == digits->get_symbol())
+    {
+#ifdef ARBIT_PREC
+        if ((int) result > precision->result())
+        {
+            std::cerr << "Value can not be greater than precision.\n";
+
+            return digits;
+        }
+#endif
+
+        digits->set((int) result);
+
+        return digits;
+    }
+#ifdef ARBIT_PREC
+    else if (variable == precision->get_symbol())
     {
         if (opt.max_precision > 0 && (int) result > opt.max_precision)
         {
@@ -204,19 +236,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
 
         return precision;
     }
-    else if (variable == digits->get_symbol())
-    {
-        if ((int) result > precision->result())
-        {
-            std::cerr << "Value can not be greater than precision.\n";
-
-            return digits;
-        }
-
-        digits->set((int) result);
-
-        return digits;
-    }
+#endif
 
     auto v = get_var(variable);
     if (!v)
@@ -343,9 +363,13 @@ std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
 
 void driver::check_reserved(std::string variable)
 {
-    if (variable == ans->get_symbol() ||
-        variable == digits->get_symbol() ||
-        variable == precision->get_symbol())
+    if (variable == ans->get_symbol()
+        || variable == digits->get_symbol()
+#ifdef ARBIT_PREC
+        || variable == precision->get_symbol())
+#else
+    )
+#endif
     {
         throw yy::parser::syntax_error(location, variable + " is reserved");
     }
@@ -353,21 +377,21 @@ void driver::check_reserved(std::string variable)
 
 std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func, std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    if (func == "sqrt")  return sqrt(op);
-    if (func == "log")   return log(op);
-    if (func == "log10") return log10(op);
-    if (func == "sin")   return sin(op);
-    if (func == "cos")   return cos(op);
-    if (func == "tan")   return tan(op);
-    if (func == "asin")  return asin(op);
-    if (func == "acos")  return acos(op);
-    if (func == "atan")  return atan(op);
-    if (func == "sinh")  return sinh(op);
-    if (func == "cosh")  return cosh(op);
-    if (func == "tanh")  return tanh(op);
-    if (func == "asinh") return asinh(op);
-    if (func == "acosh") return acosh(op);
-    if (func == "atanh") return atanh(op);
+    if (func == "sqrt")  return MathOps::sqrt(op);
+    if (func == "log")   return MathOps::log(op);
+    if (func == "log10") return MathOps::log10(op);
+    if (func == "sin")   return MathOps::sin(op);
+    if (func == "cos")   return MathOps::cos(op);
+    if (func == "tan")   return MathOps::tan(op);
+    if (func == "asin")  return MathOps::asin(op);
+    if (func == "acos")  return MathOps::acos(op);
+    if (func == "atan")  return MathOps::atan(op);
+    if (func == "sinh")  return MathOps::sinh(op);
+    if (func == "cosh")  return MathOps::cosh(op);
+    if (func == "tanh")  return MathOps::tanh(op);
+    if (func == "asinh") return MathOps::asinh(op);
+    if (func == "acosh") return MathOps::acosh(op);
+    if (func == "atanh") return MathOps::atanh(op);
 
     throw yy::parser::syntax_error(location, "Uknown function: " + func);
 }

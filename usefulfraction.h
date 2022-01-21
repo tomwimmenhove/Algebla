@@ -132,7 +132,7 @@ std::string useful_fraction(T x, int precision)
     const auto denominator = MathOps::NamedConstant<T>::create("denominator", 1.0);
     const auto pi = MathOps::Constants::pi<T>();
     const auto e = MathOps::Constants::e<T>();
-    const auto sq2 = sqrt<T>(MathOps::ConstantValue<T>::create(2));
+    const auto sq2 = MathOps::sqrt<T>(MathOps::ConstantValue<T>::create(2));
     std::vector<std::shared_ptr<MathOps::MathOp<T>>> equations{
         numerator * pi / denominator,
         numerator / (pi * denominator),

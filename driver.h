@@ -70,7 +70,9 @@ private:
 	bool is_file;
 	int var_id = 0;
 
+#ifdef ARBIT_PREC
 	std::shared_ptr<MathOps::Variable<number>> precision;
+#endif
 	std::shared_ptr<MathOps::Variable<number>> digits;
 	std::shared_ptr<MathOps::Variable<number>> ans;
 

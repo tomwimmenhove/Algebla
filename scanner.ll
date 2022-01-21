@@ -60,8 +60,11 @@ blank    [ \t]
 
 {number}	{
 			errno = 0;
-			//number d = strtold(yytext, NULL);
+#ifdef ARBIT_PREC
       number d(yytext);
+#else
+      number d = strtold(yytext, NULL);
+#endif
 			// XXX: TODO: Check input
 			return yy::parser::make_NUMBER (d, loc);
 		}
