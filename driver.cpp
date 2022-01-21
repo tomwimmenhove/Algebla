@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "mathop/containercounter.h"
 #include "mathop/rearrangetransformer.h"
+#include "mathop/expandtransformer.h"
 #include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
 #include "mathop/constants.h"
@@ -100,8 +101,10 @@ void driver::help()
     std::cout << "Syntax:\n"
                  "  Assignments                  : <variable name> = <expression>\n"
                  "                                  Example: c = sqrt(a^2 + b^2)\n"
-                 "  Lambda assignments           : <variable name> => <expression>\n"
+                 "  Lambda assignments           : <lambda name> => <expression>\n"
                  "                                  Example: c => a + b\n"
+                 "  Expanding a lambda:          : expand(<lambda name>)"
+                 "                                  Example: c => expand(c)\n"
                  "  Solve for a variable         : solve <variable name>: <expression> = <expession>\n"
                  "                                  Example: solve a: a^2 + b^2 = c^2\n"
                  "  Delete a vairable or lambda  : <variable name> =\n"
@@ -166,8 +169,9 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
         throw yy::parser::syntax_error(location, "variable " + variable + " appears more than once");        
     }
 
-    auto solve_side  = left_count ? lhs : rhs;
-    auto result_side = left_count ? rhs : lhs;
+    // XXX: Should we always expand the entire tree before solving?
+    auto solve_side  = (left_count ? lhs : rhs)->transform(MathOps::ExpandTransformer<number>());
+    auto result_side = (left_count ? rhs : lhs)->transform(MathOps::ExpandTransformer<number>());
 
     auto solve_variable = variables[0];
 
@@ -392,7 +396,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func, std:
     if (func == "asinh")  return MathOps::asinh(op);
     if (func == "acosh")  return MathOps::acosh(op);
     if (func == "atanh")  return MathOps::atanh(op);
-    if (func == "expand") return op->transform(MathOps::DummyTransformer<number>());
+    if (func == "expand") return op->transform(MathOps::ExpandTransformer<number>());
 
     throw yy::parser::syntax_error(location, "Uknown function: " + func);
 }

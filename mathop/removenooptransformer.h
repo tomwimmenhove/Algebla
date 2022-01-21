@@ -1,5 +1,5 @@
-#ifndef REMOVENOOPVISITOR_H
-#define REMOVENOOPVISITOR_H
+#ifndef REMOVENOOPTRANSFORMER_H
+#define REMOVENOOPTRANSFORMER_H
 
 #include "dummytransformer.h"
 
@@ -113,4 +113,4 @@ struct MathOpRemoveNoOpTransformer : public DummyTransformer<T>
 
 } /* namespace MathOps */
 
-#endif /* REMOVENOOPVISITOR_H */
+#endif /* REMOVENOOPTRANSFORMER_H */
