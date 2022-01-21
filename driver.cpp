@@ -377,21 +377,22 @@ void driver::check_reserved(std::string variable)
 
 std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func, std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    if (func == "sqrt")  return MathOps::sqrt(op);
-    if (func == "log")   return MathOps::log(op);
-    if (func == "log10") return MathOps::log10(op);
-    if (func == "sin")   return MathOps::sin(op);
-    if (func == "cos")   return MathOps::cos(op);
-    if (func == "tan")   return MathOps::tan(op);
-    if (func == "asin")  return MathOps::asin(op);
-    if (func == "acos")  return MathOps::acos(op);
-    if (func == "atan")  return MathOps::atan(op);
-    if (func == "sinh")  return MathOps::sinh(op);
-    if (func == "cosh")  return MathOps::cosh(op);
-    if (func == "tanh")  return MathOps::tanh(op);
-    if (func == "asinh") return MathOps::asinh(op);
-    if (func == "acosh") return MathOps::acosh(op);
-    if (func == "atanh") return MathOps::atanh(op);
+    if (func == "sqrt")   return MathOps::sqrt(op);
+    if (func == "log")    return MathOps::log(op);
+    if (func == "log10")  return MathOps::log10(op);
+    if (func == "sin")    return MathOps::sin(op);
+    if (func == "cos")    return MathOps::cos(op);
+    if (func == "tan")    return MathOps::tan(op);
+    if (func == "asin")   return MathOps::asin(op);
+    if (func == "acos")   return MathOps::acos(op);
+    if (func == "atan")   return MathOps::atan(op);
+    if (func == "sinh")   return MathOps::sinh(op);
+    if (func == "cosh")   return MathOps::cosh(op);
+    if (func == "tanh")   return MathOps::tanh(op);
+    if (func == "asinh")  return MathOps::asinh(op);
+    if (func == "acosh")  return MathOps::acosh(op);
+    if (func == "atanh")  return MathOps::atanh(op);
+    if (func == "expand") return op->transform(MathOps::DummyTransformer<number>());
 
     throw yy::parser::syntax_error(location, "Uknown function: " + func);
 }

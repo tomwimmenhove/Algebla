@@ -6,6 +6,14 @@
 namespace MathOps
 {
 
+
+/* XXX: NOTE: THIS TRANSFORMER INHERENTLY REMOVES ALL CONTAINERS FROM THE TREE.
+ *      Our options are:
+ *       - to return the inner MathOp that the container holds <= this is what is done
+ *       - to simply return the original container, which will stop us from walking further down the tree
+ *       - to create a new container which the same name, which could break references
+ *       - to set a new internal MathOp in the existing Contained, but we should not alter the original tree
+ */
 template <typename T>
 struct DummyTransformer : public Visitor<T>
 {
