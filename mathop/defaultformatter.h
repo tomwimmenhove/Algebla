@@ -57,13 +57,13 @@ struct DefaultFormatter : Visitor<T>
     VisitorResult<T> visit(std::shared_ptr<Sub<T>> op) override { return str_binary(op, op->get_lhs(), op->get_rhs(), " - "); }
 
 private:
-    DefaultFormatter(int precision, bool expand_containers, bool may_parenthesize)
-     : precision(precision), expand_containers(expand_containers), may_parenthesize(may_parenthesize)
+    DefaultFormatter(int precision, bool expand_containers, bool parenthesize)
+     : precision(precision), expand_containers(expand_containers), parenthesize(parenthesize)
     { }
 
     int precision;
     bool expand_containers;
-    bool may_parenthesize;
+    bool parenthesize;
 
     std::string value_to_string(T x) const
     {
@@ -78,7 +78,7 @@ private:
         bool right_associative = op->right_associative();
         std::stringstream ss;
 
-        if (may_parenthesize)
+        if (parenthesize)
         {
             ss << '(';
         }
@@ -87,7 +87,7 @@ private:
         ss << symbol;
         side_to_stream(ss, op, rhs, !right_associative);
 
-        if (may_parenthesize)
+        if (parenthesize)
         {
             ss << ')';
         }

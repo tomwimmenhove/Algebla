@@ -49,14 +49,18 @@ public:
 	void remove(std::string name);
 	void make_var(std::string variable);
 
+	std::shared_ptr<MathOps::MathOp<number>> function(std::string func, std::shared_ptr<MathOps::MathOp<number>> op);
+	std::shared_ptr<MathOps::MathOp<number>> get_constant(std::string id);
+	void command(std::string cmd);
+
+	bool input_is_file() const { return is_file; }
+
+private:
 	void show_variables();
 	void clear_variables();
 	void help();
 	void warranty();
 
-	bool input_is_file() const { return is_file; }
-
-private:
 	void check_reserved(std::string variable);
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);

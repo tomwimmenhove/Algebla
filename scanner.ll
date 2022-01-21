@@ -54,28 +54,8 @@ blank    [ \t]
 ":"         return yy::parser::make_COLON     (loc);
 "="         return yy::parser::make_EQUALS    (loc);
 "=>"        return yy::parser::make_LAMBDA    (loc);
-"%pi"       return yy::parser::make_PI        (loc);
-"%e"        return yy::parser::make_E         (loc);
-"sqrt"      return yy::parser::make_SQRT      (loc);
-"log"       return yy::parser::make_LOG       (loc);
-"log10"     return yy::parser::make_LOG10     (loc);
-"sin"       return yy::parser::make_SIN       (loc);
-"asin"      return yy::parser::make_ASIN      (loc);
-"cos"       return yy::parser::make_COS       (loc);
-"acos"      return yy::parser::make_ACOS      (loc);
-"tan"       return yy::parser::make_TAN       (loc);
-"atan"      return yy::parser::make_ATAN      (loc);
-"sinh"      return yy::parser::make_SINH      (loc);
-"asinh"     return yy::parser::make_ASINH     (loc);
-"cosh"      return yy::parser::make_COSH      (loc);
-"acosh"     return yy::parser::make_ACOSH     (loc);
-"tanh"      return yy::parser::make_TANH      (loc);
-"atanh"     return yy::parser::make_ATANH     (loc);
+"%"         return yy::parser::make_PERCENT   (loc);
 "solve"     return yy::parser::make_SOLVE     (loc);
-"show"      return yy::parser::make_SHOW      (loc);
-"clear"     return yy::parser::make_CLEAR     (loc);
-"help"      return yy::parser::make_HELP      (loc);
-"warranty"  return yy::parser::make_WARRANTY  (loc);
 "?"         return yy::parser::make_QUESTION  (loc);
 
 {number}	{

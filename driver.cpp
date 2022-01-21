@@ -350,6 +350,43 @@ void driver::check_reserved(std::string variable)
     }
 }
 
+std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func, std::shared_ptr<MathOps::MathOp<number>> op)
+{
+    if (func == "sqrt")  return sqrt(op);
+    if (func == "log")   return log(op);
+    if (func == "log10") return log10(op);
+    if (func == "sin")   return sin(op);
+    if (func == "cos")   return cos(op);
+    if (func == "tan")   return tan(op);
+    if (func == "asin")  return asin(op);
+    if (func == "acos")  return acos(op);
+    if (func == "atan")  return atan(op);
+    if (func == "sinh")  return sinh(op);
+    if (func == "cosh")  return cosh(op);
+    if (func == "tanh")  return tanh(op);
+    if (func == "asinh") return asinh(op);
+    if (func == "acosh") return acosh(op);
+    if (func == "atanh") return atanh(op);
+
+    throw yy::parser::syntax_error(location, "Uknown function: " + func);
+}
+
+std::shared_ptr<MathOps::MathOp<number>> driver::get_constant(std::string id)
+{
+    if (id == "e")  return MathOps::Factory::CreateSymbolE<number>();
+    if (id == "pi") return MathOps::Factory::CreateSymbolPi<number>();
+    else throw yy::parser::syntax_error(location, "Uknown constant: " + id);
+}
+
+void driver::command(std::string cmd)
+{
+    if      (cmd == "help")     help();
+    else if (cmd == "warranty") warranty();
+    else if (cmd == "show")     show_variables();
+    else if (cmd == "clear")    clear_variables();
+    else throw yy::parser::syntax_error(location, "Uknown command: " + cmd);
+}
+
 void driver::result(std::shared_ptr<MathOps::MathOp<number>> op)
 {
     number result = print_result(op);

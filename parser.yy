@@ -31,7 +31,6 @@
 
 %define api.token.prefix {TOK_}
 %token
-                   //END        0  "end of file"
                    END        0  "end"
                    MINUS         "-"
                    PLUS          "+"
@@ -45,29 +44,9 @@
                    COLON         ":"
                    EQUALS        "="
                    LAMBDA        "=>"
-                   E             "%e"
-                   PI            "%pi"
-                   SQRT          "sqrt"
-                   LOG           "log"
-                   LOG10         "log10"
-                   SIN           "sin"
-                   ASIN          "asin"
-                   COS           "cos"
-                   ACOS          "acos"
-                   TAN           "tan"
-                   ATAN          "atan"
-                   SINH          "sinh"
-                   ASINH         "asinh"
-                   COSH          "cosh"
-                   ACOSH         "acosh"
-                   TANH          "tanh"
-                   ATANH         "atanh"
+                   PERCENT       "%"
                    SOLVE         "solve"
-                   SHOW          "show"
-                   CLEAR         "clear"
-                   HELP          "help"
                    QUESTION      "?"
-                   WARRANTY      "warranty"
                    PRECISION     "precision"
                    DIGITS        "digits"
     <number>       NUMBER        "number"
@@ -75,7 +54,6 @@
 ;
 
 %type  <std::shared_ptr<MathOps::MathOp<number>>> expression
-%type  <std::shared_ptr<MathOps::MathOp<number>>> statement
 %type  <std::shared_ptr<MathOps::MathOp<number>>> assignment
 %type  <std::shared_ptr<MathOps::MathOp<number>>> lambda
 
@@ -93,10 +71,7 @@ entries     : %empty
             | statement
             | delete
             | entries ";" statement
-            | ":""show"                       { drv.show_variables(); }
-            | ":""clear"                      { drv.clear_variables(); }
-            | ":""help"                       { drv.help(); }
-            | ":""warranty"                   { drv.warranty(); }
+            | ":""identifier"                 { drv.command($2); }
             ;
 
 statement   : expression                      { drv.result($1); }
@@ -114,8 +89,7 @@ delete      : "identifier" "="                { drv.remove($1); }
             ;
 
 expression  : "number"                        { $$ = MathOps::Factory::CreateConstantValue<number>($1); }
-            | "%pi"                           { $$ = MathOps::Factory::CreateSymbolPi<number>(); }
-            | "%e"                            { $$ = MathOps::Factory::CreateSymbolE<number>(); }
+            | "%""identifier"                 { $$ = drv.get_constant($2); }
             | "identifier"                    { $$ = drv.find_identifier($1); }
             | "solve" "identifier"            { drv.make_var($2); } 
               ":" expression "=" expression   { $$ = drv.solve($5, $7, $2); }
@@ -128,21 +102,7 @@ expression  : "number"                        { $$ = MathOps::Factory::CreateCon
             | "+" expression %prec POSNEG     { $$ = $2; }
             | expression "^" expression       { $$ = MathOps::Pow<number>::create($1, $3); }
             | "(" expression ")"              { $$ = $2; }
-            | "sqrt" "(" expression ")"       { $$ = sqrt<number>($3); }
-            | "log"  "(" expression ")"       { $$ = log<number>($3); }
-            | "log10"  "(" expression ")"     { $$ = log10<number>($3); }
-            | "sin"  "(" expression ")"       { $$ = sin<number>($3); }
-            | "asin" "(" expression ")"       { $$ = asin<number>($3); }
-            | "cos"  "(" expression ")"       { $$ = cos<number>($3); }
-            | "acos" "(" expression ")"       { $$ = acos<number>($3); }
-            | "tan"  "(" expression ")"       { $$ = tan<number>($3); }
-            | "atan" "(" expression ")"       { $$ = atan<number>($3); }
-            | "sinh"  "(" expression ")"      { $$ = sinh<number>($3); }
-            | "asinh" "(" expression ")"      { $$ = asinh<number>($3); }
-            | "cosh"  "(" expression ")"      { $$ = cosh<number>($3); }
-            | "acosh" "(" expression ")"      { $$ = acosh<number>($3); }
-            | "tanh"  "(" expression ")"      { $$ = tanh<number>($3); }
-            | "atanh" "(" expression ")"      { $$ = atanh<number>($3); }
+            | "identifier""(" expression ")"  { $$ = drv.function($1, $3); }
             ;
 %%
 
