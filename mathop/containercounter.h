@@ -15,7 +15,7 @@ struct ContainerCounter : public Counter<T, Container<T>>
         : Counter<T, Container<T>>(limit), name(name)
      { }
 
-    static std::shared_ptr<Container<T>> FindFirst(std::shared_ptr<MathOp<T>> op, std::string name)
+    static std::shared_ptr<Container<T>> find_first(std::shared_ptr<MathOp<T>> op, std::string name)
     {
         ContainerCounter<T> counter(name, 1);
         return op->count(counter) ? counter.get_results()[0] : nullptr;

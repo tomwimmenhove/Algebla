@@ -15,7 +15,7 @@ struct NamedValueCounter : public Counter<T, Value<T>>
         : Counter<T, Value<T>>(limit), symbol(symbol)
      { }
 
-    static std::shared_ptr<Value<T>> FindFirst(std::shared_ptr<MathOp<T>> op, std::string symbol)
+    static std::shared_ptr<Value<T>> find_first(std::shared_ptr<MathOp<T>> op, std::string symbol)
     {
         NamedValueCounter<T> counter(symbol, 1);
         return op->count(counter) ? counter.get_results()[0] : nullptr;

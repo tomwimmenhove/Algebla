@@ -185,7 +185,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
 {
     for(auto lambda: lambdas)
     {
-        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_inner(), variable))
+        if (MathOps::ContainerCounter<number>::find_first(lambda->get_inner(), variable))
         {
             throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
         }
@@ -259,19 +259,19 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
 {
     check_reserved(variable);
 
-    if (MathOps::NamedValueCounter<number>::FindFirst(op, variable))
+    if (MathOps::NamedValueCounter<number>::find_first(op, variable))
     {
         throw yy::parser::syntax_error(location, "Lambda may not reference a variable with the same name");
     }
 
-    if (MathOps::ContainerCounter<number>::FindFirst(op, variable))
+    if (MathOps::ContainerCounter<number>::find_first(op, variable))
     {
         throw yy::parser::syntax_error(location, "Infinite recursion detected");
     }
 
     for(auto lambda: lambdas)
     {
-        if (MathOps::NamedValueCounter<number>::FindFirst(lambda, variable))
+        if (MathOps::NamedValueCounter<number>::find_first(lambda, variable))
         {
             throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a variale\n");
         }
@@ -307,12 +307,12 @@ void driver::remove(std::string name)
     /* Check if variable is in use */
     for(auto lambda: lambdas)
     {
-        if (MathOps::NamedValueCounter<number>::FindFirst(lambda, name))
+        if (MathOps::NamedValueCounter<number>::find_first(lambda, name))
         {
             throw yy::parser::syntax_error(location, "Variable " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
 
-        if (MathOps::ContainerCounter<number>::FindFirst(lambda->get_inner(), name))
+        if (MathOps::ContainerCounter<number>::find_first(lambda->get_inner(), name))
         {
             throw yy::parser::syntax_error(location, "Lambda " + name + " is in use by lambda " + lambda->get_name() + "\n");
         }
@@ -463,7 +463,7 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
     }
 
     /* Expand containers? */
-    auto container = MathOps::ContainerCounter<number>::FindFirst(op, "");
+    auto container = MathOps::ContainerCounter<number>::find_first(op, "");
     if (container)
     {
         /* Print the lambda name, followed by it's expression */
@@ -471,7 +471,7 @@ number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
                   << container->get_inner()->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
 
         /* If the lambda contains more lambdas, print the lambda expression */
-        if (MathOps::ContainerCounter<number>::FindFirst(container->get_inner(), ""))
+        if (MathOps::ContainerCounter<number>::find_first(container->get_inner(), ""))
         {
             std::cout << op->transform(MathOps::ExpandTransformer<number>())
                            ->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";

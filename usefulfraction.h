@@ -95,7 +95,7 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
 
     for (auto y : equations)
     {
-        auto numerator = MathOps::NamedValueCounter<T>::FindFirst(y, "numerator");
+        auto numerator = MathOps::NamedValueCounter<T>::find_first(y, "numerator");
 
         auto fraction = solver<T>(y, numerator, value, max_error, iters);
 
@@ -103,7 +103,7 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
         {
             best_fraction = fraction;
             best_numerator = numerator;
-            best_denominator = MathOps::NamedValueCounter<T>::FindFirst(y, "denominator");
+            best_denominator = MathOps::NamedValueCounter<T>::find_first(y, "denominator");
             best_y = y;
         }
     }
