@@ -108,7 +108,8 @@ std::shared_ptr<MathOps::MathOp<T>> find_fraction(std::vector<std::shared_ptr<Ma
         }
     }
 
-    if (!best_y || best_fraction.denominator > max_num_denominator || best_fraction.numerator > max_num_denominator)
+    if (!best_y || best_fraction.numerator == value || 
+        best_fraction.denominator > max_num_denominator || best_fraction.numerator > max_num_denominator)
     {
         return nullptr;
     }
@@ -123,7 +124,8 @@ std::string useful_fraction(T x, int precision)
 {
     std::stringstream ss;
 
-    if (x == 0)
+    T integral;
+    if (MathOps::modf(x, integral) == 0)
     {
         return { };
     }
@@ -139,11 +141,13 @@ std::string useful_fraction(T x, int precision)
         numerator * e / denominator,
         numerator / (e * denominator),
         numerator * sq2 / denominator,
-        numerator / (sq2 * denominator)
+        numerator / (sq2 * denominator),
+        sqrt<T>(numerator / denominator),
+        pow<T>(e, numerator / denominator),
+        numerator / denominator
     };
 
     auto y = find_fraction<T>(equations, x, 1E-15, 1000, 10000);
-
     if (!y)
     {
         return { };
