@@ -125,7 +125,7 @@ void driver::help()
                  "\n";
     if (isatty(fileno(stdin)))
     {
-        std::cout << "Exit                           : Control-D\n\n";
+        std::cout << "Exit                           : Control-D, :exit, :quit, :q\n\n";
     }
 }
 
@@ -434,7 +434,10 @@ std::shared_ptr<MathOps::MathOp<number>> driver::get_constant(std::string id)
 
 void driver::command(std::string cmd)
 {
-    if      (cmd == "help")     help();
+    if      (cmd == "exit" ||
+             cmd == "quit" ||
+             cmd == "q")        exit(0);
+    else if (cmd == "help")     help();
     else if (cmd == "warranty") warranty();
     else if (cmd == "show")     show_variables();
     else if (cmd == "clear")    clear_variables();
