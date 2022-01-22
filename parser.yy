@@ -90,7 +90,7 @@ lambda      : "identifier" "=>" expression    { $$ = drv.assign_lambda($1, $3); 
 
 delete      : "identifier" "="                { drv.remove($1); }
             ;
-expressions : %empty
+expressions : %empty                          { }
             | expression                      { $$.push_back($1); }
             | expressions "," expression      { $1.push_back($3); $$ = $1; }
             ;
