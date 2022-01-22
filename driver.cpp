@@ -16,12 +16,10 @@
 driver::driver(options opt)
     : trace_parsing(false), trace_scanning(false),
       opt(opt),
-#ifdef ARBIT_PREC
-      precision(MathOps::Variable<number>::create("precision", opt.precision)),
-#endif
       digits(MathOps::Variable<number>::create("digits", opt.digits)),
       ans(MathOps::Variable<number>::create("ans", 0)),
 #ifdef ARBIT_PREC
+      precision(MathOps::Variable<number>::create("precision", opt.precision)),
       variables({precision, digits, ans})
 #else
       variables({digits, ans})
