@@ -107,7 +107,7 @@ expression  : "number"                        { $$ = MathOps::ConstantValue<numb
             | expression "/" expression       { $$ = $1 / $3; }
             | "-" expression %prec POSNEG     { $$ = -$2; }
             | "+" expression %prec POSNEG     { $$ = $2; }
-            | expression "^" expression       { $$ = MathOps::Pow<number>::create($1, $3); }
+            | expression "^" expression       { $$ = MathOps::pow<number>($1, $3); }
             | "(" expression ")"              { $$ = $2; }
             | "identifier"                    { drv.check_function($1); }
               "(" expressions ")"             { $$ = drv.function($1, $4); }

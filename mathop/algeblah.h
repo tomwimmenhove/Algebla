@@ -348,6 +348,8 @@ DEFINE_UNARY_OP(ATanh, atanh(this->x->result()));
 
 #undef DEFINE_UNARY_OP
 
+template<typename T> std::shared_ptr<MathOp<T>> pow(std::shared_ptr<MathOp<T>> x,
+                                                    std::shared_ptr<MathOp<T>> y)    { return Pow<T>::create(x, y); }
 template<typename T> std::shared_ptr<MathOp<T>> sqrt(std::shared_ptr<MathOp<T>> x)   { return Sqrt<T>::create(x); }
 template<typename T> std::shared_ptr<MathOp<T>> log(std::shared_ptr<MathOp<T>> x)    { return Log<T>::create(x); }
 template<typename T> std::shared_ptr<MathOp<T>> log10(std::shared_ptr<MathOp<T>> x)  { return Log10<T>::create(x); }
