@@ -16,8 +16,22 @@
 #include <setjmp.h>
 
 static bool in_terminal = isatty(fileno(stdin));
+static jmp_buf jump_buffer;
+static bool can_jump = false;
+static int quit = 0;
 
-jmp_buf jump_buffer;
+void signal_handler(int signum)
+{
+    if (++quit == 3)
+    {
+        exit(signum);
+    }
+
+    if (can_jump)
+    {
+        siglongjmp(jump_buffer, 1);
+    }
+}
 
 bool get_input(std::string& str)
 {
@@ -37,7 +51,10 @@ bool get_input(std::string& str)
         std::cout << '\n';
     }
 
+    can_jump = true;
     char *line_buf = readline("> ");
+    can_jump = false;
+    quit = 0;
     if (!line_buf)
     {
         return false;
@@ -48,11 +65,6 @@ bool get_input(std::string& str)
     free(line_buf);
 
     return true;
-}
-
-void signal_handler(int signum)
-{
-   siglongjmp(jump_buffer, 1);
 }
 
 int main(int argc, char** argv)
