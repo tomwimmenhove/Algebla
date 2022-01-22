@@ -15,7 +15,7 @@ if(debug)
     add_compile_definitions(DEBUG)
     add_compile_options(-ggdb)
 else()
-    add_compile_definitions(NDEBUG)
+    add_compile_definitions(NDEBUG -O2)
 endif()
 
 add_compile_options(-std=c++17 -Wall -Werror)
