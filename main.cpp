@@ -12,8 +12,12 @@
 #include <pwd.h>
 #include <getopt.h>
 #include <stdio.h>
+#include <signal.h>
+#include <setjmp.h>
 
 static bool in_terminal = isatty(fileno(stdin));
+
+jmp_buf jump_buffer;
 
 bool get_input(std::string& str)
 {
@@ -27,6 +31,12 @@ bool get_input(std::string& str)
         return false;
     }
     
+    /* Ignore Control-C */
+    while(sigsetjmp(jump_buffer, 1))
+    {
+        std::cout << '\n';
+    }
+
     char *line_buf = readline("> ");
     if (!line_buf)
     {
@@ -38,6 +48,11 @@ bool get_input(std::string& str)
     free(line_buf);
 
     return true;
+}
+
+void signal_handler(int signum)
+{
+   siglongjmp(jump_buffer, 1);
 }
 
 int main(int argc, char** argv)
@@ -73,6 +88,8 @@ int main(int argc, char** argv)
     std::string history_path;
     if (in_terminal)
     {
+        signal(SIGINT, signal_handler);
+
         /* Read history */
         history_path = std::string(getpwuid(getuid())->pw_dir) + "/.algebla_history";
         std::ifstream history_file(history_path);
