@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <unistd.h>
+#include <functional>
 
 #include "driver.h"
 #include "parser.h"
@@ -377,26 +378,51 @@ void driver::check_reserved(std::string variable)
     }
 }
 
-std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func, std::shared_ptr<MathOps::MathOp<number>> op)
+struct FunctionOptions
 {
-    if (func == "sqrt")   return MathOps::sqrt(op);
-    if (func == "log")    return MathOps::log(op);
-    if (func == "log10")  return MathOps::log10(op);
-    if (func == "sin")    return MathOps::sin(op);
-    if (func == "cos")    return MathOps::cos(op);
-    if (func == "tan")    return MathOps::tan(op);
-    if (func == "asin")   return MathOps::asin(op);
-    if (func == "acos")   return MathOps::acos(op);
-    if (func == "atan")   return MathOps::atan(op);
-    if (func == "sinh")   return MathOps::sinh(op);
-    if (func == "cosh")   return MathOps::cosh(op);
-    if (func == "tanh")   return MathOps::tanh(op);
-    if (func == "asinh")  return MathOps::asinh(op);
-    if (func == "acosh")  return MathOps::acosh(op);
-    if (func == "atanh")  return MathOps::atanh(op);
-    if (func == "expand") return op->transform(MathOps::ExpandTransformer<number>());
+    size_t num_args;
+    std::function<std::shared_ptr<MathOps::MathOp<number>>(std::vector<std::shared_ptr<MathOps::MathOp<number>>>)> handler;
+};
 
-    throw yy::parser::syntax_error(location, "Uknown function: " + func);
+static std::map<std::string, FunctionOptions> function_map = {
+    { "sqrt",   FunctionOptions { 1, [](auto ops) { return MathOps::sqrt(ops[0]);  } } },
+    { "log",    FunctionOptions { 1, [](auto ops) { return MathOps::log(ops[0]);   } } },
+    { "log10",  FunctionOptions { 1, [](auto ops) { return MathOps::log10(ops[0]); } } },
+    { "sin",    FunctionOptions { 1, [](auto ops) { return MathOps::sin(ops[0]);   } } },
+    { "cos",    FunctionOptions { 1, [](auto ops) { return MathOps::cos(ops[0]);   } } },
+    { "tan",    FunctionOptions { 1, [](auto ops) { return MathOps::tan(ops[0]);   } } },
+    { "asin",   FunctionOptions { 1, [](auto ops) { return MathOps::asin(ops[0]);  } } },
+    { "acos",   FunctionOptions { 1, [](auto ops) { return MathOps::acos(ops[0]);  } } },
+    { "atan",   FunctionOptions { 1, [](auto ops) { return MathOps::atan(ops[0]);  } } },
+    { "sinh",   FunctionOptions { 1, [](auto ops) { return MathOps::sinh(ops[0]);  } } },
+    { "cosh",   FunctionOptions { 1, [](auto ops) { return MathOps::cosh(ops[0]);  } } },
+    { "tanh",   FunctionOptions { 1, [](auto ops) { return MathOps::tanh(ops[0]);  } } },
+    { "asinh",  FunctionOptions { 1, [](auto ops) { return MathOps::asinh(ops[0]); } } },
+    { "acosh",  FunctionOptions { 1, [](auto ops) { return MathOps::acosh(ops[0]); } } },
+    { "atanh",  FunctionOptions { 1, [](auto ops) { return MathOps::atanh(ops[0]); } } },
+    { "expand", FunctionOptions { 1, [](auto ops) { return ops[0]->transform(MathOps::ExpandTransformer<number>()); } } },
+};
+
+void driver::check_function(std::string func_name)
+{
+    if (function_map.find(func_name) == function_map.end())
+    {
+        throw yy::parser::syntax_error(location, "Uknown function: " + func_name);
+    }
+}
+
+std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func_name,
+    std::vector<std::shared_ptr<MathOps::MathOp<number>>> ops)
+{
+    auto it = function_map.find(func_name);
+    if (it->second.num_args != ops.size())
+    {
+        throw yy::parser::syntax_error(location,
+            func_name + " takes " + std::to_string(it->second.num_args) + " arguments, "
+                                  + std::to_string(ops.size()) + " given");
+    }
+
+    return it->second.handler(ops);
 }
 
 std::shared_ptr<MathOps::MathOp<number>> driver::get_constant(std::string id)

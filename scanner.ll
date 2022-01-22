@@ -52,6 +52,7 @@ blank    [ \t]
 ")"         return yy::parser::make_RPAREN    (loc);
 ";"         return yy::parser::make_SEMICOLON (loc);
 ":"         return yy::parser::make_COLON     (loc);
+","         return yy::parser::make_COMMA     (loc);
 "="         return yy::parser::make_EQUALS    (loc);
 "=>"        return yy::parser::make_LAMBDA    (loc);
 "%"         return yy::parser::make_PERCENT   (loc);

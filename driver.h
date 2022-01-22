@@ -49,7 +49,9 @@ public:
 	void remove(std::string name);
 	void make_var(std::string variable);
 
-	std::shared_ptr<MathOps::MathOp<number>> function(std::string func, std::shared_ptr<MathOps::MathOp<number>> op);
+	void check_function(std::string func_name);
+	std::shared_ptr<MathOps::MathOp<number>> function(std::string func_name,
+		std::vector<std::shared_ptr<MathOps::MathOp<number>>> ops);
 	std::shared_ptr<MathOps::MathOp<number>> get_constant(std::string id);
 	void command(std::string cmd);
 

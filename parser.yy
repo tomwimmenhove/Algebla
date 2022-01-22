@@ -9,6 +9,7 @@
 %code requires {
   #include <string>
   #include <iostream>
+  #include <vector>
   #include <memory>
   #include "../defaulthelper.h"
   #include "../mathop/algeblah.h"
@@ -42,6 +43,7 @@
                    RPAREN        ")"
                    SEMICOLON     ";"
                    COLON         ":"
+                   COMMA         ","
                    EQUALS        "="
                    LAMBDA        "=>"
                    PERCENT       "%"
@@ -54,6 +56,7 @@
 ;
 
 %type  <std::shared_ptr<MathOps::MathOp<number>>> expression
+%type  <std::vector<std::shared_ptr<MathOps::MathOp<number>>>> expressions
 %type  <std::shared_ptr<MathOps::MathOp<number>>> assignment
 %type  <std::shared_ptr<MathOps::MathOp<number>>> lambda
 
@@ -87,6 +90,10 @@ lambda      : "identifier" "=>" expression    { $$ = drv.assign_lambda($1, $3); 
 
 delete      : "identifier" "="                { drv.remove($1); }
             ;
+expressions : %empty
+            | expression                      { $$.push_back($1); }
+            | expressions "," expression      { $1.push_back($3); $$ = $1; }
+            ;
 
 expression  : "number"                        { $$ = MathOps::ConstantValue<number>::create($1); }
             | "%""identifier"                 { $$ = drv.get_constant($2); }
@@ -102,7 +109,8 @@ expression  : "number"                        { $$ = MathOps::ConstantValue<numb
             | "+" expression %prec POSNEG     { $$ = $2; }
             | expression "^" expression       { $$ = MathOps::Pow<number>::create($1, $3); }
             | "(" expression ")"              { $$ = $2; }
-            | "identifier""(" expression ")"  { $$ = drv.function($1, $3); }
+            | "identifier"                    { drv.check_function($1); }
+              "(" expressions ")"             { $$ = drv.function($1, $4); }
             ;
 %%
 
