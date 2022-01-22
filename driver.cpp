@@ -157,7 +157,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     MathOps::NamedValueCounter<number> counter(variable);
     int left_count = lhs->count(counter);
     rhs->count(counter);
-    auto& variables = counter.get_variables();
+    auto& variables = counter.get_results();
 
     if (variables.size() == 0)
     {
