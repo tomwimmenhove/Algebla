@@ -67,8 +67,169 @@ bool get_input(std::string& str)
     return true;
 }
 
+// template<typename T>
+// inline static T gcd(T a, T b)
+// {
+//     T r = a % b;
+//     return r == 0 ? b : gcd(b, r);
+// }
+
+#include <cmath>
+#include <numeric>
+
+template<typename F, typename I>
+struct IntFraction
+{
+    IntFraction() : IntFraction(0, 1) { }
+
+    IntFraction(I numerator, I denominator)
+     : numerator(numerator), denominator(denominator)
+    { }
+
+    I numerator;
+    I denominator;
+
+    F result() const { return (F) numerator / denominator; }
+    bool is_valid () const { return denominator != 0; }
+
+    IntFraction<F, I> simplified() const
+    {
+        I gcd = std::gcd<I>(numerator, denominator);
+        
+        return IntFraction<F, I>(numerator / gcd, denominator / gcd);
+    }
+
+    static IntFraction<F, I> invalid() { return IntFraction<F, I>(0, 0); }
+
+    static IntFraction<F, I> find(F value, F max_error, int iters)
+    {
+        return find(value, value, max_error, iters, [](auto f) { return f.result(); });
+    }
+
+    template<typename Func>
+    static IntFraction<F, I> find(F value, F test_value, F max_error, int iters, Func fn)
+    {
+        std::cout << "Value     : " << value << '\n';
+        std::cout << "Test value: " << test_value << '\n';
+
+        F c = ceil(value);
+        F f = floor(value);
+
+        /* Under or overflow? */
+        if (c < std::numeric_limits<I>::min() || c > std::numeric_limits<I>::max() ||
+            f < std::numeric_limits<I>::min() || f > std::numeric_limits<I>::max())
+        {
+            return IntFraction<F, I>::invalid();
+        }
+
+        I upper_numerator = (I)c;
+        I lower_numerator = (I)f;
+
+        if (upper_numerator == lower_numerator)
+        {
+            return IntFraction<F, I>(lower_numerator, 1);
+        }
+
+        IntFraction<F, I> lower(lower_numerator, 1);
+        IntFraction<F, I> upper(upper_numerator, 1);
+
+        while (iters--)
+        {
+            /* Under or overflow? */
+            if (((upper.numerator > 0) && (lower.numerator > std::numeric_limits<I>::max() - upper.numerator)) ||
+                ((upper.numerator < 0) && (lower.numerator < std::numeric_limits<I>::min() - upper.numerator)) ||
+                ((upper.denominator > 0) && (lower.denominator > std::numeric_limits<I>::max() - upper.denominator)) ||
+                ((upper.denominator < 0) && (lower.denominator < std::numeric_limits<I>::min() - upper.denominator)))
+            {
+                return IntFraction<F, I>::invalid();
+            }
+
+            IntFraction<F, I> fraction(lower.numerator + upper.numerator, lower.denominator + upper.denominator);
+            F test = fn(fraction);
+
+            if (MathOps::abs(test - test_value) <= max_error)
+            {
+                return fraction;//.simplified();
+            }
+
+            if (test_value > test)
+            {
+                lower = fraction;
+            }
+            else
+            {
+                upper = fraction;
+            }
+        }
+
+        return IntFraction<F, I>::invalid();
+    }
+};
+
+#include "mathop/constants.h"
+#include "mathop/rearrangetransformer.h"
+#include "mathop/removenooptransformer.h"
+#include "mathop/replacetransformer.h"
+#include "mathop/defaultformatter.h"
+
+template<typename T>
+std::shared_ptr<MathOps::MathOp<T>> find_approximation(std::shared_ptr<MathOps::MathOp<T>> equation,
+    std::shared_ptr<MathOps::Value<T>> numerator,
+    std::shared_ptr<MathOps::Value<T>> denominator,
+    T value)
+{
+    denominator->set(1);
+
+    auto fn = [&](auto fraction)
+    {
+        numerator->set(fraction.numerator);
+        denominator->set(fraction.denominator);
+
+        return equation->result();
+    };
+
+    auto result = MathOps::ConstantValue<T>::create(value);
+    auto solved = equation->transform(MathOps::MathOpRearrangeTransformer<T>(numerator, result));
+
+    auto fraction = IntFraction<T, long long int>::find(solved->result(), value, .0001, 20000, fn);
+
+    if (fraction.is_valid())
+    {
+        return equation->transform(MathOps::ReplaceTransformer<T>(numerator,
+                            MathOps::ConstantValue<T>::create(fraction.numerator)))
+                       ->transform(MathOps::ReplaceTransformer<T>(denominator,
+                            MathOps::ConstantValue<T>::create(fraction.denominator)))
+                       ->transform(MathOps::MathOpRemoveNoOpTransformer<T>());
+    }
+
+    return nullptr;
+}
+
 int main(int argc, char** argv)
 {
+    auto numerator = MathOps::ValueVariable<number>::create("numerator", 1.0);
+    auto denominator = MathOps::ValueVariable<number>::create("denominator", 1.0);
+    const auto e = MathOps::Constants::e<number>();
+
+    //auto eq = numerator / denominator;
+    auto eq = pow<number>(e, numerator) / denominator;
+
+    // (e ^ 1) / 2 == (e ^ numerator) / denominator == 1.3591
+
+    auto input = pow<number>(e, MathOps::ConstantValue<number>::create(2)) / 
+         MathOps::ConstantValue<number>::create(2);
+
+    auto result = input->result();
+
+    int precision = 5;
+    auto approximation = find_approximation<number>(eq, numerator, denominator, result);    
+
+    if (approximation)
+    {
+        std::cout << approximation->format(MathOps::DefaultFormatter<number>(precision)) << '\n';
+    }
+
+    //return 0;
     options opt(argc, argv);
 
     if (!opt.quiet && opt.filenames.empty() && isatty(fileno(stdin)))
