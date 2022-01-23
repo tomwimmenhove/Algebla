@@ -48,6 +48,7 @@
                    LAMBDA        "=>"
                    PERCENT       "%"
                    SOLVE         "solve"
+                   PLOT          "plot"
                    QUESTION      "?"
                    PRECISION     "precision"
                    DIGITS        "digits"
@@ -75,6 +76,11 @@ entries     : %empty
             | delete
             | entries ";" statement
             | ":""identifier"                 { drv.command($2); }
+            | plot
+            ;
+
+plot        : "plot" "identifier"             { drv.make_var($2); } 
+              ":" expressions                 { drv.plot($2, $5); } 
             ;
 
 statement   : expression                      { drv.result($1); }

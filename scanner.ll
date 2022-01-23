@@ -57,6 +57,7 @@ blank    [ \t]
 "=>"        return yy::parser::make_LAMBDA    (loc);
 "%"         return yy::parser::make_PERCENT   (loc);
 "solve"     return yy::parser::make_SOLVE     (loc);
+"plot"      return yy::parser::make_PLOT      (loc);
 "?"         return yy::parser::make_QUESTION  (loc);
 
 {number}	{

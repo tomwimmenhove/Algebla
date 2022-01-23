@@ -106,6 +106,10 @@ void driver::help()
                  "                                  Example: c => expand(c)\n"
                  "  Solve for a variable         : solve <variable name>: <expression> = <expession>\n"
                  "                                  Example: solve a: a^2 + b^2 = c^2\n"
+#ifdef GNUPLOT
+                 "  Plot                          : plot <variable name>: <expression> [, <from>, <to>, <step>]\n"
+                 "                                  Example: plot x: sin(x), 0, 2 * %pi\n"
+#endif
                  "  Delete a vairable or lambda  : <variable name> =\n"
                  "                                  Example: a =\n"
                  "  Show all assigned variables  : :show\n"
@@ -179,6 +183,36 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     solve_variable->set(solved->result());
 
     return solved;
+}
+
+void driver::plot(std::string variable, std::vector<std::shared_ptr<MathOps::MathOp<number>>> args)
+{
+#ifdef GNUPLOT
+    if (args.size() < 1)
+    {
+        throw yy::parser::syntax_error(location, "Not enough arguments for plot command");
+    }
+    
+    number from = args.size() >= 2 ? args[1]->result() : -10;
+    number to =   args.size() >= 3 ? args[2]->result() : 10;
+    number step = args.size() >= 4 ? args[3]->result() : (to - from) / 100;
+
+    if (!gp.is_open())
+    {
+        gp.open();
+    }
+
+    if (!gp.is_open())
+    {
+        throw yy::parser::syntax_error(location, "Failed to launch gnuplot");
+    }
+
+    auto v = get_var(variable);
+
+    gp.plot(args[0], v, from, to, step, (int) digits->result());
+#else
+    throw yy::parser::syntax_error(location, "Not compiled with support for plotting");
+#endif
 }
 
 std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)

@@ -3,6 +3,7 @@
 
 #include "visitor.h"
 
+#include <iostream>
 #include <cmath>
 #include <limits>
 #include <string>

@@ -3,12 +3,17 @@ project(algeblah VERSION 0.1.0)
 
 set(arbit_prec ON)
 set(debug ON)
+set(plot ON)
 
 include(CTest)
 enable_testing()
 
 if(arbit_prec)
     add_compile_definitions(ARBIT_PREC)
+endif()
+
+if (plot)
+add_compile_definitions(GNUPLOT)
 endif()
 
 if(debug)
