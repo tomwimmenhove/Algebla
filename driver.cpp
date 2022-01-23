@@ -107,8 +107,8 @@ void driver::help()
                  "  Solve for a variable         : solve <variable name>: <expression> = <expession>\n"
                  "                                  Example: solve a: a^2 + b^2 = c^2\n"
 #ifdef GNUPLOT
-                 "  Plot                          : plot <variable name>: <expression> [, <from>, <to>, <step>]\n"
-                 "                                  Example: plot x: sin(x), 0, 2 * %pi\n"
+                 "  Plot                          : plot <variable name> [, <from>, <to>, <step>]: <expression>, <expression>, ...\n"
+                 "                                  Example: plot x, 0, 2 * %pi: sin(x), cos(x)\n"
 #endif
                  "  Delete a vairable or lambda  : <variable name> =\n"
                  "                                  Example: a =\n"
@@ -185,17 +185,19 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     return solved;
 }
 
-void driver::plot(std::string variable, std::vector<std::shared_ptr<MathOps::MathOp<number>>> args)
+void driver::plot(std::string variable,
+		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
+		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args)
 {
 #ifdef GNUPLOT
-    if (args.size() < 1)
+    if (equations.size() < 1)
     {
-        throw yy::parser::syntax_error(location, "Not enough arguments for plot command");
+        throw yy::parser::syntax_error(location, "No expressions to plot");
     }
     
-    number from = args.size() >= 2 ? args[1]->result() : -10;
-    number to =   args.size() >= 3 ? args[2]->result() : 10;
-    number step = args.size() >= 4 ? args[3]->result() : (to - from) / 100;
+    number from = args.size() >= 1 ? args[0]->result() : -10;
+    number to =   args.size() >= 2 ? args[1]->result() :  10;
+    number step = args.size() >= 3 ? args[2]->result() : (to - from) / 100;
 
     if (!gp.is_open())
     {
@@ -209,7 +211,7 @@ void driver::plot(std::string variable, std::vector<std::shared_ptr<MathOps::Mat
 
     auto v = get_var(variable);
 
-    gp.plot(args[0], v, from, to, step, (int) digits->result());
+    gp.plot(equations, v, from, to, step, (int) digits->result());
 #else
     throw yy::parser::syntax_error(location, "Not compiled with support for plotting");
 #endif

@@ -2,6 +2,7 @@
 #define GNUPLOT_H
 
 #include "mathop/defaultformatter.h"
+#include "mathop/expandtransformer.h"
 
 #include <iostream>
 #include <cstring>
@@ -25,29 +26,50 @@ public:
     inline void close() { pclose(pipe); }
     inline bool is_open() { return pipe != nullptr; }
 
-    void plot(std::shared_ptr<MathOps::MathOp<T>> equation,
+    void plot(std::vector<std::shared_ptr<MathOps::MathOp<T>>> equations,
         std::shared_ptr<MathOps::Variable<T>> x, T from, T to, T step, int digits)
     {
         std::stringstream ss;
 
-        std::string title = escape(equation->format(MathOps::DefaultFormatter<T>(digits)));
-
         std::string x_name = x->get_symbol();
         ss << "set xlabel \"" << x_name << "\"\n";
         ss << "set ylabel \"f(" << x_name << ")\"\n";
-        ss << "plot '-' using 1:2 title \"" << title << "\" with lines\n";
+        ss << "plot ";
 
-        ss << std::setprecision(digits);
-
-        for (T i = from; i < to; i += step)
+        for (size_t i = 0; i < equations.size(); i++)
         {
-            x->set(i);
-            ss << i << ' ' << equation->result() << '\n';
+            auto equation = equations[i];
+
+            std::string title = escape(equation->transform(MathOps::ExpandTransformer<T>())
+                                               ->format(MathOps::DefaultFormatter<T>(digits)));
+            ss << "'-' using 1:2 title \"" << title << "\" with lines";
+
+            if (i < equations.size() - 1)
+            {
+                ss << ", ";
+            }
+            else
+            {
+                ss << '\n';
+            }
         }
 
-        ss << "EOF\n";
+        ss << std::setprecision(digits);
+        for (size_t i = 0; i < equations.size(); i++)
+        {
+            auto equation = equations[i];
+
+            for (T i = from; i < to; i += step)
+            {
+                x->set(i);
+                ss << i << ' ' << equation->result() << '\n';
+            }
+
+            ss << "EOF\n";
+        }
 
         fprintf(pipe, "%s", ss.str().c_str());
+
         fflush(pipe);
     }
 
