@@ -212,6 +212,25 @@ void driver::plot(std::string variable,
     auto v = get_var(variable);
 
     gp.plot(equations, v, from, to, step, (int) digits->result());
+    plot_variable = variable;
+    plot_equations = equations;
+    plot_args = args;
+#else
+    throw yy::parser::syntax_error(location, "Not compiled with support for plotting");
+#endif
+}
+
+void driver::replot()
+{
+#ifdef GNUPLOT
+    if (plot_equations.size() == 0)
+    {
+        throw yy::parser::syntax_error(location, "Nothing to plot");
+    }
+
+    make_var(plot_variable);
+
+    plot(plot_variable, plot_equations, plot_args);
 #else
     throw yy::parser::syntax_error(location, "Not compiled with support for plotting");
 #endif
@@ -226,6 +245,13 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
             throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
         }
     }
+#ifdef GNUPLOT
+    /* If this was a lambda, check if it was in use by the plotter */
+    if (get_lambda(variable))
+    {
+        delete_plot_using(variable);
+    }
+#endif
 
     auto it = std::find_if(lambdas.begin(), lambdas.end(),
         [&variable](std::shared_ptr<MathOps::Container<number>> l) { return l->get_name() == variable; });
@@ -305,6 +331,14 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         throw yy::parser::syntax_error(location, "Infinite recursion detected");
     }
 
+#ifdef GNUPLOT
+    /* If this was a variable, check if it was in use by the plotter */
+    if (get_var(variable))
+    {
+        delete_plot_using(variable);
+    }
+#endif
+
     for(auto lambda: lambdas)
     {
         if (MathOps::NamedValueCounter<number>::find_first(lambda, variable))
@@ -354,6 +388,10 @@ void driver::remove(std::string name)
         }
     }
 
+#ifdef GNUPLOT
+    delete_plot_using(name);
+#endif
+
     variables.erase(std::remove_if(variables.begin(), variables.end(),
             [&name](auto v) { return v->get_symbol() == name; }),
         variables.end());
@@ -362,6 +400,25 @@ void driver::remove(std::string name)
             [&name](auto l) { return l->get_name() == name; }),
         lambdas.end());
 }
+
+#ifdef GNUPLOT
+void driver::delete_plot_using(std::string name)
+{
+    auto plot_it = plot_equations.begin();
+    while (plot_it != plot_equations.end())
+    {
+        if (MathOps::NamedValueCounter<number>::find_first(*plot_it, name) ||
+            MathOps::ContainerCounter<number>::find_first(*plot_it, name))
+        {
+            plot_it = plot_equations.erase(plot_it);
+        }
+        else
+        {
+            ++plot_it;
+        }
+    }
+}
+#endif
 
 std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string variable)
 {

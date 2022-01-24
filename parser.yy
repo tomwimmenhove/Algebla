@@ -49,6 +49,7 @@
                    PERCENT       "%"
                    SOLVE         "solve"
                    PLOT          "plot"
+                   REPLOT        "replot"
                    QUESTION      "?"
                    PRECISION     "precision"
                    DIGITS        "digits"
@@ -77,6 +78,7 @@ entries     : %empty
             | entries ";" statement
             | ":""identifier"                 { drv.command($2); }
             | plot
+            | "replot"                        { drv.replot(); }
             ;
 
 plot        : "plot" "identifier"             { drv.make_var($2); } 

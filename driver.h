@@ -49,6 +49,7 @@ public:
 	void plot(std::string variable,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args);
+	void replot();
 	std::shared_ptr<MathOps::MathOp<number>> find_identifier(std::string variable);
 	std::shared_ptr<MathOps::MathOp<number>> assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
@@ -73,9 +74,14 @@ private:
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
 	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);
-
+	
 #ifdef GNUPLOT
+	void delete_plot_using(std::string name);
+
 	GnuPlot<number> gp;
+	std::string plot_variable;
+	std::vector<std::shared_ptr<MathOps::MathOp<number>>> plot_equations;
+	std::vector<std::shared_ptr<MathOps::MathOp<number>>> plot_args;
 #endif
 
 	options opt;
