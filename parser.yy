@@ -100,9 +100,10 @@ lambda      : "identifier" "=>" expression    { $$ = drv.assign_lambda($1, $3); 
 
 delete      : "identifier" "="                { drv.remove($1); }
             ;
-expressions : %empty                          { }
+expressions : %empty                          { $$.push_back(nullptr); }
             | expression                      { $$.push_back($1); }
             | expressions "," expression      { $1.push_back($3); $$ = $1; }
+            | expressions ","                 { $1.push_back(nullptr); $$ = $1; }
             ;
 
 expression  : "number"                        { $$ = MathOps::ConstantValue<number>::create($1); }

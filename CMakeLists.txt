@@ -28,7 +28,7 @@ add_compile_options(-std=c++17 -Wall -Werror)
 find_package(BISON)
 find_package(FLEX)
 
-BISON_TARGET(parser parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/parser.h)
+BISON_TARGET(parser parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/parser.h COMPILE_FLAGS -Werror)
 FLEX_TARGET(scanner scanner.ll ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

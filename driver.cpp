@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <functional>
+#include <limits>
 
 #include "driver.h"
 #include "parser.h"
@@ -189,7 +190,10 @@ std::vector<number> driver::get_all_results(std::vector<std::shared_ptr<MathOps:
 {
     std::vector<number> results;
 
-    std::transform(ops.begin(), ops.end(), std::back_inserter(results), [](auto x) { return x->result(); });
+    std::transform(ops.begin(), ops.end(), std::back_inserter(results), [](auto x)
+    {
+        return x ? x->result() : std::numeric_limits<number>::quiet_NaN();
+    });
 
     return results;
 }
@@ -203,10 +207,20 @@ void driver::plot(std::string variable,
     {
         throw yy::parser::syntax_error(location, "No expressions to plot");
     }
+
+    if (args.size() > 3)
+    {
+        throw yy::parser::syntax_error(location, "Too may arguments for plot command");        
+    }
+
+    if (std::count(equations.begin(), equations.end(), nullptr))
+    {
+        throw yy::parser::syntax_error(location, "One of more empty expressions found");
+    }
     
-    number from = args.size() >= 1 ? args[0] : -10;
-    number to =   args.size() >= 2 ? args[1] :  10;
-    number step = args.size() >= 3 ? args[2] : (to - from) / 100;
+    number from = args.size() >= 1 && !boost::math::isnan(args[0]) ? args[0] : 0;
+    number to =   args.size() >= 2 && !boost::math::isnan(args[1]) ? args[1] : from + 10;
+    number step = args.size() >= 3 && !boost::math::isnan(args[2]) ? args[2] : (to - from) / 100;
 
     if (!gp.is_open())
     {
