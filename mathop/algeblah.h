@@ -4,15 +4,10 @@
 #include "visitor.h"
 
 #include <iostream>
-#include <cmath>
-#include <limits>
 #include <string>
 #include <sstream>
 #include <memory>
-#include <vector>
-#include <variant>
 #include <cassert>
-#include <functional>
 
 namespace MathOps
 {

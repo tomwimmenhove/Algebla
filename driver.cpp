@@ -185,9 +185,18 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     return solved;
 }
 
+std::vector<number> driver::get_all_results(std::vector<std::shared_ptr<MathOps::MathOp<number>>> ops)
+{
+    std::vector<number> results;
+
+    std::transform(ops.begin(), ops.end(), std::back_inserter(results), [](auto x) { return x->result(); });
+
+    return results;
+}
+
 void driver::plot(std::string variable,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
-		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args)
+		std::vector<number> args)
 {
 #ifdef GNUPLOT
     if (equations.size() < 1)
@@ -195,9 +204,9 @@ void driver::plot(std::string variable,
         throw yy::parser::syntax_error(location, "No expressions to plot");
     }
     
-    number from = args.size() >= 1 ? args[0]->result() : -10;
-    number to =   args.size() >= 2 ? args[1]->result() :  10;
-    number step = args.size() >= 3 ? args[2]->result() : (to - from) / 100;
+    number from = args.size() >= 1 ? args[0] : -10;
+    number to =   args.size() >= 2 ? args[1] :  10;
+    number step = args.size() >= 3 ? args[2] : (to - from) / 100;
 
     if (!gp.is_open())
     {
@@ -423,12 +432,11 @@ void driver::delete_plot_using(std::string name)
 std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string variable)
 {
     std::shared_ptr<MathOps::MathOp<number>> v = get_var(variable);
-    if (v)
+    if (!v)
     {
-        return v;
+        v = get_lambda(variable);
     }
 
-    v = get_lambda(variable);
     if (!v)
     {
         throw yy::parser::syntax_error(location, variable + " has not been declared");
@@ -460,12 +468,10 @@ std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
 void driver::check_reserved(std::string variable)
 {
     if (variable == ans->get_symbol()
-        || variable == digits->get_symbol()
 #ifdef ARBIT_PREC
-        || variable == precision->get_symbol())
-#else
-    )
+        || variable == precision->get_symbol()
 #endif
+        || variable == digits->get_symbol())
     {
         throw yy::parser::syntax_error(location, variable + " is reserved");
     }
