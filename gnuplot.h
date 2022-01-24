@@ -34,6 +34,7 @@ public:
         std::string x_name = x->get_symbol();
         ss << "set xlabel \"" << x_name << "\"\n";
         ss << "set ylabel \"f(" << x_name << ")\"\n";
+        ss << "set grid\n";
         ss << "plot ";
 
         for (size_t i = 0; i < equations.size(); i++)
