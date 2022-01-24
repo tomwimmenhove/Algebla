@@ -136,7 +136,11 @@ void driver::help()
 
 void driver::warranty()
 {
+#ifdef ARBIT_PREC
     std::cout << "Algebla: An equation solving, arbitrary precision calculator\n"
+#else
+    std::cout << "Algebla: An equation solving calculator\n"
+#endif
                  "Copyright (C) 2022 Tom Wimmenhove\n"
                  "\n"
                  "This program is free software; you can redistribute it and/or\n"
@@ -218,9 +222,9 @@ void driver::plot(std::string variable,
         throw yy::parser::syntax_error(location, "One of more empty expressions found");
     }
     
-    number from = args.size() >= 1 && !boost::math::isnan(args[0]) ? args[0] : 0;
-    number to =   args.size() >= 2 && !boost::math::isnan(args[1]) ? args[1] : from + 10;
-    number step = args.size() >= 3 && !boost::math::isnan(args[2]) ? args[2] : (to - from) / 100;
+    number from = args.size() >= 1 && !std::isnan((double) args[0]) ? args[0] : 0;
+    number to =   args.size() >= 2 && !std::isnan((double) args[1]) ? args[1] : from + 10;
+    number step = args.size() >= 3 && !std::isnan((double) args[2]) ? args[2] : (to - from) / 100;
 
     if (!gp.is_open())
     {

@@ -73,7 +73,11 @@ int main(int argc, char** argv)
 
     if (!opt.quiet && opt.filenames.empty() && isatty(fileno(stdin)))
     {
+#ifdef ARBIT_PREC
         std::cout << "Algebla: An equation solving, arbitrary precision calculator\n"
+#else
+        std::cout << "Algebla: An equation solving calculator\n"
+#endif
                      "Copyright (C) 2022 Tom Wimmenhove\n"
                      "\n"
                      "This is free software with ABSOLUTELY NO WARRANTY.\n"

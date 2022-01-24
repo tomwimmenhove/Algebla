@@ -142,8 +142,8 @@ std::string useful_fraction(T x, int precision)
         numerator / (e * denominator),
         numerator * sq2 / denominator,
         numerator / (sq2 * denominator),
-        sqrt<T>(numerator / denominator),
-        pow<T>(e, numerator / denominator),
+        MathOps::sqrt<T>(numerator / denominator),
+        MathOps::pow<T>(e, numerator / denominator),
         numerator / denominator
     };
 
