@@ -116,6 +116,8 @@ void driver::help()
                  "                                  Example: c => expand(c)\n"
                  "  Solve for a variable         : solve <variable name>: <expression> = <expession>\n"
                  "                                  Example: solve a: a^2 + b^2 = c^2\n"
+                 "  Convert expression to value  : value(<expression>)"
+                 "                                  Example: some_lambda => 2 * value(anoter_lambda)"
 #ifdef GNUPLOT
                  "  Plot                          : plot <variable name> [, <from>, <to>, <step>]: <expression>, <expression>, ...\n"
                  "                                  Example: plot x, 0, 2 * %pi: sin(x), cos(x)\n"
@@ -527,6 +529,7 @@ static std::map<std::string, FunctionOptions> function_map = {
     { "acosh",  FunctionOptions { 1, [](auto ops) { return MathOps::acosh(ops[0]); } } },
     { "atanh",  FunctionOptions { 1, [](auto ops) { return MathOps::atanh(ops[0]); } } },
     { "expand", FunctionOptions { 1, [](auto ops) { return ops[0]->transform(MathOps::ExpandTransformer<number>()); } } },
+    { "value",  FunctionOptions { 1, [](auto ops) { return MathOps::ConstantValue<number>::create(ops[0]->result()); } } },
 };
 
 void driver::check_function(std::string func_name)
