@@ -1,0 +1,8 @@
+#!/bin/sh
+
+FILE=`mktemp --suffix=".png"`
+pnglatex -S -d 300 -b "rgb 0 0 0 " -f "$1" -F "rgb 1 1 1" -o "$FILE"
+kitty +kitten icat --align=left "$FILE"
+#feh "$FILE"
+rm "$FILE"
+
