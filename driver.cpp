@@ -69,6 +69,11 @@ int driver::parse_string(const std::string &line)
 
 void driver::make_var(std::string variable)
 {
+    if (get_lambda(variable))
+    {
+        throw yy::parser::syntax_error(location, variable + " is a lambda");
+    }
+
     if (!get_var(variable))
     {
         variables.push_back(MathOps::Variable<number>::create(variable));
@@ -92,6 +97,7 @@ void driver::clear_variables()
 {
     variables.clear();
     lambdas.clear();
+    plot_equations.clear();
 #ifdef ARBIT_PREC
     variables.insert(variables.end(), { precision, digits, ans });
 #else
