@@ -16,7 +16,7 @@ struct TexFormatter : Visitor<T>
      : TexFormatter(precision, false)
     { }
 
-    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op->get_symbol(); }
+    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return constant_sumbol(op->get_symbol()); }
     VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return op->get_symbol(); }
     VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return value_to_string(op->result()); }
     VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return op->get_symbol(); }
@@ -61,6 +61,14 @@ private:
         std::stringstream ss;
         ss << std::setprecision(precision) << x;
         return ss.str();        
+    }
+
+    std::string constant_sumbol(std::string symbol)
+    {
+        if (symbol == "%pi") return "\\pi";
+        if (symbol == "%e") return "e";
+
+        return symbol;
     }
 
     std::string str_binary(std::shared_ptr<MathOp<T>> op,
