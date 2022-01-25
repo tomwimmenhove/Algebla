@@ -4,6 +4,10 @@
 #include <vector>
 #include <string>
 
+#include "mathop/defaultformatter.h"
+#include "mathop/texformatter.h"
+#include "config.h"
+
 struct options
 {
     int digits = 5;
@@ -14,6 +18,9 @@ struct options
     std::vector<std::string> filenames;
 
     options(int argc, char** argv);
+
+    bool use_tex = false;
+    std::string external;
 
 private:
     void print_help(std::string name, bool error);

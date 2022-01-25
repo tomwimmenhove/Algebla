@@ -72,6 +72,8 @@ private:
 	void warranty();
 
 	void check_reserved(std::string variable);
+	std::string format(std::shared_ptr<MathOps::MathOp<number>> op);
+	std::string result_string(std::shared_ptr<MathOps::MathOp<number>> op, number result);
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
 	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);

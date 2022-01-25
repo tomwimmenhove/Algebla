@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <functional>
 #include <limits>
 
@@ -12,6 +14,7 @@
 #include "mathop/expandtransformer.h"
 #include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
+#include "mathop/texformatter.h"
 #include "mathop/constants.h"
 #include "usefulfraction.h"
 
@@ -568,50 +571,98 @@ void driver::result(std::shared_ptr<MathOps::MathOp<number>> op)
     ans->set(result);
 }
 
-number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
+std::string driver::format(std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    number result = op->result();
+    int int_digits = (int) digits->result();
+
+    if (opt.use_tex)
+    {
+        return op->format(MathOps::TexFormatter<number>(int_digits));
+    }
+
+    return op->format(MathOps::DefaultFormatter<number>(int_digits));    
+}
+
+std::string driver::result_string(std::shared_ptr<MathOps::MathOp<number>> op, number result)
+{
+    std::stringstream ss;
 
     int int_digits = (int) digits->result();
-    std::cout << std::setprecision(int_digits);
-    std::cout << "  ";
+    ss << std::setprecision(int_digits);
+    ss << "  ";
 
     if (opt.answer_only)
     {
-        std::cout << result << '\n';
-        return result;
+        ss << result << '\n';
+        return ss.str();
     }
 
     /* Expand containers? */
     auto container = MathOps::ContainerCounter<number>::find_first(op, "");
     if (container)
     {
-        /* Print the lambda name, followed by it's expression */
-        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits)) << " => "
-                  << container->get_inner()->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
-
-        /* If the lambda contains more lambdas, print the lambda expression */
-        if (MathOps::ContainerCounter<number>::find_first(container->get_inner(), ""))
+        if (container == op)
         {
-            std::cout << op->transform(MathOps::ExpandTransformer<number>())
-                           ->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
+            /* Print the lambda name, followed by it's expression */
+            ss << format(op) << " => " << format(container->get_inner()) << " = ";
+
+            /* If the lambda contains more lambdas, print the lambda expression */
+            if (MathOps::ContainerCounter<number>::find_first(container->get_inner(), ""))
+            {
+                ss << format(op->transform(MathOps::ExpandTransformer<number>())) << " = ";
+            }
+        }
+        else
+        {
+            /* Print the lambda name, followed by it's expression */
+            ss << format(op) << " = " << format(op->transform(MathOps::ExpandTransformer<number>())) << " = ";
         }
     }
     else
     {
-        std::cout << op->format(MathOps::DefaultFormatter<number>(int_digits)) << " = ";
+        ss << format(op) << " = ";
     }
 
-
     std::string uf = useful_fraction<number>(result, int_digits);
-    if (uf.empty())
+    if (opt.use_tex || uf.empty())
     {
-        std::cout << result << '\n';
+        ss << result;
     }
     else
     {
-        std::cout << result << " (~" << uf << ")\n";
+        ss << result << " (~" << uf << ")";
     }
 
-    return result;
+    return ss.str();
+}
+
+number driver::print_result(std::shared_ptr<MathOps::MathOp<number>> op)
+{
+    number result = op->result();
+
+    std::string s = result_string(op, result);
+
+    if (opt.external.empty())
+    {
+        std::cout << s << '\n';
+
+        return result;
+    }
+    else
+    {
+        int pid = fork();
+        if (pid != 0)
+        {
+            int status;
+            waitpid(pid, &status, 0);
+
+            return result;
+        }
+
+        execlp(opt.external.c_str(), opt.external.c_str(), s.c_str(), nullptr);
+
+        perror("exec");
+
+        exit(100);
+    }
 }

@@ -22,10 +22,12 @@ options::options(int argc, char **argv)
                 {"max", 1, 0, 'm'},
                 {"help", 0, 0, 'h'},
                 {"version", 0, 0, 'v'},
+                {"tex", 0, 0, 't'},
+                {"external", 1, 0, 'e'},
                 {0, 0, 0, 0}};
         int option_index = 0;
 
-        c = getopt_long(argc, argv, "aqm:d:p:hv",
+        c = getopt_long(argc, argv, "aqm:d:p:hvte:",
                         long_options, &option_index);
 
         if (c == -1)
@@ -66,6 +68,14 @@ options::options(int argc, char **argv)
                 std::cerr << "Precision should be at least 1\n";
                 exit(1);
             }
+            break;
+
+        case 't':
+            use_tex = true;
+            break;
+        
+        case 'e':
+            external = optarg;
             break;
 
         case 'v':
@@ -115,6 +125,8 @@ void options::print_help(std::string name, bool error)
         << "  -m, --max [n]       : Set maximum precision\n"
         << "  -p, --precision [n] : Set the number of internal significant digits (default: 50)\n"
         << "  -q, --quiet         : Suppress disclaimer\n"
+        << "  -t, --tex           : Use tex formatter\n"
+        << "  -e, --external      : Pass result string to external program\n"
         << "  -v, --version       : This help screen\n";
 }
 
