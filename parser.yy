@@ -72,10 +72,13 @@
 %%
 %start entries;
 
-entries     : %empty
+entries     : entry
+            | entries ";" entry
+            ;
+
+entry       : %empty
             | statement
             | delete
-            | entries ";" statement
             | ":""identifier"                 { drv.command($2); }
             | plot
             | "replot"                        { drv.replot(); }
@@ -84,7 +87,7 @@ entries     : %empty
 plot        : "plot" "identifier"             { drv.make_var($2); } 
               ":" expressions                 { drv.plot($2, $5, { }); } 
             | "plot" "identifier"             { drv.make_var($2); } 
-              "," expressions ":" expressions { drv.plot($2, $7, drv.get_all_results($5)); } 
+              "," expressions ":" expressions { drv.plot($2, $7, $5); } 
             ;
 
 statement   : expression                      { drv.result($1); }
