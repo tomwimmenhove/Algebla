@@ -106,7 +106,6 @@ options::options(int argc, char **argv)
 
     if (optind < argc)
     {
-        printf("non-option ARGV-elements: ");
         while (optind < argc)
         {
             filenames.push_back(argv[optind++]);
