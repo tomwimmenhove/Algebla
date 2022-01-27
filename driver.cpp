@@ -201,21 +201,9 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     return solved;
 }
 
-std::vector<number> driver::get_all_results(std::vector<std::shared_ptr<MathOps::MathOp<number>>> ops)
-{
-    std::vector<number> results;
-
-    std::transform(ops.begin(), ops.end(), std::back_inserter(results), [](auto x)
-    {
-        return x ? x->result() : std::numeric_limits<number>::quiet_NaN();
-    });
-
-    return results;
-}
-
 void driver::plot(std::string variable,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
-		std::vector<number> args)
+		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args)
 {
 #ifdef GNUPLOT
     if (equations.size() < 1)
@@ -233,9 +221,26 @@ void driver::plot(std::string variable,
         throw yy::parser::syntax_error(location, "One of more empty expressions found");
     }
     
-    number from = args.size() >= 1 && !std::isnan((double) args[0]) ? args[0] : 0;
-    number to =   args.size() >= 2 && !std::isnan((double) args[1]) ? args[1] : from + 10;
-    number step = args.size() >= 3 && !std::isnan((double) args[2]) ? args[2] : (to - from) / 100;
+    /*
+        std::vector<number> results;
+
+    std::transform(ops.begin(), ops.end(), std::back_inserter(results), [](auto x)
+    {
+        return x ? x->result() : std::numeric_limits<number>::quiet_NaN();
+    });
+ */
+
+    number from = args.size() >= 1 && args[0] ? args[0]->result() : 0;
+    number to =   args.size() >= 2 && args[1] ? args[1]->result() : from + 10;
+    number step = args.size() >= 3 && args[2] ? args[2]->result() : (to - from) / 100;
+
+    if (to <= from)
+    {
+        std::stringstream ss;
+        ss << "Range of " << from << " to "  << to <<  " is invalid";
+
+        throw yy::parser::syntax_error(location, ss.str());
+    }
 
     if (!gp.is_open())
     {
@@ -283,6 +288,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
             throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
         }
     }
+
 #ifdef GNUPLOT
     /* If this was a lambda, check if it was in use by the plotter */
     if (get_lambda(variable))
@@ -453,6 +459,17 @@ void driver::delete_plot_using(std::string name)
         else
         {
             ++plot_it;
+        }
+    }
+
+    for (auto& arg: plot_args)
+    {
+        if (arg && (MathOps::NamedValueCounter<number>::find_first(arg, name) ||
+                    MathOps::ContainerCounter<number>::find_first(arg, name)))
+        {
+            plot_args.clear();
+            plot_equations.clear();
+            return;
         }
     }
 }
