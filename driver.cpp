@@ -68,7 +68,7 @@ int driver::parse_string(const std::string &line)
     return parser.parse();
 }
 
-void driver::make_var(std::string variable)
+void driver::make_var(const std::string& variable)
 {
     if (get_lambda(variable))
     {
@@ -172,7 +172,7 @@ void driver::warranty()
 }
 
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
-                                              std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable)
+                                              std::shared_ptr<MathOps::MathOp<number>> rhs, const std::string& variable)
 {
     MathOps::NamedValueCounter<number> counter(variable);
     int left_count = lhs->count(counter);
@@ -202,7 +202,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     return solved;
 }
 
-void driver::plot(std::string variable,
+void driver::plot(const std::string& variable,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args)
 {
@@ -271,7 +271,7 @@ void driver::replot()
 #endif
 }
 
-std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
+std::shared_ptr<MathOps::MathOp<number>> driver::assign(const std::string& variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
     for(auto lambda: lambdas)
     {
@@ -339,7 +339,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
     return v;
 }
 
-std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op)
+std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(const std::string& variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
     check_reserved(variable);
 
@@ -378,7 +378,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
     return l;
 }
 
-void driver::remove(std::string name)
+void driver::unassign(const std::string& name)
 {
     check_reserved(name);
 
@@ -400,28 +400,14 @@ void driver::remove(std::string name)
     remove_lambda(name);
 }
 
-void driver::remove_variable(std::string name)
+void driver::remove_variable(const std::string& name)
 {
-    auto it = std::find_if(variables.begin(), variables.end(), [&name](auto v) { return v->get_symbol() == name; });
-    if (it != variables.end())
-    {
-#ifdef GNUPLOT
-        delete_plot_using(*it);
-#endif
-        variables.erase(it);
-    }
+    remove(variables, name, &MathOps::Variable<number>::get_symbol);
 }
 
-void driver::remove_lambda(std::string name)
+void driver::remove_lambda(const std::string& name)
 {
-    auto it = std::find_if(lambdas.begin(), lambdas.end(), [&name](auto l) { return l->get_name() == name; });
-    if (it != lambdas.end())
-    {
-#ifdef GNUPLOT
-        delete_plot_using(*it);
-#endif
-        lambdas.erase(it);
-    }
+    remove(lambdas, name, &MathOps::Container<number>::get_name);
 }
 
 #ifdef GNUPLOT
@@ -452,7 +438,7 @@ void driver::delete_plot_using(std::shared_ptr<MathOps::MathOp<number>> op)
 }
 #endif
 
-std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string variable)
+std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(const std::string& variable)
 {
     std::shared_ptr<MathOps::MathOp<number>> v = get_var(variable);
     if (!v)
@@ -468,17 +454,17 @@ std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string var
     return v;
 }
 
-std::shared_ptr<MathOps::Container<number>> driver::get_lambda(std::string name)
+std::shared_ptr<MathOps::Container<number>> driver::get_lambda(const std::string& name)
 {
     return get(lambdas, name, &MathOps::Container<number>::get_name);
 }
 
-std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string name)
+std::shared_ptr<MathOps::Variable<number>> driver::get_var(const std::string& name)
 {
     return get(variables, name, &MathOps::Variable<number>::get_symbol);
 }
 
-void driver::check_reserved(std::string variable)
+void driver::check_reserved(const std::string& variable)
 {
     if (variable == ans->get_symbol()
 #ifdef ARBIT_PREC
@@ -516,7 +502,7 @@ static std::map<std::string, FunctionOptions> function_map = {
     { "value",  FunctionOptions { 1, [](auto ops) { return MathOps::ConstantValue<number>::create(ops[0]->result()); } } },
 };
 
-void driver::check_function(std::string func_name)
+void driver::check_function(const std::string& func_name)
 {
     if (function_map.find(func_name) == function_map.end())
     {
@@ -524,7 +510,7 @@ void driver::check_function(std::string func_name)
     }
 }
 
-std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func_name,
+std::shared_ptr<MathOps::MathOp<number>> driver::function(const std::string& func_name,
     std::vector<std::shared_ptr<MathOps::MathOp<number>>> ops)
 {
     auto it = function_map.find(func_name);
@@ -538,14 +524,14 @@ std::shared_ptr<MathOps::MathOp<number>> driver::function(std::string func_name,
     return it->second.handler(ops);
 }
 
-std::shared_ptr<MathOps::MathOp<number>> driver::get_constant(std::string id)
+std::shared_ptr<MathOps::MathOp<number>> driver::get_constant(const std::string& id)
 {
     if (id == "e")  return MathOps::Constants::e<number>();
     if (id == "pi") return MathOps::Constants::pi<number>();
     else throw yy::parser::syntax_error(location, "Uknown constant: " + id);
 }
 
-void driver::command(std::string cmd)
+void driver::command(const std::string& cmd)
 {
     if      (cmd == "exit" ||
              cmd == "quit" ||

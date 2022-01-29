@@ -45,22 +45,22 @@ public:
 
 	void result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
-    	std::shared_ptr<MathOps::MathOp<number>> rhs, std::string variable);
-	void plot(std::string variable,
+    	std::shared_ptr<MathOps::MathOp<number>> rhs, const std::string& variable);
+	void plot(const std::string& variable,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args);
 	void replot();
-	std::shared_ptr<MathOps::MathOp<number>> find_identifier(std::string variable);
-	std::shared_ptr<MathOps::MathOp<number>> assign(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
-	std::shared_ptr<MathOps::MathOp<number>> assign_lambda(std::string variable, std::shared_ptr<MathOps::MathOp<number>> op);
-	void remove(std::string name);
-	void make_var(std::string variable);
+	std::shared_ptr<MathOps::MathOp<number>> find_identifier(const std::string& variable);
+	std::shared_ptr<MathOps::MathOp<number>> assign(const std::string& variable, std::shared_ptr<MathOps::MathOp<number>> op);
+	std::shared_ptr<MathOps::MathOp<number>> assign_lambda(const std::string& variable, std::shared_ptr<MathOps::MathOp<number>> op);
+	void unassign(const std::string& name);
+	void make_var(const std::string& variable);
 
-	void check_function(std::string func_name);
-	std::shared_ptr<MathOps::MathOp<number>> function(std::string func_name,
+	void check_function(const std::string& func_name);
+	std::shared_ptr<MathOps::MathOp<number>> function(const std::string& func_name,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> ops);
-	std::shared_ptr<MathOps::MathOp<number>> get_constant(std::string id);
-	void command(std::string cmd);
+	std::shared_ptr<MathOps::MathOp<number>> get_constant(const std::string& id);
+	void command(const std::string& cmd);
 
 	bool input_is_file() const { return is_file; }
 
@@ -70,23 +70,41 @@ private:
 	void help();
 	void warranty();
 
-	void check_reserved(std::string variable);
+	void check_reserved(const std::string& variable);
 	std::string format(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::string result_string(std::shared_ptr<MathOps::MathOp<number>> op, number result);
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 
 	template <typename U>
-	static std::shared_ptr<U> get(std::vector<std::shared_ptr<U>> from, std::string name, std::string (U::*id)() const)
+	static typename std::vector<std::shared_ptr<U>>::iterator get_iterator(std::vector<std::shared_ptr<U>>& from, const std::string& name, std::string (U::*get_id)() const)
 	{
-	    auto it = std::find_if(from.begin(), from.end(), [&](std::shared_ptr<U> v) { return ((*v).*id)() == name; });
+	    return std::find_if(from.begin(), from.end(), [&](std::shared_ptr<U> v) { return ((*v).*get_id)() == name; });
+	}
 
+	template <typename U>
+	static std::shared_ptr<U> get(std::vector<std::shared_ptr<U>>& from, const std::string& name, std::string (U::*get_id)() const)
+	{
+		auto it = get_iterator(from, name, get_id);
 	    return it == from.end() ? nullptr : *it;   
 	}
 
-	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
-	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);
-	void remove_variable(std::string name);
-	void remove_lambda(std::string name);
+ 	template <typename U>
+	void remove(std::vector<std::shared_ptr<U>>& from, const std::string& name, std::string (U::*get_id)() const)
+	{
+		auto it = get_iterator(from, name, get_id);
+	    if (it != from.end())
+	    {
+#ifdef GNUPLOT
+        	delete_plot_using(*it);
+#endif
+        	from.erase(it);
+	    }
+	}
+
+	std::shared_ptr<MathOps::Variable<number>> get_var(const std::string& variable);
+	std::shared_ptr<MathOps::Container<number>> get_lambda(const std::string& variable);
+	void remove_variable(const std::string& name);
+	void remove_lambda(const std::string& name);
 	
 #ifdef GNUPLOT
 	void delete_plot_using(std::shared_ptr<MathOps::MathOp<number>> op);

@@ -101,7 +101,7 @@ assignment  : "identifier" "=" expression     { $$ = drv.assign($1, $3); }
 lambda      : "identifier" "=>" expression    { $$ = drv.assign_lambda($1, $3); }
             ;
 
-delete      : "identifier" "="                { drv.remove($1); }
+delete      : "identifier" "="                { drv.unassign($1); }
             ;
 expressions : %empty                          { $$.push_back(nullptr); }
             | expression                      { $$.push_back($1); }
