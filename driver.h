@@ -74,6 +74,15 @@ private:
 	std::string format(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::string result_string(std::shared_ptr<MathOps::MathOp<number>> op, number result);
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
+
+	template <typename U>
+	static std::shared_ptr<U> get(std::vector<std::shared_ptr<U>> from, std::string name, std::string (U::*id)() const)
+	{
+	    auto it = std::find_if(from.begin(), from.end(), [&](std::shared_ptr<U> v) { return ((*v).*id)() == name; });
+
+	    return it == from.end() ? nullptr : *it;   
+	}
+
 	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
 	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);
 	void remove_variable(std::string name);

@@ -468,24 +468,14 @@ std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(std::string var
     return v;
 }
 
-std::shared_ptr<MathOps::Container<number>> driver::get_lambda(std::string variable)
+std::shared_ptr<MathOps::Container<number>> driver::get_lambda(std::string name)
 {
-    auto it = std::find_if(lambdas.begin(), lambdas.end(),
-        [&variable](std::shared_ptr<MathOps::Container<number>> v) { return v->get_name() == variable; });
-
-    return it == lambdas.end()
-        ? nullptr
-        : *it;
+    return get(lambdas, name, &MathOps::Container<number>::get_name);
 }
 
-std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string variable)
+std::shared_ptr<MathOps::Variable<number>> driver::get_var(std::string name)
 {
-    auto it = std::find_if(variables.begin(), variables.end(),
-        [&variable](std::shared_ptr<MathOps::Variable<number>> v) { return v->get_symbol() == variable; });
-
-    return it == variables.end()
-        ? nullptr
-        : *it;
+    return get(variables, name, &MathOps::Variable<number>::get_symbol);
 }
 
 void driver::check_reserved(std::string variable)
