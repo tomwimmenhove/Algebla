@@ -14,6 +14,7 @@
 #include "mathop/expandtransformer.h"
 #include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
+#include "mathop/finder.h"
 #include "mathop/texformatter.h"
 #include "mathop/constants.h"
 #include "usefulfraction.h"
@@ -405,7 +406,7 @@ void driver::remove_variable(std::string name)
     if (it != variables.end())
     {
 #ifdef GNUPLOT
-        delete_plot_using(name);
+        delete_plot_using(*it);
 #endif
         variables.erase(it);
     }
@@ -417,20 +418,19 @@ void driver::remove_lambda(std::string name)
     if (it != lambdas.end())
     {
 #ifdef GNUPLOT
-        delete_plot_using(name);
+        delete_plot_using(*it);
 #endif
         lambdas.erase(it);
     }
 }
 
 #ifdef GNUPLOT
-void driver::delete_plot_using(std::string name)
+void driver::delete_plot_using(std::shared_ptr<MathOps::MathOp<number>> op)
 {
     auto plot_it = plot_equations.begin();
     while (plot_it != plot_equations.end())
     {
-        if (MathOps::NamedValueCounter<number>::find_first(*plot_it, name) ||
-            MathOps::ContainerCounter<number>::find_first(*plot_it, name))
+        if ((*plot_it)->transform(MathOps::Finder<number>(op)))
         {
             plot_it = plot_equations.erase(plot_it);
         }
@@ -442,8 +442,7 @@ void driver::delete_plot_using(std::string name)
 
     for (auto& arg: plot_args)
     {
-        if (arg && (MathOps::NamedValueCounter<number>::find_first(arg, name) ||
-                    MathOps::ContainerCounter<number>::find_first(arg, name)))
+        if (arg->transform(MathOps::Finder<number>(op)))
         {
             plot_args.clear();
             plot_equations.clear();

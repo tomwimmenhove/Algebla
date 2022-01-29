@@ -80,7 +80,7 @@ private:
 	void remove_lambda(std::string name);
 	
 #ifdef GNUPLOT
-	void delete_plot_using(std::string name);
+	void delete_plot_using(std::shared_ptr<MathOps::MathOp<number>> op);
 
 	GnuPlot<number> gp;
 	std::string plot_variable;
