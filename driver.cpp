@@ -280,21 +280,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(std::string variable, st
         }
     }
 
-#ifdef GNUPLOT
-    /* If this was a lambda, check if it was in use by the plotter */
-    if (get_lambda(variable))
-    {
-        delete_plot_using(variable);
-    }
-#endif
-
-    auto it = std::find_if(lambdas.begin(), lambdas.end(),
-        [&variable](std::shared_ptr<MathOps::Container<number>> l) { return l->get_name() == variable; });
-
-    if (it != lambdas.end())
-    {
-        lambdas.erase(it);
-    }
+    remove_lambda(variable);
 
     auto result = op->result();
 
@@ -366,14 +352,6 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         throw yy::parser::syntax_error(location, "Infinite recursion detected");
     }
 
-#ifdef GNUPLOT
-    /* If this was a variable, check if it was in use by the plotter */
-    if (get_var(variable))
-    {
-        delete_plot_using(variable);
-    }
-#endif
-
     for(auto lambda: lambdas)
     {
         if (MathOps::NamedValueCounter<number>::find_first(lambda, variable))
@@ -382,13 +360,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(std::string varia
         }
     }
 
-    auto it = std::find_if(variables.begin(), variables.end(),
-        [&variable](std::shared_ptr<MathOps::Variable<number>> v) { return v->get_symbol() == variable; });
-
-    if (it != variables.end())
-    {
-        variables.erase(it);
-    }
+    remove_variable(variable);
 
     auto l = get_lambda(variable);
     if (!l)
@@ -423,17 +395,32 @@ void driver::remove(std::string name)
         }
     }
 
+    remove_variable(name);
+    remove_lambda(name);
+}
+
+void driver::remove_variable(std::string name)
+{
+    auto it = std::find_if(variables.begin(), variables.end(), [&name](auto v) { return v->get_symbol() == name; });
+    if (it != variables.end())
+    {
 #ifdef GNUPLOT
-    delete_plot_using(name);
+        delete_plot_using(name);
 #endif
+        variables.erase(it);
+    }
+}
 
-    variables.erase(std::remove_if(variables.begin(), variables.end(),
-            [&name](auto v) { return v->get_symbol() == name; }),
-        variables.end());
-
-    lambdas.erase(std::remove_if(lambdas.begin(), lambdas.end(),
-            [&name](auto l) { return l->get_name() == name; }),
-        lambdas.end());
+void driver::remove_lambda(std::string name)
+{
+    auto it = std::find_if(lambdas.begin(), lambdas.end(), [&name](auto l) { return l->get_name() == name; });
+    if (it != lambdas.end())
+    {
+#ifdef GNUPLOT
+        delete_plot_using(name);
+#endif
+        lambdas.erase(it);
+    }
 }
 
 #ifdef GNUPLOT

@@ -76,6 +76,8 @@ private:
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::Variable<number>> get_var(std::string variable);
 	std::shared_ptr<MathOps::Container<number>> get_lambda(std::string variable);
+	void remove_variable(std::string name);
+	void remove_lambda(std::string name);
 	
 #ifdef GNUPLOT
 	void delete_plot_using(std::string name);
