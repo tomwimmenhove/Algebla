@@ -23,7 +23,7 @@ else()
     add_compile_definitions(NDEBUG -O2)
 endif()
 
-add_compile_options(-std=c++17 -Wall -Werror)
+add_compile_options(-std=c++17 -Wpedantic -pedantic -pedantic-errors -Wextra -Wall -Werror)
 
 find_package(BISON)
 find_package(FLEX)

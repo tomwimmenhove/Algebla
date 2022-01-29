@@ -14,12 +14,12 @@ struct ReverseTransformer : public Visitor<T>
         : for_side(for_side), from(from)
     { }
 
-    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
-    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
-    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
-    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
-    VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
-    VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>>) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<Variable<T>>) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>>) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>>) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<MutableValue<T>>) override { return std::shared_ptr<MathOp<T>>(nullptr); }
+    VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>>) override { return std::shared_ptr<MathOp<T>>(nullptr); }
 
     VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override { return op->get_inner()->transform(*this); }
  

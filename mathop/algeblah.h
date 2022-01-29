@@ -113,7 +113,7 @@ struct Value : public MathOp<T>
 {
     T result() const override { return value; }
     bool is_single() const override { return true; }
-    virtual void set(T x) { std::cerr << "Attempt to set a read-only value\n"; abort(); }
+    virtual void set(T) { std::cerr << "Attempt to set a read-only value\n"; abort(); }
     virtual std::string get_symbol() const { std::cerr << "Attempt to get symbol name from an unnamed value\n"; abort(); }
     Bodmas precedence() const override { return Bodmas::Parentheses; }
     bool is_commutative() const override { return true; }
@@ -387,7 +387,7 @@ private:                                                                        
     op_name(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)                       \
         : MathBinaryOp<T>(lhs, rhs, bodmas)                                                     \
     { }                                                                                         \
-};
+}
 
 DEFINE_BINARY_OP(Pow, pow(this->lhs->result(),  this->rhs->result()), false,  true, Bodmas::Exponents);
 DEFINE_BINARY_OP(Mul,    (this->lhs->result() * this->rhs->result()), true,  false, Bodmas::MultiplicationDivision);

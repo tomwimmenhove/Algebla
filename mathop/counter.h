@@ -9,12 +9,12 @@ namespace MathOps
 template <typename T, typename U>
 struct Counter : public Visitor<T>
 {
-    virtual VisitorResult<T> visit(std::shared_ptr<Variable<T>> op)  override { return 0; }
-    virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return 0; }
-    virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return 0; }
-    virtual VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return 0; }
-    virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return 0; }
-    virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return 0; }
+    virtual VisitorResult<T> visit(std::shared_ptr<Variable<T>>) override { return 0; }
+    virtual VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>>) override { return 0; }
+    virtual VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>>) override { return 0; }
+    virtual VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>>) override { return 0; }
+    virtual VisitorResult<T> visit(std::shared_ptr<MutableValue<T>>) override { return 0; }
+    virtual VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>>) override { return 0; }
 
     virtual VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override
     {
