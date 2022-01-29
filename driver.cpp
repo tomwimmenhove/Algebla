@@ -221,15 +221,6 @@ void driver::plot(std::string variable,
         throw yy::parser::syntax_error(location, "One of more empty expressions found");
     }
     
-    /*
-        std::vector<number> results;
-
-    std::transform(ops.begin(), ops.end(), std::back_inserter(results), [](auto x)
-    {
-        return x ? x->result() : std::numeric_limits<number>::quiet_NaN();
-    });
- */
-
     number from = args.size() >= 1 && args[0] ? args[0]->result() : 0;
     number to =   args.size() >= 2 && args[1] ? args[1]->result() : from + 10;
     number step = args.size() >= 3 && args[2] ? args[2]->result() : (to - from) / 100;
