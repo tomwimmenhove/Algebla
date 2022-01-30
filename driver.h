@@ -76,9 +76,9 @@ private:
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 
 	template <typename U>
-	static std::shared_ptr<U> get(std::vector<std::shared_ptr<U>>& from, const std::string& name, std::string (U::*get_id)() const)
+	static std::shared_ptr<U> get(std::vector<std::shared_ptr<U>>& from, const std::string& name)
 	{
-		auto it = std::find_if(from.begin(), from.end(), [&](std::shared_ptr<U> v) { return ((*v).*get_id)() == name; });
+		auto it = std::find_if(from.begin(), from.end(), [&](std::shared_ptr<U> v) { return v->get_name() == name; });
 	    return it == from.end() ? nullptr : *it;   
 	}
 

@@ -30,7 +30,7 @@ private:
 
     int count(std::shared_ptr<Value<T>> op)
     {
-        if (symbol.empty() || op->get_symbol() == symbol)
+        if (symbol.empty() || op->get_name() == symbol)
         {
             this->results.push_back(op);
 

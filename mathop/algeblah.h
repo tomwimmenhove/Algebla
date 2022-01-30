@@ -72,7 +72,6 @@ protected:
     virtual VisitorResult<T> accept(Visitor<T>& visitor) = 0;
 };
 
-/* External call */
 template<typename T>
 struct Container : public MathOp<T>
 {
@@ -114,7 +113,7 @@ struct Value : public MathOp<T>
     T result() const override { return value; }
     bool is_single() const override { return true; }
     virtual void set(T) { std::cerr << "Attempt to set a read-only value\n"; abort(); }
-    virtual std::string get_symbol() const { std::cerr << "Attempt to get symbol name from an unnamed value\n"; abort(); }
+    virtual std::string get_name() const { std::cerr << "Attempt to get name from an unnamed value\n"; abort(); }
     Bodmas precedence() const override { return Bodmas::Parentheses; }
     bool is_commutative() const override { return true; }
 
@@ -129,13 +128,13 @@ protected:
 template<typename T>
 struct ConstantSymbol : public Value<T>
 {
-    static std::shared_ptr<ConstantSymbol<T>> create(std::string symbol, T value)
+    static std::shared_ptr<ConstantSymbol<T>> create(const std::string& symbol, T value)
     {
         return std::shared_ptr<ConstantSymbol<T>>(new ConstantSymbol<T>(symbol, value));
     }
 
     bool is_constant() const override { return true; }
-    std::string get_symbol() const override { return symbol; }
+    std::string get_name() const override { return symbol; }
 
 protected:
     VisitorResult<T> accept(Visitor<T>& visitor) override
@@ -146,20 +145,20 @@ protected:
 private:
     std::string symbol;
 
-    ConstantSymbol(std::string symbol, T value) : Value<T>(value), symbol(symbol) { }
+    ConstantSymbol(const std::string& symbol, T value) : Value<T>(value), symbol(symbol) { }
 };
 
 template<typename T>
 struct Variable : public Value<T>
 {
-    static std::shared_ptr<Variable<T>> create(std::string symbol, T x = 0)
+    static std::shared_ptr<Variable<T>> create(const std::string& name, T x = 0)
     {
-        return std::shared_ptr<Variable<T>>(new Variable<T>(symbol, x));
+        return std::shared_ptr<Variable<T>>(new Variable<T>(name, x));
     }
 
     void set(T x) override { this->value = x; };
     bool is_constant() const override { return false; }
-    std::string get_symbol() const override { return symbol; }
+    std::string get_name() const override { return name; }
 
 protected:
     VisitorResult<T> accept(Visitor<T>& visitor) override
@@ -168,22 +167,22 @@ protected:
     }
     
 private:
-    std::string symbol;
+    std::string name;
 
-    Variable(std::string symbol, T x) : Value<T>(x), symbol(symbol) { }
+    Variable(const std::string& name, T x) : Value<T>(x), name(name) { }
 };
 
 template<typename T>
 struct ValueVariable : public Value<T>
 {
-    static std::shared_ptr<ValueVariable<T>> create(std::string symbol, T x = 0)
+    static std::shared_ptr<ValueVariable<T>> create(const std::string& name, T x = 0)
     {
-        return std::shared_ptr<ValueVariable<T>>(new ValueVariable<T>(symbol, x));
+        return std::shared_ptr<ValueVariable<T>>(new ValueVariable<T>(name, x));
     }
 
     void set(T x) override { this->value = x; };
     bool is_constant() const override { return false; }
-    std::string get_symbol() const override { return symbol; }
+    std::string get_name() const override { return name; }
 
 protected:
     VisitorResult<T> accept(Visitor<T>& visitor) override
@@ -191,22 +190,22 @@ protected:
         return visitor.visit(std::static_pointer_cast<ValueVariable<T>>(this->shared_from_this()));
     }
 
-    ValueVariable(std::string symbol, T x) : Value<T>(x), symbol(symbol) { }
+    ValueVariable(const std::string& name, T x) : Value<T>(x), name(name) { }
 
 private:
-    std::string symbol;
+    std::string name;
 };
 
 template<typename T>
 struct NamedConstant : public Value<T>
 {
-    static std::shared_ptr<NamedConstant<T>> create(std::string symbol, T x = 0)
+    static std::shared_ptr<NamedConstant<T>> create(const std::string& name, T x = 0)
     {
-        return std::shared_ptr<NamedConstant<T>>(new NamedConstant<T>(symbol, x));
+        return std::shared_ptr<NamedConstant<T>>(new NamedConstant<T>(name, x));
     }
 
     bool is_constant() const override { return true; }
-    std::string get_symbol() const override { return symbol; }
+    std::string get_name() const override { return name; }
 
 protected:
     VisitorResult<T> accept(Visitor<T>& visitor) override
@@ -215,9 +214,9 @@ protected:
     }
 
 private:
-    std::string symbol;
+    std::string name;
 
-    NamedConstant(std::string symbol, T x) : Value<T>(x), symbol(symbol) { }
+    NamedConstant(const std::string& name, T x) : Value<T>(x), name(name) { }
 };
 
 template<typename T>

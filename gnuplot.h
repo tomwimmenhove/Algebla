@@ -31,7 +31,7 @@ public:
     {
         std::stringstream ss;
 
-        std::string x_name = x->get_symbol();
+        std::string x_name = x->get_name();
         ss << "set xlabel \"" << x_name << "\"\n";
         ss << "set ylabel \"f(" << x_name << ")\"\n";
         ss << "set grid\n";

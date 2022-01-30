@@ -276,7 +276,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(const std::string& varia
     auto result = op->result();
 
     /* Special variables */
-    if (variable == digits->get_symbol())
+    if (variable == digits->get_name())
     {
 #ifdef ARBIT_PREC
         if ((int) result > precision->result())
@@ -292,7 +292,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(const std::string& varia
         return digits;
     }
 #ifdef ARBIT_PREC
-    else if (variable == precision->get_symbol())
+    else if (variable == precision->get_name())
     {
         if (opt.max_precision > 0 && (int) result > opt.max_precision)
         {
@@ -454,21 +454,21 @@ std::shared_ptr<MathOps::MathOp<number>> driver::find_identifier(const std::stri
 
 std::shared_ptr<MathOps::Container<number>> driver::get_lambda(const std::string& name)
 {
-    return get(lambdas, name, &MathOps::Container<number>::get_name);
+    return get(lambdas, name);
 }
 
 std::shared_ptr<MathOps::Variable<number>> driver::get_var(const std::string& name)
 {
-    return get(variables, name, &MathOps::Variable<number>::get_symbol);
+    return get(variables, name);
 }
 
 void driver::check_reserved(const std::string& variable)
 {
-    if (variable == ans->get_symbol()
+    if (variable == ans->get_name()
 #ifdef ARBIT_PREC
-        || variable == precision->get_symbol()
+        || variable == precision->get_name()
 #endif
-        || variable == digits->get_symbol())
+        || variable == digits->get_name())
     {
         throw yy::parser::syntax_error(location, variable + " is reserved");
     }
