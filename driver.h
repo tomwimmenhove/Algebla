@@ -13,6 +13,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <algorithm>
 
 // Tell Flex the lexer's prototype ...
 # define YY_DECL \
