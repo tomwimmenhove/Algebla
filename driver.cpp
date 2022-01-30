@@ -366,7 +366,11 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(const std::string
         throw yy::parser::syntax_error(location, "Infinite recursion detected");
     }
 
-    remove(variables, variable, &MathOps::Variable<number>::get_symbol);
+    auto v = get_var(variable);
+    if (v)
+    {
+        remove(variables, v);
+    }
     
     if (!l)
     {

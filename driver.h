@@ -76,29 +76,10 @@ private:
 	number print_result(std::shared_ptr<MathOps::MathOp<number>> op);
 
 	template <typename U>
-	static typename std::vector<std::shared_ptr<U>>::iterator get_iterator(std::vector<std::shared_ptr<U>>& from, const std::string& name, std::string (U::*get_id)() const)
-	{
-	    return std::find_if(from.begin(), from.end(), [&](std::shared_ptr<U> v) { return ((*v).*get_id)() == name; });
-	}
-
-	template <typename U>
 	static std::shared_ptr<U> get(std::vector<std::shared_ptr<U>>& from, const std::string& name, std::string (U::*get_id)() const)
 	{
-		auto it = get_iterator(from, name, get_id);
+		auto it = std::find_if(from.begin(), from.end(), [&](std::shared_ptr<U> v) { return ((*v).*get_id)() == name; });
 	    return it == from.end() ? nullptr : *it;   
-	}
-
- 	template <typename U>
-	void remove(std::vector<std::shared_ptr<U>>& from, const std::string& name, std::string (U::*get_id)() const)
-	{
-		auto it = get_iterator(from, name, get_id);
-	    if (it != from.end())
-	    {
-#ifdef GNUPLOT
-        	delete_plot_using(*it);
-#endif
-        	from.erase(it);
-	    }
 	}
 
 	template <typename U>
