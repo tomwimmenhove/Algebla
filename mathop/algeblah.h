@@ -178,7 +178,7 @@ struct ValueVariable : public Value<T>, public EnableCreator<ValueVariable<T>>
 protected:
     ValueVariable(const std::string& name, T x) : Value<T>(x), name(name) { }
 
-    ADD_VISITOR(Variable<T>)
+    ADD_VISITOR(ValueVariable<T>)
 
 private:
     std::string name;
