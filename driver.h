@@ -85,7 +85,11 @@ private:
 	template <typename U>
 	void remove(std::vector<std::shared_ptr<U>>& from, std::shared_ptr<MathOps::MathOp<number>> op)
 	{
-		from.erase(std::remove(from.begin(), from.end(), op), from.end());
+		auto it = std::find(from.begin(), from.end(), op);
+		if (it != from.end())
+		{
+			from.erase(it);
+		}
 
 #ifdef GNUPLOT
 		delete_plot_using(op);
