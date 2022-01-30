@@ -72,19 +72,31 @@ protected:
     virtual VisitorResult<T> accept(Visitor<T>& visitor) = 0;
 };
 
-#define ADD_VISITOR(name) VisitorResult<T> accept(Visitor<T>& visitor) override     \
-{                                                                                   \
-    return visitor.visit(std::static_pointer_cast<name>(this->shared_from_this())); \
+#define ADD_VISITOR(to_type) VisitorResult<T> accept(Visitor<T>& visitor) override      \
+{                                                                                       \
+    return visitor.visit(std::static_pointer_cast<to_type>(this->shared_from_this()));  \
 }
 
-template<typename T>
-struct Container : public MathOp<T>
+template <typename T>
+struct EnableCreator
 {
-    static std::shared_ptr<Container<T>> create(std::shared_ptr<MathOp<T>> op, std::string name)
+    template<typename... Args>
+    static std::shared_ptr<T> create(Args &&...args)
     {
-        return std::shared_ptr<Container<T>>(new Container<T>(op, name));
-    }
+        struct EnableMakeShared : public T
+        {
+            EnableMakeShared(Args &&...args)
+                : T(std::forward<Args>(args)...)
+            { }
+        };
 
+        return std::make_shared<EnableMakeShared>(std::forward<Args>(args)...);
+    }
+};
+
+template <typename T>
+struct Container : public MathOp<T>, public EnableCreator<Container<T>>
+{
     T result() const override { return op->result(); };
     Bodmas precedence() const override { return op->precedence(); };
     bool is_commutative() const override { return op->is_commutative(); };
@@ -97,13 +109,11 @@ struct Container : public MathOp<T>
     void set_inner(std::shared_ptr<MathOp<T>> op) { this->op = op; }
 
 protected:
+    Container(std::shared_ptr<MathOp<T>> op, std::string name) : op(op), name(name) { }
+
     ADD_VISITOR(Container<T>)
 
 private:
-    Container(std::shared_ptr<MathOp<T>> op, std::string name)
-        : op(op), name(name)
-    { }
-
     std::shared_ptr<MathOp<T>> op;
     std::string name;
 };
@@ -128,119 +138,88 @@ protected:
 };
 
 template<typename T>
-struct ConstantSymbol : public Value<T>
+struct ConstantSymbol : public Value<T>, public EnableCreator<ConstantSymbol<T>>
 {
-    static std::shared_ptr<ConstantSymbol<T>> create(const std::string& symbol, T value)
-    {
-        return std::shared_ptr<ConstantSymbol<T>>(new ConstantSymbol<T>(symbol, value));
-    }
-
     bool is_constant() const override { return true; }
     std::string get_name() const override { return symbol; }
 
 protected:
+    ConstantSymbol(const std::string& symbol, T value) : Value<T>(value), symbol(symbol) { }
+
     ADD_VISITOR(ConstantSymbol<T>)
 
 private:
     std::string symbol;
-
-    ConstantSymbol(const std::string& symbol, T value) : Value<T>(value), symbol(symbol) { }
 };
 
 template<typename T>
-struct Variable : public Value<T>
+struct Variable : public Value<T>, public EnableCreator<Variable<T>>
 {
-    static std::shared_ptr<Variable<T>> create(const std::string& name, T x = 0)
-    {
-        return std::shared_ptr<Variable<T>>(new Variable<T>(name, x));
-    }
-
     void set(T x) override { this->value = x; };
     bool is_constant() const override { return false; }
     std::string get_name() const override { return name; }
 
 protected:
+    Variable(const std::string& name, T x = 0) : Value<T>(x), name(name) { }
+
     ADD_VISITOR(Variable<T>)
     
 private:
     std::string name;
-
-    Variable(const std::string& name, T x) : Value<T>(x), name(name) { }
 };
 
 template<typename T>
-struct ValueVariable : public Value<T>
+struct ValueVariable : public Value<T>, public EnableCreator<ValueVariable<T>>
 {
-    static std::shared_ptr<ValueVariable<T>> create(const std::string& name, T x = 0)
-    {
-        return std::shared_ptr<ValueVariable<T>>(new ValueVariable<T>(name, x));
-    }
-
     void set(T x) override { this->value = x; };
     bool is_constant() const override { return false; }
     std::string get_name() const override { return name; }
 
 protected:
+    ValueVariable(const std::string& name, T x) : Value<T>(x), name(name) { }
+
     ADD_VISITOR(Variable<T>)
 
 private:
-    ValueVariable(const std::string& name, T x) : Value<T>(x), name(name) { }
     std::string name;
 };
 
 template<typename T>
-struct NamedConstant : public Value<T>
+struct NamedConstant : public Value<T>, public EnableCreator<NamedConstant<T>>
 {
-    static std::shared_ptr<NamedConstant<T>> create(const std::string& name, T x = 0)
-    {
-        return std::shared_ptr<NamedConstant<T>>(new NamedConstant<T>(name, x));
-    }
-
     bool is_constant() const override { return true; }
     std::string get_name() const override { return name; }
 
 protected:
+    NamedConstant(const std::string& name, T x) : Value<T>(x), name(name) { }
+
     ADD_VISITOR(NamedConstant<T>)
 
 private:
     std::string name;
-
-    NamedConstant(const std::string& name, T x) : Value<T>(x), name(name) { }
 };
 
 template<typename T>
-struct MutableValue : public Value<T>
+struct MutableValue : public Value<T>, public EnableCreator<MutableValue<T>>
 {
-    static std::shared_ptr<MutableValue<T>> create(T value)
-    {
-        return std::make_shared<MutableValue<T>>(value);
-    }
-
     void set(T x) override { this->value = x; };
     bool is_constant() const override { return false; }
 
 protected:
-    ADD_VISITOR(MutableValue<T>)
-
-private:
     MutableValue(T value) : Value<T>(value) { }
+
+    ADD_VISITOR(MutableValue<T>)
 };
 
 template<typename T>
-struct ConstantValue : public Value<T>
+struct ConstantValue : public Value<T>, public EnableCreator<ConstantValue<T>>
 {
-    static std::shared_ptr<ConstantValue<T>> create(T value)
-    {
-        return std::shared_ptr<ConstantValue<T>>(new ConstantValue(value));
-    }
-
     bool is_constant() const override { return true; }
 
 protected:
-    ADD_VISITOR(ConstantValue<T>)
-
-private:
     ConstantValue(T value) : Value<T>(value) { }
+
+    ADD_VISITOR(ConstantValue<T>)
 };
 
 /* Unary math operation base class */
@@ -255,9 +234,7 @@ struct MathUnaryOp : public MathOp<T>
     std::shared_ptr<MathOp<T>> get_x() const { return x; }
 
 protected:
-    MathUnaryOp(std::shared_ptr<MathOp<T>> x)
-        : x(x)
-    { }
+    MathUnaryOp(std::shared_ptr<MathOp<T>> x) : x(x) { }
 
     std::shared_ptr<MathOp<T>>x;
 };
@@ -286,22 +263,14 @@ protected:
 /* Unary math operations */
 #define DEFINE_UNARY_OP(op_name, operation)                                                     \
 template<typename T>                                                                            \
-struct op_name : public MathUnaryOp<T>                                                          \
+struct op_name : public MathUnaryOp<T>, public EnableCreator<op_name<T>>                        \
 {                                                                                               \
     T result() const override { return (operation); }                                           \
                                                                                                 \
-    static auto create(std::shared_ptr<MathOp<T>> x)                                            \
-    {                                                                                           \
-        return std::shared_ptr<op_name<T>>(new op_name<T>(x));                                  \
-    }                                                                                           \
-                                                                                                \
 protected:                                                                                      \
-    ADD_VISITOR(op_name<T>)                                                                     \
+    op_name(std::shared_ptr<MathOp<T>> x) : MathUnaryOp<T>(x) { }                               \
                                                                                                 \
-private:                                                                                        \
-    op_name(std::shared_ptr<MathOp<T>> x)                                                       \
-        : MathUnaryOp<T>(x)                                                                     \
-    { }                                                                                         \
+    ADD_VISITOR(op_name<T>)                                                                     \
 }
 
 DEFINE_UNARY_OP(Negate,     -this->x->result());
@@ -344,25 +313,19 @@ template<typename T> std::shared_ptr<MathOp<T>> atanh(std::shared_ptr<MathOp<T>>
 /* Binary math operations */
 #define DEFINE_BINARY_OP(op_name, operation, commutative, right_assoc, bodmas)                  \
 template<typename T>                                                                            \
-struct op_name : public MathBinaryOp<T>                                                         \
+struct op_name : public MathBinaryOp<T>, public EnableCreator<op_name<T>>                       \
 {                                                                                               \
     T result() const override { return (operation); }                                           \
-                                                                                                \
-    static auto create(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)            \
-    {                                                                                           \
-        return std::shared_ptr<op_name<T>>(new op_name<T>(lhs, rhs));                           \
-    }                                                                                           \
                                                                                                 \
     bool is_commutative() const override { return commutative; }                                \
     bool right_associative() const override { return right_assoc; }                             \
                                                                                                 \
 protected:                                                                                      \
-    ADD_VISITOR(op_name<T>)                                                                     \
-                                                                                                \
-private:                                                                                        \
     op_name(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)                       \
         : MathBinaryOp<T>(lhs, rhs, bodmas)                                                     \
     { }                                                                                         \
+                                                                                                \
+    ADD_VISITOR(op_name<T>)                                                                     \
 }
 
 DEFINE_BINARY_OP(Pow, pow(this->lhs->result(),  this->rhs->result()), false,  true, Bodmas::Exponents);
