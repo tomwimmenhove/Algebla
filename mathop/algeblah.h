@@ -72,6 +72,11 @@ protected:
     virtual VisitorResult<T> accept(Visitor<T>& visitor) = 0;
 };
 
+#define ADD_VISITOR(name) VisitorResult<T> accept(Visitor<T>& visitor) override     \
+{                                                                                   \
+    return visitor.visit(std::static_pointer_cast<name>(this->shared_from_this())); \
+}
+
 template<typename T>
 struct Container : public MathOp<T>
 {
@@ -92,12 +97,9 @@ struct Container : public MathOp<T>
     void set_inner(std::shared_ptr<MathOp<T>> op) { this->op = op; }
 
 protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Container<T>>(this->shared_from_this()));
-    }
+    ADD_VISITOR(Container<T>)
 
-protected:
+private:
     Container(std::shared_ptr<MathOp<T>> op, std::string name)
         : op(op), name(name)
     { }
@@ -137,10 +139,7 @@ struct ConstantSymbol : public Value<T>
     std::string get_name() const override { return symbol; }
 
 protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ConstantSymbol<T>>(this->shared_from_this()));
-    }
+    ADD_VISITOR(ConstantSymbol<T>)
 
 private:
     std::string symbol;
@@ -161,10 +160,7 @@ struct Variable : public Value<T>
     std::string get_name() const override { return name; }
 
 protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<Variable<T>>(this->shared_from_this()));
-    }
+    ADD_VISITOR(Variable<T>)
     
 private:
     std::string name;
@@ -185,14 +181,10 @@ struct ValueVariable : public Value<T>
     std::string get_name() const override { return name; }
 
 protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ValueVariable<T>>(this->shared_from_this()));
-    }
-
-    ValueVariable(const std::string& name, T x) : Value<T>(x), name(name) { }
+    ADD_VISITOR(Variable<T>)
 
 private:
+    ValueVariable(const std::string& name, T x) : Value<T>(x), name(name) { }
     std::string name;
 };
 
@@ -208,10 +200,7 @@ struct NamedConstant : public Value<T>
     std::string get_name() const override { return name; }
 
 protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<NamedConstant<T>>(this->shared_from_this()));
-    }
+    ADD_VISITOR(NamedConstant<T>)
 
 private:
     std::string name;
@@ -231,10 +220,7 @@ struct MutableValue : public Value<T>
     bool is_constant() const override { return false; }
 
 protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<MutableValue<T>>(this->shared_from_this()));
-    }
+    ADD_VISITOR(MutableValue<T>)
 
 private:
     MutableValue(T value) : Value<T>(value) { }
@@ -251,10 +237,7 @@ struct ConstantValue : public Value<T>
     bool is_constant() const override { return true; }
 
 protected:
-    VisitorResult<T> accept(Visitor<T>& visitor) override
-    {
-        return visitor.visit(std::static_pointer_cast<ConstantValue<T>>(this->shared_from_this()));
-    }
+    ADD_VISITOR(ConstantValue<T>)
 
 private:
     ConstantValue(T value) : Value<T>(value) { }
@@ -313,10 +296,7 @@ struct op_name : public MathUnaryOp<T>                                          
     }                                                                                           \
                                                                                                 \
 protected:                                                                                      \
-    VisitorResult<T> accept(Visitor<T>& visitor) override                                       \
-    {                                                                                           \
-        return visitor.visit(std::static_pointer_cast<op_name<T>>(this->shared_from_this()));   \
-    }                                                                                           \
+    ADD_VISITOR(op_name<T>)                                                                     \
                                                                                                 \
 private:                                                                                        \
     op_name(std::shared_ptr<MathOp<T>> x)                                                       \
@@ -377,10 +357,7 @@ struct op_name : public MathBinaryOp<T>                                         
     bool right_associative() const override { return right_assoc; }                             \
                                                                                                 \
 protected:                                                                                      \
-    VisitorResult<T> accept(Visitor<T>& visitor) override                                       \
-    {                                                                                           \
-        return visitor.visit(std::static_pointer_cast<op_name<T>>(this->shared_from_this()));   \
-    }                                                                                           \
+    ADD_VISITOR(op_name<T>)                                                                     \
                                                                                                 \
 private:                                                                                        \
     op_name(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)                       \
@@ -395,6 +372,8 @@ DEFINE_BINARY_OP(Add,    (this->lhs->result() + this->rhs->result()), true,  fal
 DEFINE_BINARY_OP(Sub,    (this->lhs->result() - this->rhs->result()), false, false, Bodmas::AdditionSubtraction);
 
 #undef DEFINE_BINARY_OP
+
+#undef ADD_VISITOR
 
 } /* namespace MathOps */
 
