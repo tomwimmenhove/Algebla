@@ -273,16 +273,6 @@ void driver::replot()
 
 std::shared_ptr<MathOps::MathOp<number>> driver::assign(const std::string& variable, std::shared_ptr<MathOps::MathOp<number>> op)
 {
-    for(auto lambda: lambdas)
-    {
-        if (MathOps::ContainerCounter<number>::find_first(lambda->get_inner(), variable))
-        {
-            throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
-        }
-    }
-
-    remove_lambda(variable);
-
     auto result = op->result();
 
     /* Special variables */
@@ -325,6 +315,20 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(const std::string& varia
     }
 #endif
 
+    auto l = get_lambda(variable);
+    if (l)
+    {
+        for (auto lambda : lambdas)
+        {
+            if (lambda != l && lambda->transform(MathOps::Finder<number>(l)))
+            {
+                throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
+            }
+        }
+
+        remove(lambdas, l);
+    }
+
     auto v = get_var(variable);
     if (!v)
     {
@@ -348,11 +352,6 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(const std::string
         throw yy::parser::syntax_error(location, "Lambda may not reference a variable with the same name");
     }
 
-    if (MathOps::ContainerCounter<number>::find_first(op, variable))
-    {
-        throw yy::parser::syntax_error(location, "Infinite recursion detected");
-    }
-
     for(auto lambda: lambdas)
     {
         if (MathOps::NamedValueCounter<number>::find_first(lambda, variable))
@@ -361,13 +360,17 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(const std::string
         }
     }
 
-    remove_variable(variable);
-
     auto l = get_lambda(variable);
+    if (l && op->transform(MathOps::Finder<number>(l)))
+    {
+        throw yy::parser::syntax_error(location, "Infinite recursion detected");
+    }
+
+    remove(variables, variable, &MathOps::Variable<number>::get_symbol);
+    
     if (!l)
     {
         l = MathOps::Container<number>::create(op, variable);
-
         lambdas.push_back(l);
 
         return l;
@@ -382,32 +385,23 @@ void driver::unassign(const std::string& name)
 {
     check_reserved(name);
 
+    auto op = find_identifier(name);
+
     /* Check if variable is in use */
     for(auto lambda: lambdas)
     {
-        if (MathOps::NamedValueCounter<number>::find_first(lambda, name))
+        if (lambda->get_inner()->transform(MathOps::Finder<number>(op)))
         {
-            throw yy::parser::syntax_error(location, "Variable " + name + " is in use by lambda " + lambda->get_name() + "\n");
-        }
-
-        if (MathOps::ContainerCounter<number>::find_first(lambda->get_inner(), name))
-        {
-            throw yy::parser::syntax_error(location, "Lambda " + name + " is in use by lambda " + lambda->get_name() + "\n");
+            throw yy::parser::syntax_error(location, name + " is in use by lambda " + lambda->get_name() + "\n");
         }
     }
 
-    remove_variable(name);
-    remove_lambda(name);
-}
+    variables.erase(std::remove(variables.begin(), variables.end(), op), variables.end());
+    lambdas.erase(std::remove(lambdas.begin(), lambdas.end(), op), lambdas.end());
 
-void driver::remove_variable(const std::string& name)
-{
-    remove(variables, name, &MathOps::Variable<number>::get_symbol);
-}
-
-void driver::remove_lambda(const std::string& name)
-{
-    remove(lambdas, name, &MathOps::Container<number>::get_name);
+#ifdef GNUPLOT
+    delete_plot_using(op);
+#endif
 }
 
 #ifdef GNUPLOT

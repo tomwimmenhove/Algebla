@@ -101,10 +101,18 @@ private:
 	    }
 	}
 
+	template <typename U>
+	void remove(std::vector<std::shared_ptr<U>>& from, std::shared_ptr<MathOps::MathOp<number>> op)
+	{
+		from.erase(std::remove(from.begin(), from.end(), op), from.end());
+
+#ifdef GNUPLOT
+		delete_plot_using(op);
+#endif
+	}
+
 	std::shared_ptr<MathOps::Variable<number>> get_var(const std::string& variable);
 	std::shared_ptr<MathOps::Container<number>> get_lambda(const std::string& variable);
-	void remove_variable(const std::string& name);
-	void remove_lambda(const std::string& name);
 	
 #ifdef GNUPLOT
 	void delete_plot_using(std::shared_ptr<MathOps::MathOp<number>> op);
