@@ -50,6 +50,7 @@
                    SOLVE         "solve"
                    PLOT          "plot"
                    REPLOT        "replot"
+                   UNPLOT        "unplot"
                    QUESTION      "?"
                    PRECISION     "precision"
                    DIGITS        "digits"
@@ -82,6 +83,7 @@ entry       : %empty
             | ":""identifier"                 { drv.command($2); }
             | plot
             | "replot"                        { drv.replot(); }
+            | "unplot"                        { drv.unplot(); }
             ;
 
 plot        : "plot" "identifier"             { drv.make_var($2); } 

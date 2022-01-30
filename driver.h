@@ -50,6 +50,7 @@ public:
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args);
 	void replot();
+	void unplot();
 	std::shared_ptr<MathOps::MathOp<number>> find_identifier(const std::string& variable);
 	std::shared_ptr<MathOps::MathOp<number>> assign(const std::string& variable, std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> assign_lambda(const std::string& variable, std::shared_ptr<MathOps::MathOp<number>> op);

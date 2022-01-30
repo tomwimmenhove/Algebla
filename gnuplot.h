@@ -23,7 +23,7 @@ public:
         }
     }
 
-    inline void close() { pclose(pipe); }
+    inline void close() { pclose(pipe); pipe = nullptr; }
     inline bool is_open() { return pipe != nullptr; }
 
     void plot(std::vector<std::shared_ptr<MathOps::MathOp<T>>> equations,

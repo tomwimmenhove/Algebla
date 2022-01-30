@@ -113,18 +113,19 @@ void driver::help()
                  "                                  Example: c = sqrt(a^2 + b^2)\n"
                  "  Lambda assignments           : <lambda name> => <expression>\n"
                  "                                  Example: c => a + b\n"
-                 "  Expanding a lambda:          : expand(<lambda name>)"
+                 "  Expanding a lambda:          : expand(<lambda name>)\n"
                  "                                  Example: c => expand(c)\n"
                  "  Solve for a variable         : solve <variable name>: <expression> = <expession>\n"
                  "                                  Example: solve a: a^2 + b^2 = c^2\n"
-                 "  Convert expression to value  : value(<expression>)"
-                 "                                  Example: some_lambda => 2 * value(anoter_lambda)"
+                 "  Convert expression to value  : value(<expression>)\n"
+                 "                                  Example: some_lambda => 2 * value(anoter_lambda)\n"
 #ifdef GNUPLOT
-                 "  Plot                          : plot <variable name> [, <from>, <to>, <step>]: <expression>, <expression>, ...\n"
+                 "  Plot                         : plot <variable name> [, <from>, <to>, <step>]: <expression>, <expression>, ...\n"
                  "                                  Example: plot x, 0, 2 * %pi: sin(x), cos(x)\n"
+                 "  Close plot (kill gnuplot)    : unplot\n"
 #endif
                  "  Delete a vairable or lambda  : <variable name> =\n"
-                 "                                  Example: a =\n"
+                 "                                 : a =\n"
                  "  Show all assigned variables  : :show\n"
                  "  Clear all assigned variables : :clear\n"
                  "  Help                         : :help\n"
@@ -266,6 +267,20 @@ void driver::replot()
     make_var(plot_variable);
 
     plot(plot_variable, plot_equations, plot_args);
+#else
+    throw yy::parser::syntax_error(location, "Not compiled with support for plotting");
+#endif
+}
+
+void driver::unplot()
+{
+#ifdef GNUPLOT
+    if (!gp.is_open())
+    {
+        throw yy::parser::syntax_error(location, "Gnuplot not running");
+    }
+
+    gp.close();
 #else
     throw yy::parser::syntax_error(location, "Not compiled with support for plotting");
 #endif
