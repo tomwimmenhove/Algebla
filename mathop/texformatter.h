@@ -100,10 +100,20 @@ private:
         bool right_associative = op->right_associative();
         std::stringstream ss;
 
+        if (parenthesize)
+        {
+            ss << '(';
+        }
+
         side_to_stream(ss, op, lhs, right_associative);
         ss << symbol << '{';
         side_to_stream(ss, op, rhs, !right_associative);
         ss << '}';
+
+        if (parenthesize)
+        {
+            ss << ')';
+        }
 
         return ss.str();
     }
