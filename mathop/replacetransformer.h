@@ -264,8 +264,8 @@ struct ReplaceTransformer : DummyTransformer<T>
     }
 
 private:
-    std::shared_ptr<MathOp<T>> subject;
-    std::shared_ptr<MathOp<T>> replacement;
+    const std::shared_ptr<MathOp<T>> subject;
+    const std::shared_ptr<MathOp<T>> replacement;
 };
 
 } /* namespace MathOps */

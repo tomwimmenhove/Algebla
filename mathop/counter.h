@@ -50,7 +50,7 @@ protected:
         : limit(limit)
      { }
 
-    int limit;
+    const int limit;
     std::vector<std::shared_ptr<U>> results;
 
 private:

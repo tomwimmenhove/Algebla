@@ -26,7 +26,7 @@ struct NamedValueCounter : public Counter<T, Value<T>>
     VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return count(op); }
 
 private:
-    std::string symbol;
+    const std::string symbol;
 
     int count(std::shared_ptr<Value<T>> op)
     {

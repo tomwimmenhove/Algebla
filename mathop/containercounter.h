@@ -27,7 +27,7 @@ struct ContainerCounter : public Counter<T, Container<T>>
     }
 
 private:
-    std::string name;
+    const std::string name;
 
     int count(std::shared_ptr<Container<T>> op)
     {

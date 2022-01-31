@@ -53,8 +53,8 @@ private:
      : precision(precision), parenthesize(parenthesize)
     { }
 
-    int precision;
-    bool parenthesize;
+    const int precision;
+    const bool parenthesize;
 
     std::string value_to_string(T x) const
     {

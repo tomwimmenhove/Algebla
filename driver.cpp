@@ -335,7 +335,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign(const std::string& varia
     {
         for (auto lambda : lambdas)
         {
-            if (lambda != l && lambda->transform(MathOps::Finder<number>(l)))
+            if (lambda != l && lambda->count(MathOps::Finder<number>(l)))
             {
                 throw yy::parser::syntax_error(location, variable + " is in use by lambda " + lambda->get_name() + " as a lambda\n");
             }
@@ -376,7 +376,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::assign_lambda(const std::string
     }
 
     auto l = get_lambda(variable);
-    if (l && op->transform(MathOps::Finder<number>(l)))
+    if (l && op->count(MathOps::Finder<number>(l)))
     {
         throw yy::parser::syntax_error(location, "Infinite recursion detected");
     }
@@ -409,7 +409,7 @@ void driver::unassign(const std::string& name)
     /* Check if variable is in use */
     for(auto lambda: lambdas)
     {
-        if (lambda->get_inner()->transform(MathOps::Finder<number>(op)))
+        if (lambda->get_inner()->count(MathOps::Finder<number>(op)))
         {
             throw yy::parser::syntax_error(location, name + " is in use by lambda " + lambda->get_name() + "\n");
         }
@@ -429,7 +429,7 @@ void driver::delete_plot_using(std::shared_ptr<MathOps::MathOp<number>> op)
     auto plot_it = plot_equations.begin();
     while (plot_it != plot_equations.end())
     {
-        if ((*plot_it)->transform(MathOps::Finder<number>(op)))
+        if ((*plot_it)->count(MathOps::Finder<number>(op)))
         {
             plot_it = plot_equations.erase(plot_it);
         }
@@ -441,7 +441,7 @@ void driver::delete_plot_using(std::shared_ptr<MathOps::MathOp<number>> op)
 
     for (auto& arg: plot_args)
     {
-        if (arg->transform(MathOps::Finder<number>(op)))
+        if (arg->count(MathOps::Finder<number>(op)))
         {
             plot_args.clear();
             plot_equations.clear();
