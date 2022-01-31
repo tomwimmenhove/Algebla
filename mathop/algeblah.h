@@ -39,7 +39,7 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     std::string format(Visitor<T>&& visitor) { return format(visitor); }
 
     int count(Visitor<T>& visitor) { return std::get<int>(accept(visitor)); }
-    int count(Visitor<T>&& visitor) { return format(visitor); }
+    int count(Visitor<T>&& visitor) { return count(visitor); }
 
     friend std::shared_ptr<MathOp<T>> operator+(std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
     {
