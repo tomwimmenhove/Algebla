@@ -25,7 +25,7 @@ struct DefaultFormatter : Visitor<T>
 
     VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override { return op->get_name(); }
 
-    VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary_sign(op->get_x(), "-"); }
+    VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return str_unary_sign(op, op->get_x(), "-"); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return str_unary(op->get_x(), "sqrt"); }
     VisitorResult<T> visit(std::shared_ptr<Log<T>> op) override { return str_unary(op->get_x(), "log"); }
     VisitorResult<T> visit(std::shared_ptr<Log10<T>> op) override { return str_unary(op->get_x(), "log10"); }
@@ -97,29 +97,30 @@ private:
         ss << side->format(DefaultFormatter(precision, use_parens));
     }
 
-    std::string str_unary_sign(std::shared_ptr<MathOp<T>> x, std::string symbol)
+    std::string str_unary_sign(std::shared_ptr<MathOp<T>> op,
+        std::shared_ptr<MathOp<T>> x, std::string symbol)
     {
         std::stringstream ss;
 
-        if (x->is_single())
-        {
-            ss << symbol << x->format(*this);
-        }
-        else
-        {
-            ss << symbol << '(' << x->format(*this) << ')';            
-        }
-        
+        // if (parenthesize)
+        // {
+        //     ss << '(';
+        // }
+
+        ss << symbol;
+        side_to_stream(ss, op, x, true);
+
+        // if (parenthesize)
+        // {
+        //     ss << ')';
+        // }
+
         return ss.str();
     }
 
     std::string str_unary(std::shared_ptr<MathOp<T>> x, std::string symbol)
     {
-        std::stringstream ss;
-
-        ss << symbol << '(' << x->format(*this) << ')';            
-        
-        return ss.str();
+        return symbol + "(" + x->format(*this) + ")";            
     }
 };
 

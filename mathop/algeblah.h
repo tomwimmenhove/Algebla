@@ -226,17 +226,17 @@ protected:
 template<typename T>
 struct MathUnaryOp : public MathOp<T>
 {
-    Bodmas precedence() const override { return Bodmas::Parentheses; }
+    Bodmas precedence() const override { return prec; }
     bool is_single() const override { return true; }
-    bool is_commutative() const override { return true; }
     bool is_constant() const override { return false; }
 
     std::shared_ptr<MathOp<T>> get_x() const { return x; }
 
 protected:
-    MathUnaryOp(std::shared_ptr<MathOp<T>> x) : x(x) { }
+    MathUnaryOp(std::shared_ptr<MathOp<T>> x, Bodmas precedence) : x(x), prec(precedence) { }
 
     std::shared_ptr<MathOp<T>>x;
+    Bodmas prec;
 };
 
 /* Binary math operation base class */
@@ -261,34 +261,37 @@ protected:
 };
 
 /* Unary math operations */
-#define DEFINE_UNARY_OP(op_name, operation)                                                     \
-template<typename T>                                                                            \
-struct op_name : public MathUnaryOp<T>, public EnableCreator<op_name<T>>                        \
-{                                                                                               \
-    T result() const override { return (operation); }                                           \
-                                                                                                \
-protected:                                                                                      \
-    op_name(std::shared_ptr<MathOp<T>> x) : MathUnaryOp<T>(x) { }                               \
-                                                                                                \
-    ADD_VISITOR(op_name<T>)                                                                     \
+#define DEFINE_UNARY_OP(op_name, operation, commutative, bodmas)         \
+template<typename T>                                                     \
+struct op_name : public MathUnaryOp<T>, public EnableCreator<op_name<T>> \
+{                                                                        \
+    T result() const override { return (operation); }                    \
+    bool is_commutative() const override { return commutative; }         \
+                                                                         \
+protected:                                                               \
+    op_name(std::shared_ptr<MathOp<T>> x)                                \
+        : MathUnaryOp<T>(x, bodmas)                                      \
+    { }                                                                  \
+                                                                         \
+    ADD_VISITOR(op_name<T>)                                              \
 }
 
-DEFINE_UNARY_OP(Negate,     -this->x->result());
-DEFINE_UNARY_OP(Sqrt,  sqrt (this->x->result()));
-DEFINE_UNARY_OP(Log,   log  (this->x->result()));
-DEFINE_UNARY_OP(Log10, log10(this->x->result()));
-DEFINE_UNARY_OP(Sin,   sin  (this->x->result()));
-DEFINE_UNARY_OP(Cos,   cos  (this->x->result()));
-DEFINE_UNARY_OP(Tan,   tan  (this->x->result()));
-DEFINE_UNARY_OP(ASin,  asin (this->x->result()));
-DEFINE_UNARY_OP(ACos,  acos (this->x->result()));
-DEFINE_UNARY_OP(ATan,  atan (this->x->result()));
-DEFINE_UNARY_OP(Sinh,  sinh (this->x->result()));
-DEFINE_UNARY_OP(Cosh,  cosh (this->x->result()));
-DEFINE_UNARY_OP(Tanh,  tanh (this->x->result()));
-DEFINE_UNARY_OP(ASinh, asinh(this->x->result()));
-DEFINE_UNARY_OP(ACosh, acosh(this->x->result()));
-DEFINE_UNARY_OP(ATanh, atanh(this->x->result()));
+DEFINE_UNARY_OP(Negate,     -this->x->result(),  false, Bodmas::AdditionSubtraction);
+DEFINE_UNARY_OP(Sqrt,  sqrt (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Log,   log  (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Log10, log10(this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Sin,   sin  (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Cos,   cos  (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Tan,   tan  (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(ASin,  asin (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(ACos,  acos (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(ATan,  atan (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Sinh,  sinh (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Cosh,  cosh (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(Tanh,  tanh (this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(ASinh, asinh(this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(ACosh, acosh(this->x->result()), true,  Bodmas::Parentheses);
+DEFINE_UNARY_OP(ATanh, atanh(this->x->result()), true,  Bodmas::Parentheses);
 
 #undef DEFINE_UNARY_OP
 
@@ -311,21 +314,21 @@ template<typename T> std::shared_ptr<MathOp<T>> tanh(std::shared_ptr<MathOp<T>> 
 template<typename T> std::shared_ptr<MathOp<T>> atanh(std::shared_ptr<MathOp<T>> x)  { return ATanh<T>::create(x); }
 
 /* Binary math operations */
-#define DEFINE_BINARY_OP(op_name, operation, commutative, right_assoc, bodmas)                  \
-template<typename T>                                                                            \
-struct op_name : public MathBinaryOp<T>, public EnableCreator<op_name<T>>                       \
-{                                                                                               \
-    T result() const override { return (operation); }                                           \
-                                                                                                \
-    bool is_commutative() const override { return commutative; }                                \
-    bool right_associative() const override { return right_assoc; }                             \
-                                                                                                \
-protected:                                                                                      \
-    op_name(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)                       \
-        : MathBinaryOp<T>(lhs, rhs, bodmas)                                                     \
-    { }                                                                                         \
-                                                                                                \
-    ADD_VISITOR(op_name<T>)                                                                     \
+#define DEFINE_BINARY_OP(op_name, operation, commutative, right_assoc, bodmas) \
+template<typename T>                                                           \
+struct op_name : public MathBinaryOp<T>, public EnableCreator<op_name<T>>      \
+{                                                                              \
+    T result() const override { return (operation); }                          \
+                                                                               \
+    bool is_commutative() const override { return commutative; }               \
+    bool right_associative() const override { return right_assoc; }            \
+                                                                               \
+protected:                                                                     \
+    op_name(std::shared_ptr<MathOp<T>>lhs, std::shared_ptr<MathOp<T>>rhs)      \
+        : MathBinaryOp<T>(lhs, rhs, bodmas)                                    \
+    { }                                                                        \
+                                                                               \
+    ADD_VISITOR(op_name<T>)                                                    \
 }
 
 DEFINE_BINARY_OP(Pow, pow(this->lhs->result(),  this->rhs->result()), false,  true, Bodmas::Exponents);
