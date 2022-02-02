@@ -11,6 +11,7 @@
   #include <iostream>
   #include <vector>
   #include <memory>
+  #include <cmath>
   #include "../defaulthelper.h"
   #include "../mathop/algeblah.h"
   #include "../config.h"
@@ -115,7 +116,10 @@ expression  : "number"                        { $$ = MathOps::ConstantValue<numb
             | "%""identifier"                 { $$ = drv.get_constant($2); }
             | "identifier"                    { $$ = drv.find_identifier($1); }
             | "solve" "identifier"            { drv.make_var($2); } 
-              ":" expression "=" expression   { $$ = drv.solve($5, $7, $2); }
+              ":" expression "=" expression   { $$ = drv.solve($5, $7, $2, -1); }
+            | "solve" "identifier"            { drv.make_var($2); } 
+              "," "number" ":" expression
+              "=" expression                  { $$ = drv.solve($7, $9, $2, $5); }
             | expression "+" expression       { $$ = $1 + $3; }
             | expression "-" expression       { $$ = $1 - $3; }
             | expression "*" expression       { $$ = $1 * $3; }

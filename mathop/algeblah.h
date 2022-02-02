@@ -35,6 +35,9 @@ struct MathOp : public std::enable_shared_from_this<MathOp<T>>
     std::shared_ptr<MathOp<T>> transform(Visitor<T>& visitor) { return std::get<std::shared_ptr<MathOp<T>>>(accept(visitor)); }
     std::shared_ptr<MathOp<T>> transform(Visitor<T>&& visitor) { return transform(visitor); }
 
+    std::vector<std::shared_ptr<MathOp<T>>> multi_transform(Visitor<T>& visitor) { return std::get<std::vector<std::shared_ptr<MathOp<T>>>>(accept(visitor)); }
+    std::vector<std::shared_ptr<MathOp<T>>> multi_transform(Visitor<T>&& visitor) { return multi_transform(visitor); }
+
     std::string format(Visitor<T>& visitor) { return std::get<std::string>(accept(visitor)); }
     std::string format(Visitor<T>&& visitor) { return format(visitor); }
 

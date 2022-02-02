@@ -46,7 +46,7 @@ public:
 
 	void result(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::shared_ptr<MathOps::MathOp<number>> solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
-    	std::shared_ptr<MathOps::MathOp<number>> rhs, const std::string& variable);
+    	std::shared_ptr<MathOps::MathOp<number>> rhs, const std::string& variable, number index);
 	void plot(const std::string& variable,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> equations,
 		std::vector<std::shared_ptr<MathOps::MathOp<number>>> args);

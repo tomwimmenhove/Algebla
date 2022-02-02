@@ -172,13 +172,23 @@ void driver::warranty()
                  "\n";
 }
 
+//#include "mathop/reversemultitransformer.h"
+#include "mathop/rearrangetmultiransformer.h"
+
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
-                                              std::shared_ptr<MathOps::MathOp<number>> rhs, const std::string& variable)
+                                              std::shared_ptr<MathOps::MathOp<number>> rhs,
+                                              const std::string& variable, number index)
 {
     MathOps::NamedValueCounter<number> counter(variable);
     int left_count = lhs->count(counter);
     rhs->count(counter);
     auto& variables = counter.get_results();
+
+    number intergral;
+    if (MathOps::modf(index, intergral) != 0)
+    {
+        throw yy::parser::syntax_error(location, "Index should be an integer value");        
+    }
 
     if (variables.size() == 0)
     {
@@ -196,11 +206,37 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
 
     auto solve_variable = variables[0];
 
-    auto solved = solve_side->transform(MathOps::MathOpRearrangeTransformer<number>(solve_variable, result_side));
+    auto solutions = solve_side->multi_transform(MathOps::RearrangeMultiTransformer<number>(solve_variable, result_side));
+    if (solutions.size() == 0)
+    {
+        throw yy::parser::syntax_error(location, "No solutions found");
+    }
 
-    solve_variable->set(solved->result());
+    size_t idx = 0;
+    if (index != -1)
+    {
+        idx = (size_t) index;
+        if (idx >= solutions.size())
+        {
+            throw yy::parser::syntax_error(location, "Solution " + std::to_string(idx) + " does not exist");
+        }
+    }
+    else if (solutions.size() > 1)
+    {
+        MathOps::DefaultFormatter<number> formatter((int) digits->result());
+        std::cout << "WARNING: Multiple solutions for " << variable << ": "
+                  << lhs->format(formatter) << " = "
+                  << rhs->format(formatter) << ":\n";
+        for (size_t i = 0; i < solutions.size(); i++)
+        {
+            std::cout << "         " << i << ": " << variable << " = " << solutions[i]->format(formatter) << '\n';
+        }
+        std::cout << "         Selecting solution 0. (Use \"solve " << variable << ", <index>: ...\" to override)\n";
+    }
 
-    return solved;
+    solve_variable->set(solutions[idx]->result());
+
+    return solutions[idx];
 }
 
 void driver::plot(const std::string& variable,

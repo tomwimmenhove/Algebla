@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <variant>
+#include <vector>
 
 namespace MathOps
 {
@@ -41,7 +42,12 @@ template<typename T> struct Add;
 template<typename T> struct Sub;
 
 template <typename T>
-using VisitorResult = std::variant<int, std::string, std::shared_ptr<MathOp<T>>>;
+using VisitorResult = std::variant<
+    int,
+    std::string,
+    std::shared_ptr<MathOp<T>>,
+    std::vector<std::shared_ptr<MathOp<T>>>
+    >;
 
 template<typename T>
 struct Visitor
