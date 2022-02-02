@@ -204,6 +204,12 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     auto solve_variable = variables[0];
 
     auto solutions = solve_side->multi_transform(MathOps::RearrangeTransformer<number>(solve_variable, result_side));
+
+    /* Remove non-viable solutions */
+    solutions.erase(std::remove_if(solutions.begin(), solutions.end(), [](auto& x) { 
+        return isnan(x->result());
+    }), solutions.end());
+
     if (solutions.size() == 0)
     {
         throw yy::parser::syntax_error(location, "No solutions found");
