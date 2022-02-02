@@ -172,9 +172,6 @@ void driver::warranty()
                  "\n";
 }
 
-//#include "mathop/reversemultitransformer.h"
-#include "mathop/rearrangetmultiransformer.h"
-
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
                                               std::shared_ptr<MathOps::MathOp<number>> rhs,
                                               const std::string& variable, number index)
@@ -206,7 +203,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
 
     auto solve_variable = variables[0];
 
-    auto solutions = solve_side->multi_transform(MathOps::RearrangeMultiTransformer<number>(solve_variable, result_side));
+    auto solutions = solve_side->multi_transform(MathOps::RearrangeTransformer<number>(solve_variable, result_side));
     if (solutions.size() == 0)
     {
         throw yy::parser::syntax_error(location, "No solutions found");

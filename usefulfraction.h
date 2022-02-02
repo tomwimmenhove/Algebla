@@ -6,6 +6,9 @@
 #include "mathop/defaultformatter.h"
 #include "mathop/replacetransformer.h"
 #include "mathop/removenooptransformer.h"
+#include "mathop/rearrangetransformer.h"
+
+#include <cassert>
 
 template <typename T>
 struct Fraction
@@ -80,8 +83,9 @@ Fraction<T> solver(std::shared_ptr<MathOps::MathOp<T>> y, std::shared_ptr<MathOp
 {
     auto result = MathOps::ConstantValue<T>::create(value);
 
-    auto solved = y->transform(MathOps::MathOpRearrangeTransformer<T>(numerator, result));
-    auto fraction = Fraction<T>::find(solved->result(), max_error, iters);
+    auto solved = y->multi_transform(MathOps::RearrangeTransformer<T>(numerator, result));
+    assert(solved.size() == 1);
+    auto fraction = Fraction<T>::find(solved[0]->result(), max_error, iters);
 
     return fraction;
 }

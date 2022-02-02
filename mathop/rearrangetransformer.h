@@ -8,20 +8,20 @@ namespace MathOps
 {
 
 template <typename T>
-struct MathOpRearrangeTransformer : public Visitor<T>
+struct RearrangeTransformer : public Visitor<T>
 {
-    MathOpRearrangeTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from)
+    RearrangeTransformer(std::shared_ptr<MathOp<T>> solve_for, std::shared_ptr<MathOp<T>> from)
         : solve_for(solve_for), from(from)
     { }
 
-    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return op == solve_for ? from : nullptr; }
-    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return op == solve_for ? from : nullptr; }
-    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return op == solve_for ? from : nullptr; }
-    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return op == solve_for ? from : nullptr; }
-    VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return op == solve_for ? from : nullptr; }
-    VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return op == solve_for ? from : nullptr; }
+    VisitorResult<T> visit(std::shared_ptr<ConstantSymbol<T>> op) override { return solve_for_single(op); }
+    VisitorResult<T> visit(std::shared_ptr<Variable<T>> op) override { return solve_for_single(op); }
+    VisitorResult<T> visit(std::shared_ptr<ValueVariable<T>> op) override { return solve_for_single(op); }
+    VisitorResult<T> visit(std::shared_ptr<NamedConstant<T>> op) override { return solve_for_single(op); }
+    VisitorResult<T> visit(std::shared_ptr<MutableValue<T>> op) override { return solve_for_single(op); }
+    VisitorResult<T> visit(std::shared_ptr<ConstantValue<T>> op) override { return solve_for_single(op); }
 
-    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override { return op->get_inner()->transform(*this); }
+    VisitorResult<T> visit(std::shared_ptr<Container<T>> op) override { return op->get_inner()->multi_transform(*this); }
 
     VisitorResult<T> visit(std::shared_ptr<Negate<T>> op) override { return solve_for_unary(op, op->get_x()); }
     VisitorResult<T> visit(std::shared_ptr<Sqrt<T>> op) override { return solve_for_unary(op, op->get_x()); }
@@ -50,29 +50,45 @@ private:
     const std::shared_ptr<MathOp<T>> solve_for;
     const std::shared_ptr<MathOp<T>> from;
 
-    std::shared_ptr<MathOp<T>>solve_for_unary(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> x)
+    std::vector<std::shared_ptr<MathOp<T>>> solve_for_single(std::shared_ptr<MathOp<T>> op)
     {
-        auto from_x = op->transform(ReverseTransformer<T>(x, from));
-        auto result = x->transform(MathOpRearrangeTransformer<T>(solve_for, from_x));
-
-        return result;
+        return op == solve_for
+            ? std::vector<std::shared_ptr<MathOp<T>>> { from }
+            : std::vector<std::shared_ptr<MathOp<T>>> { };
     }
 
-    std::shared_ptr<MathOp<T>>solve_for_binary(std::shared_ptr<MathOp<T>> op,
-        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
+    std::vector<std::shared_ptr<MathOp<T>>> solve_for_unary(std::shared_ptr<MathOp<T>> op, std::shared_ptr<MathOp<T>> x)
     {
-        auto from_lhs = op->transform(ReverseTransformer<T>(lhs, from));
-        auto solved_lhs = lhs->transform(MathOpRearrangeTransformer<T>(solve_for, from_lhs));
-
-        if (solved_lhs != nullptr)
+        std::vector<std::shared_ptr<MathOp<T>>> solutions;
+        auto from_x_results = op->multi_transform(ReverseTransformer<T>(x, from));
+        for(auto& from_x: from_x_results)
         {
-            return solved_lhs;
+            auto r = x->multi_transform(RearrangeTransformer<T>(solve_for, from_x));
+            solutions.insert(solutions.end(), r.begin(), r.end());
         }
 
-        auto from_rhs = op->transform(ReverseTransformer<T>(rhs, from));
-        auto solved_rhs = rhs->transform(MathOpRearrangeTransformer<T>(solve_for, from_rhs));
+        return solutions;
+    }
 
-        return solved_rhs;
+    std::vector<std::shared_ptr<MathOp<T>>> solve_for_binary(std::shared_ptr<MathOp<T>> op,
+        std::shared_ptr<MathOp<T>> lhs, std::shared_ptr<MathOp<T>> rhs)
+    {
+        std::vector<std::shared_ptr<MathOp<T>>> solutions;
+        auto from_lhs_results = op->multi_transform(ReverseTransformer<T>(lhs, from));
+        for(auto& from_lhs: from_lhs_results)
+        {
+            auto r = lhs->multi_transform(RearrangeTransformer<T>(solve_for, from_lhs));
+            solutions.insert(solutions.end(), r.begin(), r.end());
+        }
+
+        auto from_rhs_results = op->multi_transform(ReverseTransformer<T>(rhs, from));
+        for(auto& from_rhs: from_rhs_results)
+        {
+            auto r = rhs->multi_transform(RearrangeTransformer<T>(solve_for, from_rhs));
+            solutions.insert(solutions.end(), r.begin(), r.end());
+        }
+
+        return solutions;
     }
 };
 
