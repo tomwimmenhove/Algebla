@@ -10,7 +10,7 @@
 #include "driver.h"
 #include "parser.h"
 #include "mathop/containercounter.h"
-#include "mathop/rearrangetransformer.h"
+#include "mathop/rearrangemultitransformer.h"
 #include "mathop/expandtransformer.h"
 #include "mathop/namedvaluecounter.h"
 #include "mathop/defaultformatter.h"
@@ -203,7 +203,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
 
     auto solve_variable = variables[0];
 
-    auto solutions = solve_side->multi_transform(MathOps::RearrangeTransformer<number>(solve_variable, result_side));
+    auto solutions = solve_side->multi_transform(MathOps::RearrangeMultiTransformer<number>(solve_variable, result_side));
 
     /* Remove non-viable solutions */
     solutions.erase(std::remove_if(solutions.begin(), solutions.end(), [](auto& x) { 

@@ -6,7 +6,7 @@
 #include "mathop/defaultformatter.h"
 #include "mathop/replacetransformer.h"
 #include "mathop/removenooptransformer.h"
-#include "mathop/rearrangetransformer.h"
+#include "mathop/rearrangemultitransformer.h"
 
 #include <cassert>
 
@@ -83,7 +83,7 @@ Fraction<T> solver(std::shared_ptr<MathOps::MathOp<T>> y, std::shared_ptr<MathOp
 {
     auto result = MathOps::ConstantValue<T>::create(value);
 
-    auto solved = y->multi_transform(MathOps::RearrangeTransformer<T>(numerator, result));
+    auto solved = y->multi_transform(MathOps::RearrangeMultiTransformer<T>(numerator, result));
     assert(solved.size() == 1);
     auto fraction = Fraction<T>::find(solved[0]->result(), max_error, iters);
 

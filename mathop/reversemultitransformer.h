@@ -1,5 +1,5 @@
-#ifndef REVERSETRANSFORMER_H
-#define REVERSETRANSFORMER_H
+#ifndef REVERSEMULTITRANSFORMER_H
+#define REVERSEMULTITRANSFORMER_H
 
 #include "algeblah.h"
 #include "constants.h"
@@ -8,9 +8,9 @@ namespace MathOps
 {
 
 template <typename T>
-struct ReverseTransformer : public Visitor<T>
+struct ReverseMultiTransformer : public Visitor<T>
 {
-    ReverseTransformer(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from)
+    ReverseMultiTransformer(std::shared_ptr<MathOp<T>> for_side, std::shared_ptr<MathOp<T>>from)
         : for_side(for_side), from(from)
     { }
 
@@ -207,4 +207,4 @@ private:
 
 } /* namespace MathOps */
 
-#endif /* REVERSETRANSFORMER_H */
+#endif /* REVERSEMULTITRANSFORMER_H */
