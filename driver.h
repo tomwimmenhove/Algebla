@@ -72,6 +72,11 @@ private:
 	void help();
 	void warranty();
 
+	std::vector<std::shared_ptr<MathOps::MathOp<number>>> find_solutions(
+		std::shared_ptr<MathOps::MathOp<number>> lhs,
+		std::shared_ptr<MathOps::MathOp<number>> rhs,
+		const std::shared_ptr<MathOps::Value<number>> &solve_for,
+		bool solve_from_left);
 	void check_reserved(const std::string& variable);
 	std::string format(std::shared_ptr<MathOps::MathOp<number>> op);
 	std::string result_string(std::shared_ptr<MathOps::MathOp<number>> op, number result);

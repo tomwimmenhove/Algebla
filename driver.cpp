@@ -172,6 +172,25 @@ void driver::warranty()
                  "\n";
 }
 
+std::vector<std::shared_ptr<MathOps::MathOp<number>>> driver::find_solutions(
+    std::shared_ptr<MathOps::MathOp<number>> lhs,
+    std::shared_ptr<MathOps::MathOp<number>> rhs,
+    const std::shared_ptr<MathOps::Value<number>> &solve_for,
+    bool solve_from_left)
+{
+    // XXX: Should we always expand the entire tree before solving?
+    auto solve_side  = (solve_from_left ? lhs : rhs)->transform(MathOps::ExpandTransformer<number>());
+    auto result_side = (solve_from_left ? rhs : lhs)->transform(MathOps::ExpandTransformer<number>());
+    auto solutions = solve_side->multi_transform(MathOps::RearrangeMultiTransformer<number>(solve_for, result_side));
+
+    /* Remove non-viable solutions */
+    solutions.erase(std::remove_if(solutions.begin(), solutions.end(), [](auto& x) { 
+        return isnan(x->result());
+    }), solutions.end());
+
+    return solutions;
+}
+
 std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::MathOp<number>> lhs,
                                               std::shared_ptr<MathOps::MathOp<number>> rhs,
                                               const std::string& variable, number index)
@@ -181,8 +200,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
     rhs->count(counter);
     auto& variables = counter.get_results();
 
-    number intergral;
-    if (MathOps::modf(index, intergral) != 0)
+    if ((int) index != index)
     {
         throw yy::parser::syntax_error(location, "Index should be an integer value");        
     }
@@ -197,29 +215,16 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
         throw yy::parser::syntax_error(location, "variable " + variable + " appears more than once");        
     }
 
-    // XXX: Should we always expand the entire tree before solving?
-    auto solve_side  = (left_count ? lhs : rhs)->transform(MathOps::ExpandTransformer<number>());
-    auto result_side = (left_count ? rhs : lhs)->transform(MathOps::ExpandTransformer<number>());
-
-    auto solve_variable = variables[0];
-
-    auto solutions = solve_side->multi_transform(MathOps::RearrangeMultiTransformer<number>(solve_variable, result_side));
-
-    /* Remove non-viable solutions */
-    solutions.erase(std::remove_if(solutions.begin(), solutions.end(), [](auto& x) { 
-        return isnan(x->result());
-    }), solutions.end());
-
+    auto solutions = find_solutions(lhs, rhs, variables[0], left_count > 0);
     if (solutions.size() == 0)
     {
         throw yy::parser::syntax_error(location, "No solutions found");
     }
 
-    size_t idx = 0;
+    int idx = index != -1 ? (int) index : 0;
     if (index != -1)
     {
-        idx = (size_t) index;
-        if (idx >= solutions.size())
+        if (idx >= (int) solutions.size())
         {
             throw yy::parser::syntax_error(location, "Solution " + std::to_string(idx) + " does not exist");
         }
@@ -237,7 +242,7 @@ std::shared_ptr<MathOps::MathOp<number>> driver::solve(std::shared_ptr<MathOps::
         std::cout << "         Selecting solution 0. (Use \"solve " << variable << ", <index>: ...\" to override)\n";
     }
 
-    solve_variable->set(solutions[idx]->result());
+    variables[0]->set(solutions[idx]->result());
 
     return solutions[idx];
 }
