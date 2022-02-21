@@ -102,8 +102,19 @@ private:
     {
         std::stringstream ss;
 
+        if (parenthesize)
+        {
+            ss << '(';
+        }
+
         ss << symbol;
+
         side_to_stream(ss, op, x, true);
+
+        if (parenthesize)
+        {
+            ss << ')';
+        }
 
         return ss.str();
     }
