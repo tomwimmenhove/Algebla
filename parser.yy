@@ -53,6 +53,7 @@
                    REPLOT        "replot"
                    UNPLOT        "unplot"
                    QUESTION      "?"
+                   COMMENT       "comment"
                    PRECISION     "precision"
                    DIGITS        "digits"
     <number>       NUMBER        "number"
@@ -74,8 +75,12 @@
 %%
 %start entries;
 
-entries     : entry
-            | entries ";" entry
+entries     : entry optcomment
+            | entries ";" entry optcomment
+            ;
+
+optcomment  : %empty
+            | "comment"
             ;
 
 entry       : %empty

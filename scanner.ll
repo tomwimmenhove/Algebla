@@ -26,6 +26,7 @@
 
 id       [a-zA-Z][a-zA-Z_0-9]*
 number   ([0-9]+[.]?[0-9]*|\.[0-9]+)([eE][-+]?[0-9]+)?
+comment  #.*
 blank    [ \t]
 
 %{
@@ -74,6 +75,7 @@ blank    [ \t]
 		}
 
 {id}       return yy::parser::make_IDENTIFIER (yytext, loc);
+{comment}  return yy::parser::make_COMMENT (loc);
 
 .		{
 			throw yy::parser::syntax_error
